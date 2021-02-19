@@ -1,81 +1,90 @@
-#' @title exportData: Export Access tables in global enviroment to .csv
+#' @title exportCSV: Export SQL views to .csv
 #'
-#' @description This function exports database tables to .csv that were imported using importData.These
-#' .csv files can then be imported via importCSV. This function is mostly for internal use to create flat
-#' files for users to use the functions in this package without having to epenend on an odbc driver
-#' to import and query MIDN data. This is particularly useful for iOS users and those without MS Access installed.
+#' @description This function either exports database views to individual .csv files, or exports them as a zip file
+#' with the database name (MIDN_Forest), and the date it was zipped. The exported .csv files can then be imported
+#' via importCSV. This function is primarily for internal use to create flat files that users can import to run
+#' functions in this package without having a connection to the database server. This is particularly useful for external
+#' users who don't have access to NPS servers.
 #'
-#' @param path Quoted path to save files to.
+#' @param path Quoted path to save files to. If not specified, will save to working directory.
+#'
+#' @param zip Logical. If TRUE, exports a zip file. If FALSE (Default), exports individual csvs.
+#'
+#' @examples
+#' # RUN FIRST
+#' library(forestMIDN)
+#' importData()
+#'
+#' # Export csvs to working directory
+#' exportCSV()
+#'
+#' # Export a zip to the path specified
+#' exportCSV(path = "C:/Forest_Health/exports/MIDN", zip = TRUE)
+#'
+#' # Export views as .csvs to working directory
+#' exportCSV()
 #'
 #' @export
 
-exportCSV<- function(path=NA){
-  path<-if(substr(path,nchar(path),nchar(path))!="/"){paste0(path,"/")} else(paste0(path))
-  pb = txtProgressBar(min = 0, max = 23, style = 3)
-  write.csv(loc, paste0(path,"tbl_Locations.csv"), row.names=F)
-  setTxtProgressBar(pb,1)
-  write.csv(parknames, paste0(path,"tlu_Park_Names.csv"), row.names=F)
-  setTxtProgressBar(pb,2)
-  write.csv(event, paste0(path,"tbl_Events.csv"), row.names=F)
-  setTxtProgressBar(pb,3)
-  write.csv(treedata, paste0(path,"tbl_Tree_Data.csv"), row.names=F)
-  setTxtProgressBar(pb,4)
-  write.csv(trees, paste0(path,"tbl_Trees.csv"), row.names=F)
-  setTxtProgressBar(pb,5)
-  write.csv(treecond, paste0(path,"tlu_Tree_Conditions.csv"), row.names=F)
-  setTxtProgressBar(pb,6)
-  write.csv(xrtreecond, paste0(path,"xref_Tree_Conditions.csv"), row.names=F)
-  setTxtProgressBar(pb,7)
-  write.csv(cwd, paste0(path,"tbl_CWD_Transect_Data.csv"), row.names=F)
-  setTxtProgressBar(pb,8)
-  write.csv(plants, paste0(path,"tlu_Plants.csv"), row.names=F)
-  setTxtProgressBar(pb,9)
-  write.csv(saps, paste0(path,"tbl_Microplot_Sapling_Data_MIDN.csv"), row.names=F)
-  setTxtProgressBar(pb,10)
-  write.csv(micro, paste0(path,"tbl_Microplot_Characterization_Data.csv"), row.names=F)
-  setTxtProgressBar(pb,11)
-  write.csv(sdlg, paste0(path,"tbl_Quadrat_Seedling_Data.csv"), row.names=F)
-  setTxtProgressBar(pb,12)
-  write.csv(shrub, paste0(path,"tbl_Microplot_Shrub_Data.csv"), row.names=F)
-  setTxtProgressBar(pb,13)
-  write.csv(quadsamp, paste0(path,"tbl_Quadrat_Sampled.csv"), row.names=F)
-  setTxtProgressBar(pb,14)
-  write.csv(quadchr, paste0(path,"tbl_Quadrat_Character_Data.csv"), row.names=F)
-  setTxtProgressBar(pb,15)
-  write.csv(quadchrtlu, paste0(path,"tlu_Quadrats.csv"), row.names=F)
-  setTxtProgressBar(pb,16)
-  write.csv(quads, paste0(path,"tbl_Quadrat_Species_Data.csv"), row.names=F)
-  setTxtProgressBar(pb,17)
-  write.csv(addspp, paste0(path,"tbl_Plot_Additional_Species.csv"))
-  setTxtProgressBar(pb,18)
-  write.csv(stand, paste0(path,"tbl_Stand_Data.csv"), row.names=F)
-  setTxtProgressBar(pb,19)
-  write.csv(stdtlu, paste0(path,"tlu_Stand_Structures.csv"), row.names=F)
-  setTxtProgressBar(pb,20)
-  write.csv(disturb, paste0(path,"tbl_Disturbances.csv"), row.names=F)
-  setTxtProgressBar(pb,21)
-  write.csv(disttlu, paste0(path,"tlu_Disturbance_Codes.csv"), row.names=F)
-  setTxtProgressBar(pb,22)
-  write.csv(disttlutc, paste0(path,"tlu_Disturbance_Threshhold_Codes.csv"), row.names=F)
-  setTxtProgressBar(pb,23)
-  write.csv(soildata, paste0(path,"tbl_Soil_Data.csv"), row.names=F)
-  setTxtProgressBar(pb,24)
-  write.csv(soillab, paste0(path, "tbl_Soil_Data_Lab.csv"), row.names=F)
-  setTxtProgressBar(pb,25)
-  write.csv(soilsamp, paste0(path,"tbl_Soil_Sample_Data.csv"), row.names=F)
-  setTxtProgressBar(pb,26)
-  write.csv(metaevent, paste0(path,"tbl_Meta_Events.csv"), row.names=F)
-  setTxtProgressBar(pb,27)
-  write.csv(metaloc, paste0(path,"tbl_Meta_Locations.csv"), row.names=F)
-  setTxtProgressBar(pb,28)
-  write.csv(quadnotes, paste0(path,"tbl_Quadrat_Notes.csv"), row.names=F)
-  setTxtProgressBar(pb,29)
-  write.csv(treecore, paste0(path,"tbl_Tree_Core.csv"), row.names=F)
-  setTxtProgressBar(pb,30)
-  write.csv(xrfolcond, paste0(path,"xref_Foliage_Conditions.csv"), row.names=F)
-  setTxtProgressBar(pb,31)
+exportCSV<- function(path = NA, zip = FALSE){
+
+  # Check that suggested package required for this function are installed
+  if(!requireNamespace("zip", quietly = TRUE) && zip == TRUE){
+    stop("Package 'zip' needed to export to zip file. Please install it.", call. = FALSE)
+  }
+
+  # Error handling for path
+  if(is.na(path)){path <- getwd()
+  print(paste0("No path specified. Output saved to working directory: ", getwd()), quote = FALSE)
+  } else if(!dir.exists(path)){
+    stop("Specified directory does not exist.")}
+  else{print(paste0("Output saved to ", path), quote = FALSE)}
+
+  # Add / to end of path if it wasn't specified.
+  path <- if(substr(path,nchar(path),nchar(path))!="/"){paste0(path,"/")} else {(paste0(path))}
+
+  # File export. Look for VIEWS_MIDN env first. If doesn't exist, look for tables in glob.env.
+  if(exists("VIEWS_MIDN")){
+    view_list <- names(VIEWS_MIDN)
+  } else if(exists("COMN_Plots")){ # check if a core view has been loaded in global environment.
+    # hardcoding the view_list here, because can't assume only these objects are in glob.env.
+    # also avoiding having to open another connection to database
+    view_list <- c("MIDN_QuadSpecies", "COMN_TreesByEvent", "COMN_QuadCharacter", "COMN_TreesFoliageCondFlat",
+                   "COMN_StandPlantCoverStrata", "COMN_StandDisturbances", "COMN_CWD", "COMN_StandTreeHeights",
+                   "COMN_StandForestFloor", "COMN_MicroplotShrubs", "COMN_TreesConditionsFlat", "COMN_QuadNotes",
+                   "COMN_StandSlopes", "MIDN_StandInfoPhotos", "COMN_AddtionalSpecies", "MIDN_MicroplotSaplings",
+                   "dsTreeByCondition", "MIDN_QuadSeedlings", "COMN_Plots", "COMN_Events", "COMN_TreesVine")
+  } else {stop("Views were not detected in your workspace. Please run importData() first.")}
+
+  # Set up progress bar
+  pb <- txtProgressBar(min = 0, max = length(view_list), style = 3)
+
+  # Set up envir qualifier
+  if(exists("VIEWS_MIDN")){env = VIEWS_MIDN} else {env = .GlobalEnv}
+
+  # Export files
+  if(zip == FALSE){
+    invisible(lapply(seq_along(view_list), function(x){
+      setTxtProgressBar(pb, x)
+      write.csv(mget(view_list[[x]], envir = env), paste0(path, view_list[x], ".csv"))
+    }))
+  } else if(zip == TRUE){ #create tmp dir to export csvs, bundle to zip, then delete tmp folder
+
+    dir.create(tmp <- tempfile())
+
+    invisible(lapply(seq_along(view_list), function(x){
+      setTxtProgressBar(pb, x)
+      write.csv(mget(view_list[[x]], envir = env),paste0(tmp, "\\", view_list[x], ".csv"))}))
+
+    file_list <- list.files(tmp)
+
+    zip::zipr(zipfile = paste0(path, "MIDN_Forest_", format(Sys.Date(), "%Y%m%d"), ".zip"),
+              root = tmp,
+              files = file_list)
+    # csvs will be deleted as soon as R session is closed b/c tempfile
+  }
   close(pb)
-  noquote('data export complete')
+  noquote('Export complete.')
 }
 
 

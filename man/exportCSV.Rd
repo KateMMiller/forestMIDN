@@ -2,16 +2,34 @@
 % Please edit documentation in R/exportCSV.R
 \name{exportCSV}
 \alias{exportCSV}
-\title{exportData: Export Access tables in global enviroment to .csv}
+\title{exportCSV: Export SQL views to .csv}
 \usage{
-exportCSV(path = NA)
+exportCSV(path = NA, zip = FALSE)
 }
 \arguments{
-\item{path}{Quoted path to save files to.}
+\item{path}{Quoted path to save files to. If not specified, will save to working directory.}
+
+\item{zip}{Logical. If TRUE, exports a zip file. If FALSE (Default), exports individual csvs.}
 }
 \description{
-This function exports database tables to .csv that were imported using importData.These
-.csv files can then be imported via importCSV. This function is mostly for internal use to create flat
-files for users to use the functions in this package without having to epenend on an odbc driver
-to import and query MIDN data. This is particularly useful for iOS users and those without MS Access installed.
+This function either exports database views to individual .csv files, or exports them as a zip file
+with the database name (MIDN_Forest), and the date it was zipped. The exported .csv files can then be imported
+via importCSV. This function is primarily for internal use to create flat files that users can import to run
+functions in this package without having a connection to the database server. This is particularly useful for external
+users who don't have access to NPS servers.
+}
+\examples{
+# RUN FIRST
+library(forestMIDN)
+importData()
+
+# Export csvs to working directory
+exportCSV()
+
+# Export a zip to the path specified
+exportCSV(path = "C:/Forest_Health/exports/MIDN", zip = TRUE)
+
+# Export views as .csvs to working directory
+exportCSV()
+
 }
