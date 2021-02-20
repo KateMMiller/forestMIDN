@@ -1,88 +1,95 @@
-#' @title importCSV: Import NETN forest data that are formated as .csv files.
+#' @title importCSV: Import MIDN forest data that are formatted as .csv files.
 #'
-#' @description This function imports exported CSV tables from the MIDN Forest Database, and
-#' assigns the tables to the global environment with names that functions in this package
-#' depend on.
+#' @description This function imports all views in the ANALYSIS schema of the MIDN_Forest backend that have been
+#' previously exported as .csvs or a zip file using the exportCSV() function. Each view is added to a VIEWS_MIDN
+#' environment in your workspace, or to your global environment based on whether new_env = TRUE or FALSE.
 #'
 #' @param path Quoted path of folder containing tables.
-#' @return Assigns database tables to global environment
+#'
+#' @param new_env Logical. Specifies which environment to store views in. If \code{TRUE}(Default), stores
+#' views in VIEWS_MIDN environment. If \code{FALSE}, stores views in global environment
+#'
+#' @param zip_name Quoted string ending in .zip. If specified, function looks for the specified file name and
+#' imports .csvs from the zip file. If not specified, function looks for and imports individual csvs. Note that
+#' this takes slightly longer than loading individual .csvs, due to the unzipping process.
+#'
+#' @return MIDN database views in specified environment
 #'
 #' @examples
-#' importCSV("C:/Data/forest_csvs")
+#' # Import individual csvs into global environment
+#' importCSV(path = "C:/Forest_Health/exports/MIDN", new_env = FALSE)
+#'
+#' # Import zipped csvs into VIEWS_MIDN environment
+#' importCSV("C:/Forest_Health/exports/MIDN", zip = TRUE)
 #'
 #' @export
 
-importCSV<- function(path=NA){
-  path<-if(substr(path,nchar(path),nchar(path))!="/"){paste0(path,"/")} else(paste0(path))
-  pb = txtProgressBar(min = 0, max = 23, style = 3)
-  assign("loc", read.csv(paste0(path,"tbl_Locations.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,1)
-  assign("parknames",read.csv(paste0(path, "tlu_Park_Names.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,2)
-  assign("event",read.csv(paste0(path, "tbl_Events.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,3)
-  assign("treedata",read.csv(paste0(path, "tbl_Tree_Data.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,4)
-  assign("trees", read.csv(paste0(path, "tbl_Trees.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,5)
-  assign("treecond",read.csv(paste0(path,"tlu_Tree_Conditions.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,6)
-  assign("xrtreecond",read.csv(paste0(path,"xref_Tree_Conditions.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,7)
-  assign("cwd",read.csv(paste0(path,"tbl_CWD_Transect_Data.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,8)
-  plants <- read.csv(paste0(path, "tlu_Plants.csv"))
-  plants$Exotic[plants$Latin_Name == "Robinia pseudoacacia"] <- FALSE
-  assign("plants", plants, envir=.GlobalEnv)
-  #assign("plants", read.csv(paste0(path, "tlu_Plants.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,9)
-  assign("saps", read.csv(paste0(path, "tbl_Microplot_Sapling_Data_MIDN.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,10)
-  assign("micro",read.csv(paste0(path, "tbl_Microplot_Characterization_Data.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,11)
-  assign("sdlg",read.csv(paste0(path, "tbl_Quadrat_Seedling_Data.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,12)
-  assign("shrub",read.csv(paste0(path, "tbl_Microplot_Shrub_Data.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,13)
-  assign("quadsamp",read.csv(paste0(path,"tbl_Quadrat_Sampled.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,14)
-  assign("quadchr", read.csv(paste0(path, "tbl_Quadrat_Character_Data.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,15)
-  assign("quadchrtlu", read.csv(paste0(path, "tlu_Quadrats.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,16)
-  assign("quads", read.csv(paste0(path, "tbl_Quadrat_Species_Data.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,17)
-  assign("addspp", read.csv(paste0(path, "tbl_Plot_Additional_Species.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,18)
-  assign("stand", read.csv(paste0(path, "tbl_Stand_Data.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,19)
-  assign("stdtlu", read.csv(paste0(path, "tlu_Stand_Structures.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,20)
-  assign("disturb", read.csv(paste0(path, "tbl_Disturbances.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,21)
-  assign("disttlu", read.csv(paste0(path, "tlu_Disturbance_Codes.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,22)
-  assign("disttlutc", read.csv(paste0(path, "tlu_Disturbance_Threshhold_Codes.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,23)
-  assign("soildata", read.csv(paste0(path, "tbl_Soil_Data.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,24)
-  assign("soillab", read.csv(paste0(path, "tbl_Soil_Data_Lab.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,25)
-  assign("soilsamp", read.csv(paste0(path, "tbl_Soil_Sample_Data.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,26)
-  assign("metaevent", read.csv(paste0(path, "tbl_Meta_Events.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,27)
-  assign("metaloc", read.csv(paste0(path, "tbl_Meta_Locations.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,28)
-  assign("quadnotes", read.csv(paste0(path, "tbl_Quadrat_Notes.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,29)
-  assign("treecore", read.csv(paste0(path, "tbl_Tree_Core.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,30)
-  assign("xrfolcond", read.csv(paste0(path, "xref_Foliage_Conditions.csv")), envir=.GlobalEnv)
-  setTxtProgressBar(pb,31)
+importCSV<- function(path = NA, new_env = TRUE, zip_name = NA){
+
+  # Error handling for path
+  if(is.na(path)){stop("Must specify a path to import csvs.")
+  } else if(!dir.exists(path)){stop("Specified path does not exist.")}
+
+  # Add / to end of path if it wasn't specified.
+  path <- if(substr(path, nchar(path), nchar(path)) != "/"){paste0(path, "/")} else {(paste0(path))}
+
+  view_list <- c("MIDN_QuadSpecies", "COMN_TreesByEvent", "COMN_QuadCharacter", "COMN_TreesFoliageCondFlat",
+                 "COMN_StandPlantCoverStrata", "COMN_StandDisturbances", "COMN_CWD", "COMN_StandTreeHeights",
+                 "COMN_StandForestFloor", "COMN_MicroplotShrubs", "COMN_TreesConditionsFlat", "COMN_QuadNotes",
+                 "COMN_StandSlopes", "MIDN_StandInfoPhotos", "COMN_AddtionalSpecies", "MIDN_MicroplotSaplings",
+                 "dsTreeByCondition", "MIDN_QuadSeedlings", "COMN_Plots", "COMN_Events", "COMN_TreesVine")
+
+  # Make sure zip file exists and all the views are included
+  if(!is.na(zip_name)){
+    if(!file.exists(paste0(path, zip_name))){stop("Specified zip file doesn't exist in path.")}}
+
+  # Make sure all the views are in the path or zip file. If anything is mission, function stops.
+  files <-
+    if(!is.na(zip_name)){
+      zfiles <- unzip(paste0(path, zip_name), list = TRUE)$Name
+      files <- substr(zfiles, 1, nchar(zfiles) - 4)
+    } else if(is.na(zip_name)) {
+      files <- substr(list.files(path), 1, nchar(list.files(path)) - 4)}
+
+  missing <- setdiff(view_list, files)
+
+  if(length(missing) > 0 & length(missing) < 22){
+    stop(paste0("Missing the following views: ", paste0(missing, collapse = ", ")))
+  } else if (length(missing) >= 22){
+    stop(paste0("Views were not detected in specified ", ifelse(is.na(zip_name), "path.", "zip file.")))}
+
+  # Since the missing test passed, clean up files so only includes names in view_list, but
+  # maintain order in files
+  files <- intersect(files, view_list)
+
+  # Import views now that all tests passed
+  pb <- txtProgressBar(min = 0, max = length(view_list), style = 3)
+
+  view_import <-
+    if(!is.na(zip_name)){
+      views <- unzip(paste0(path, zip_name), junkpaths = TRUE, exdir = tempdir())
+      lapply(seq_along(view_list), function(x){
+        setTxtProgressBar(pb,x)
+        read.csv(views[x])})
+    } else if(is.na(zip_name)){
+      lapply(seq_along(view_list), function(x){
+        setTxtProgressBar(pb, x)
+        read.csv(paste0(path, view_list[x], ".csv"))})
+    }
+
+  view_import <- setNames(view_import, files)
+
+  if(new_env == TRUE){
+    VIEWS_MIDN <<- new.env()
+    list2env(view_import, envir = VIEWS_MIDN)
+  } else {
+    list2env(view_import, envir = .GlobalEnv)}
 
   close(pb)
-  noquote('data import complete')
+
+  print(ifelse(new_env == TRUE, paste0("Import complete. Views are located in VIEWS_MIDN environment."),
+               paste0("Import complete. Views are located in global environment.")), quote = FALSE)
+
 }
 
 
