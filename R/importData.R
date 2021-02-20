@@ -1,4 +1,4 @@
-#' @title importData: Import tables directly from MIDN forest database
+#' @title importData: Import views directly from MIDN forest database
 #'
 #' @description This function imports all views in the ANALYSIS schema of the MIDN_Forest backend. Each view
 #' is added to a VIEWS_MIDN environment in your workspace, or to your global environment based on whether
@@ -14,11 +14,9 @@
 #' "localhost" (default) for the local instance, or the server address (currently "INP2300VTSQL16\\IRMADEV1")
 #' to connect to the main database.
 #'
-#' @param new_env Specify which environment to store views in
-#' \describe{
-#' \item{TRUE}{Default. Stores views in VIEWS_MIDN environment}
-#' \item{FALSE}{Stores views in global environment}
-#'}
+#' @param new_env Logical. Specifies which environment to store views in. If \code{TRUE}(Default), stores
+#' views in VIEWS_MIDN environment. If \code{FALSE}, stores views in global environment
+#'
 #' @examples
 #' # Import using default settings of local instance, server = 'localhost' and add VIEWS_MIDN environment
 #' importData()
@@ -28,6 +26,8 @@
 #'
 #' # Import from main database on server
 #' importData(server = "INP2300VTSQL16\\IRMADEV1", instance = "server", new_env = TRUE)
+#'
+#' @return MIDN database views in specified environment
 #'
 #' @export
 
@@ -47,14 +47,19 @@ importData <- function(instance = c("local", "server"), server = "localhost", ne
     paste0("Driver={SQL Server};server=", server, ";database=MIDN_Forest;trusted_connection=TRUE;ReadOnly=True")
   }
 
+  error_mess <- paste("Unable to connect to SQL database.",
+                      ifelse(instance == 'server',
+                             paste0("Make sure you are connected to VPN or NPS network, and server is spelled correctly (see examples)."),
+                             paste0("Make sure you have a local installation of the database, and the server is spelled correctly (see examples).")))
+
   # Test connection. If successful, continues to next step. If fails, exits function with error message.
   tryCatch(
     con <- RODBC::odbcDriverConnect(connection = connect, readOnlyOptimize = TRUE, rows_at_time = 1),
     error = function(e){
-      stop("Unable to connect to SQL database.")
+      stop(error_mess)
     },
     warning = function(w){
-      stop("Unable to connect to SQL database.")
+      stop(error_mess)
     }
   )
 

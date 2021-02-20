@@ -2,7 +2,7 @@
 % Please edit documentation in R/importData.R
 \name{importData}
 \alias{importData}
-\title{importData: Import tables directly from MIDN forest database}
+\title{importData: Import views directly from MIDN forest database}
 \usage{
 importData(
   instance = c("local", "server"),
@@ -21,11 +21,11 @@ connection speeds are likely to be much slower than the local instance. You must
 "localhost" (default) for the local instance, or the server address (currently "INP2300VTSQL16\\IRMADEV1")
 to connect to the main database.}
 
-\item{new_env}{Specify which environment to store views in
-\describe{
-\item{TRUE}{Default. Stores views in VIEWS_MIDN environment}
-\item{FALSE}{Stores views in global environment}
-}}
+\item{new_env}{Logical. Specifies which environment to store views in. If \code{TRUE}(Default), stores
+views in VIEWS_MIDN environment. If \code{FALSE}, stores views in global environment}
+}
+\value{
+MIDN database views in specified environment
 }
 \description{
 This function imports all views in the ANALYSIS schema of the MIDN_Forest backend. Each view
