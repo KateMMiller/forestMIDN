@@ -2,26 +2,27 @@
 % Please edit documentation in R/joinLocEvent.R
 \name{joinLocEvent}
 \alias{joinLocEvent}
-\title{joinLocEvent: merges Location and Event level data with options for filtering.}
+\title{joinLocEvent: compile Location and Event data with filtering options.}
 \usage{
 joinLocEvent(
   park = "all",
   from = 2007,
-  to = 2019,
+  to = 2021,
   QAQC = FALSE,
-  rejected = FALSE,
+  abandoned = FALSE,
   panels = 1:4,
-  locType = "VS",
+  locType = c("VS", "all"),
   eventType = c("complete", "all"),
   output = "short",
   ...
 )
 }
 \arguments{
-\item{park}{Combine data from all parks or one park at a time. Acceptable options are:
+\item{park}{Combine data from all parks or one or more parks at a time. Valid inputs:
 \describe{
 \item{"all"}{Includes all parks in the network}
 \item{"APCO"}{Appomattox Court House NHP only}
+\item{"ASIS"}{Assateague Island National Seashore}
 \item{"BOWA"}{Booker T. Washington NM only}
 \item{"COLO"}{Colonial NHP only}
 \item{"FRSP"}{Fredericksburg & Spotsylvania NMP only}
@@ -34,33 +35,34 @@ joinLocEvent(
 \item{"THST"}{Thomas Stone NHS only}
 \item{"VAFO"}{Valley Forge NHP only}}}
 
-\item{from}{Year to start analysis, ranging from 2007-2019}
+\item{from}{Year to start analysis, ranging from 2006 to current year}
 
-\item{to}{Year to stop analysis, ranging from 2007-2019}
+\item{to}{Year to stop analysis, ranging from 2006 to current year}
 
 \item{QAQC}{Allows you to remove or include QAQC events.
 \describe{
 \item{FALSE}{Default. Only returns visits that are not QAQC visits}
 \item{TRUE}{Returns all visits, including QAQC visits}}}
 
-\item{rejected}{Allows you to remove (FALSE) or include (TRUE) rejected plots.
-\describe{
-\item{FALSE}{Default. Only returns plots that were not rejected.}
-\item{TRUE}{returns all records}}}
-
 \item{panels}{Allows you to select individual panels from 1 to 4. Default is all 4 panels (1:4).
-If more than one panel is selected, specify by c(1,3), for example.}
+If more than one panel is selected, specify by c(1, 3), for example.}
 
 \item{locType}{Allows you to only include plots that are part of the GRTS sample design or include all plots, such as deer exclosures
 \describe{
 \item{"VS"}{Only include plots that are part of the Vital Signs GRTS sample design}
-\item{"all"}{Include all plots, such as deer exclosures and bonus plots}}}
+\item{"all"}{Include all plots, such as plots in deer exclosures or test plots.}}}
 
-\item{eventType}{Allows you to only include complete sampling events, or to include all sampling events
+\item{eventType}{Allows you to include only complete sampling events or all sampling events
 \describe{
-\item{"complete"}{Only include sampling events for a plot that are complete.}
-\item{"all}{Include all plots with an Event_ID, including plots that are missing all data associated with that event (eg COLO-380.2019).}
+\item{"complete"}{Default. Only include sampling events for a plot that are complete.}
+\item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
+associated with that event (eg ACAD-029.2010). This feature is currently hard-coded in the function.}
 }}
+
+\item{abandonded}{Allows you to include (TRUE) or remove (FALSE; Default.) or abandoned plots.
+\describe{
+\item{FALSE}{Default. Only returns plots that were not rejected.}
+\item{TRUE}{returns all records}}}
 }
 \value{
 returns a dataframe with location and visit events
@@ -71,14 +73,14 @@ This function combines location and event data. Must run importData first.
 \examples{
 importCSV('./forest_csvs')
 # Select most recent survey of data from APCO
-APCO_data <- joinLocEvent(park = 'APCO', from = 2016, to = 2019)
+APCO_data <- joinLocEvent(park = 'APCO',from = 2016, to = 2019)
 
-# Select data from cycle 3
-cycle3 <- joinLocEvent(from = 2015, to = 2018) # all parks is default
+# Select data from cycle 3 for RICH and FRSP
+cycle3 <- joinLocEvent(park = c("RICH", "FRSP"), from = 2015, to = 2018) # all parks is default
 
-# Select data from plots that had a QA/QC event in GETT in 2018
-GETT_data<-joinLocEvent(park = 'GETT', QAQC = T, from = 2018)
-QAQC_plots<-GETT_data$Plot_Name[which(GETT_data$Event_QAQC==TRUE)]
-GETT_QAQC<-GETT_data \%>\% filter(Plot_Name \%in\% QAQC_plots) \%>\% droplevels()
+# Select data from plots that had a QA/QC event in GETT in 2019
+GETT_data <- joinLocEvent(park = 'GETT', QAQC = TRUE, from = 2019)
+QAQC_plots <- GETT_data$Plot_Name[which(GETT_data$Event_QAQC == TRUE)]
+GETT_QAQC <- GETT_data \%>\% filter(Plot_Name \%in\% QAQC_plots)
 
 }
