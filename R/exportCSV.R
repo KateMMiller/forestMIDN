@@ -36,11 +36,13 @@ exportCSV<- function(path = NA, zip = FALSE){
   }
 
   # Make sure all the views are loaded. If anything is missing, function stops.
-  view_list <- c("MIDN_QuadSpecies", "COMN_TreesByEvent", "COMN_QuadCharacter", "COMN_TreesFoliageCondFlat",
-                 "COMN_StandPlantCoverStrata", "COMN_StandDisturbances", "COMN_CWD", "COMN_StandTreeHeights",
-                 "COMN_StandForestFloor", "COMN_MicroplotShrubs", "COMN_TreesConditionsFlat", "COMN_QuadNotes",
-                 "COMN_StandSlopes", "MIDN_StandInfoPhotos", "COMN_AddtionalSpecies", "MIDN_MicroplotSaplings",
-                 "dsTreeByCondition", "MIDN_QuadSeedlings", "COMN_Plots", "COMN_Events", "COMN_TreesVine")
+  view_list <- c("COMN_AdditionalSpecies", "COMN_CWD", "COMN_EventObservers", "COMN_Events",
+                 "COMN_MicroplotShrubs", "COMN_Plots", "COMN_QuadCharacter", "COMN_QuadNotes",
+                 "COMN_StandDisturbances", "COMN_StandForestFloor", "COMN_StandPlantCoverStrata",
+                 "COMN_StandSlopes", "COMN_StandTreeHeights", "COMN_Taxa", "COMN_TreesByEvent",
+                 "COMN_TreesConditionsFlat", "COMN_TreesFoliageCondFlat", "COMN_TreesVine",
+                 "dsTreeByCondition", "MIDN_MicroplotSaplings", "MIDN_QuadSeedlings",
+                 "MIDN_QuadSpecies", "MIDN_StandInfoPhotos")
 
   files <- if(exists("VIEWS_MIDN")){ls(envir = VIEWS_MIDN)} else {ls()}
 
