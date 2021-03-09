@@ -1,0 +1,66 @@
+---
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+Testing code to document MIDN Forest SQL database. Still a WIP.
+```{r, libs, echo = F, results = 'hide', warning = FALSE, message = FALSE}
+library(odbc)
+library(DBI)
+library(tidyverse)
+```
+```{r, con, echo = F, results = 'hide', warning = FALSE, message = FALSE}
+# Connect to database
+con <- dbConnect(odbc(),
+                 Driver = "SQL Server",
+                 Server = "INP2300VTSQL16\\IRMADEV1",
+                 #Server = "localhost\\SQLEXPRESS",
+                 Database = "MIDN_Forest",
+                 Trusted_Connection = 'True'
+                  )
+```
+```{r qry, echo = F, results = 'hide', warning = FALSE, message = FALSE}
+# List tables in ANALYSIS schema
+view_list <- dbListTables(con, schema = "ANALYSIS")
+view_list
+
+# Import ANALYSIS views SQL code 
+sql_list <- unique(c(paste0("EXEC sp_helptext 'ANALYSIS.", view_list, "'")))
+
+sql_code <- lapply(seq_along(view_list),
+                   function(x){code = dbFetch(dbSendQuery(con, sql_list[[x]]))}) %>%
+  setNames(view_list)
+
+
+views <- lapply(seq_along(view_list),
+                function(x){dbListFields(conn = con, name = view_list[[x]], schema = "ANALYSIS") %>%
+                            setNames(view_list[[x]]) %>% unlist() %>% data.frame()
+                }) %>% setNames(view_list)
+
+unlist(sql_code[[1]])
+cat(sql_code[[1]]$Text, sep = "\t\r\n")
+field_test <- data.frame(field = t(matrix(unlist(views[[1]]), nrow = length(views[[1]]), byrow = TRUE)))
+names(views)
+
+```
+
+Still working out how to print in a readable format. Currently just printing raw text.
+
+```{r print_views, echo = F}
+comb_output <- lapply(seq_along(view_list), function(x){
+                 print(paste0("SQL Code for View: ", names(views[x])))
+                 cat(sql_code[[x]]$Text, sep = "\t\r\n")
+                 print(paste0("Fields for View : ", names(views[x])))
+                 print(data.frame(field = t(matrix(unlist(views[[x]]), 
+                   nrow = length(views[[x]]), byrow = TRUE))))
+                 cat("\n")
+            }
+)
+```
+```{r closedb}
+dbDisconnect(con)
+```
+
