@@ -37,8 +37,8 @@ importCSV<- function(path = NA, new_env = TRUE, zip_name = NA){
                  "COMN_MicroplotShrubs", "COMN_Plots", "COMN_QuadCharacter", "COMN_QuadNotes",
                  "COMN_StandDisturbances", "COMN_StandForestFloor", "COMN_StandPlantCoverStrata",
                  "COMN_StandSlopes", "COMN_StandTreeHeights", "COMN_Taxa", "COMN_TreesByEvent",
-                 "COMN_TreesConditionsFlat", "COMN_TreesFoliageCondFlat", "COMN_TreesVine",
-                 "dsTreeByCondition", "MIDN_MicroplotSaplings", "MIDN_QuadSeedlings",
+                 "COMN_TreesConditions", "COMN_TreesFoliageCond", "COMN_TreesVine",
+                 "MIDN_MicroplotSaplings", "MIDN_QuadSeedlings",
                  "MIDN_QuadSpecies", "MIDN_StandInfoPhotos")
 
   # Make sure zip file exists and all the views are included
