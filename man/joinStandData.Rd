@@ -9,17 +9,18 @@ joinStandData(
   QAQC = FALSE,
   locType = "VS",
   panels = 1:4,
-  from = 2007,
-  to = 2019,
-  output,
+  from = 2006,
+  to = 2021,
+  output = "verbose",
   ...
 )
 }
 \arguments{
-\item{park}{Combine data from all parks or one park at a time. Acceptable options are:
+\item{park}{Combine data from all parks or one or more parks at a time. Valid inputs:
 \describe{
 \item{"all"}{Includes all parks in the network}
 \item{"APCO"}{Appomattox Court House NHP only}
+\item{"ASIS"}{Assateague Island National Seashore}
 \item{"BOWA"}{Booker T. Washington NM only}
 \item{"COLO"}{Colonial NHP only}
 \item{"FRSP"}{Fredericksburg & Spotsylvania NMP only}
@@ -45,20 +46,23 @@ joinStandData(
 \item{panels}{Allows you to select individual panels from 1 to 4. Default is all 4 panels (1:4).
 If more than one panel is selected, specify by c(1,3), for example.}
 
-\item{from}{Year to start analysis, ranging from 2007-2019}
+\item{from}{Year to start analysis}
 
-\item{to}{Year to stop analysis, ranging from 2007-2019}
+\item{to}{Year to stop analysis}
 }
 \value{
 returns a dataframe with stand data attached to location and event data. Field names starting with "Pct" are midpoints
-between cover class ranges (e.g., 62.5 is the midpoint for 50-75%). Note that most stand data were not collected until 2008.
+between cover class ranges (e.g., 62.5 is the midpoint for 50-75%). Field names starting with "Txt" define the cover classes.
 }
 \description{
-This function combines stand data for each plot. Must run importData first.
+This function combines stand-level data for each plot, including cover by strata,
+plot slope, canopy cover, etc. Must run importData first.
 }
 \examples{
-importData() #imports using default odbc
-stand_df <- joinStandData(park = 'VAFO', from = 2015, to = 2018)
+importData()
+# import 4 years of MABI stand data
+stand_df <- joinStandData(park = 'MABI', from = 2015, to = 2019)
 
-
+# import all visits, including QAQC, from 2019 in ACAD. Only return important data fields.
+acad_stand <- joinStandData(park = ACAD, from = 2019, to = 2019, QAQC = TRUE, output = 'short')
 }
