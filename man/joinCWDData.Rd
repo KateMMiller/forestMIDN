@@ -5,7 +5,6 @@
 \title{joinCWDData: compile coarse woody debris volume data.}
 \usage{
 joinCWDData(
-  units = c("ha", "acres"),
   park = "all",
   from = 2007,
   to = 2021,
@@ -13,6 +12,7 @@ joinCWDData(
   panels = 1:4,
   locType = c("VS", "all"),
   output = "short",
+  units = c("ha", "acres"),
   ...
 )
 }
