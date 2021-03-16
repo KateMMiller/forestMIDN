@@ -59,7 +59,7 @@
 # Join stand data
 #------------------------
 joinStandData <- function(park = 'all', QAQC = FALSE, locType = 'VS', panels = 1:4,
-                          from = 2006, to = 2021, output = 'verbose', ...){
+                          from = 2007, to = 2021, output = 'verbose', ...){
 
   # Match args and class
   park <- match.arg(park, several.ok = TRUE,

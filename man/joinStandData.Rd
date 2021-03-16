@@ -9,7 +9,7 @@ joinStandData(
   QAQC = FALSE,
   locType = "VS",
   panels = 1:4,
-  from = 2006,
+  from = 2007,
   to = 2021,
   output = "verbose",
   ...
