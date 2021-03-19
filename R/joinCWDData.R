@@ -8,6 +8,42 @@
 #' @description his function combines and calculates CWD volume for each plot. Must run importData() first. Function
 #' only works for complete visits.
 #'
+#' @param park Combine data from all parks or one or more parks at a time. Valid inputs:
+#' \describe{
+#' \item{"all"}{Includes all parks in the network}
+#' \item{"APCO"}{Appomattox Court House NHP only}
+#' \item{"ASIS"}{Assateague Island National Seashore}
+#' \item{"BOWA"}{Booker T. Washington NM only}
+#' \item{"COLO"}{Colonial NHP only}
+#' \item{"FRSP"}{Fredericksburg & Spotsylvania NMP only}
+#' \item{"GETT"}{Gettysburg NMP only}
+#' \item{"GEWA"}{George Washington Birthplace NM only}
+#' \item{"HOFU"}{Hopewell Furnace NHS only}
+#' \item{"PETE"}{Petersburg NBP only}
+#' \item{"RICH"}{Richmond NB only}
+#' \item{"SAHI"}{Sagamore Hill NHS only}
+#' \item{"THST"}{Thomas Stone NHS only}
+#' \item{"VAFO"}{Valley Forge NHP only}}
+#'
+#' @param from Year to start analysis, ranging from 2006 to current year
+#' @param to Year to stop analysis, ranging from 2006 to current year
+#'
+#' @param QAQC Allows you to remove or include QAQC events.
+#' \describe{
+#' \item{FALSE}{Default. Only returns visits that are not QAQC visits}
+#' \item{TRUE}{Returns all visits, including QAQC visits}}
+#'
+#' @param locType Allows you to only include plots that are part of the GRTS sample design or include all plots, such as deer exclosures
+#' \describe{
+#' \item{"VS"}{Only include plots that are part of the Vital Signs GRTS sample design}
+#' \item{"all"}{Include all plots, such as plots in deer exclosures or test plots.}}
+#'
+#' @param panels Allows you to select individual panels from 1 to 4. Default is all 4 panels (1:4).
+#' If more than one panel is selected, specify by c(1, 3), for example.
+#'
+#' @param output Allows you to return all columns or just the most important columns for analysis. Valid
+#' inputs are "short" and "verbose".
+#'
 #' @param units Calculates CWD Volume based on different units.
 #' \describe{
 #' \item{"ha"}{Default. Returns CWD volume as cubic m/hectare}

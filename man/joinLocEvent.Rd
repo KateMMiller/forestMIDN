@@ -56,8 +56,10 @@ If more than one panel is selected, specify by c(1, 3), for example.}
 \describe{
 \item{"complete"}{Default. Only include sampling events for a plot that are complete.}
 \item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
-associated with that event (eg ACAD-029.2010). This feature is currently hard-coded in the function.}
-}}
+associated with that event (eg ACAD-029.2010). This feature is currently hard-coded in the function.}}}
+
+\item{output}{Allows you to return all columns or just the most important columns for analysis. Valid
+inputs are "short" and "verbose".}
 
 \item{abandonded}{Allows you to include (TRUE) or remove (FALSE; Default.) or abandoned plots.
 \describe{

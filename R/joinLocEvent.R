@@ -20,28 +20,36 @@
 #' \item{"SAHI"}{Sagamore Hill NHS only}
 #' \item{"THST"}{Thomas Stone NHS only}
 #' \item{"VAFO"}{Valley Forge NHP only}}
+#'
 #' @param from Year to start analysis, ranging from 2006 to current year
 #' @param to Year to stop analysis, ranging from 2006 to current year
+#'
 #' @param QAQC Allows you to remove or include QAQC events.
 #' \describe{
 #' \item{FALSE}{Default. Only returns visits that are not QAQC visits}
 #' \item{TRUE}{Returns all visits, including QAQC visits}}
+#'
 #' @param abandonded Allows you to include (TRUE) or remove (FALSE; Default.) or abandoned plots.
 #' \describe{
 #' \item{FALSE}{Default. Only returns plots that were not rejected.}
 #' \item{TRUE}{returns all records}}
+#'
 #' @param locType Allows you to only include plots that are part of the GRTS sample design or include all plots, such as deer exclosures
 #' \describe{
 #' \item{"VS"}{Only include plots that are part of the Vital Signs GRTS sample design}
 #' \item{"all"}{Include all plots, such as plots in deer exclosures or test plots.}}
+#'
 #' @param eventType Allows you to include only complete sampling events or all sampling events
 #' \describe{
 #' \item{"complete"}{Default. Only include sampling events for a plot that are complete.}
 #' \item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
-#' associated with that event (eg ACAD-029.2010). This feature is currently hard-coded in the function.}
-#' }
+#' associated with that event (eg ACAD-029.2010). This feature is currently hard-coded in the function.}}
+#'
 #' @param panels Allows you to select individual panels from 1 to 4. Default is all 4 panels (1:4).
 #' If more than one panel is selected, specify by c(1, 3), for example.
+#'
+#' @param output Allows you to return all columns or just the most important columns for analysis. Valid
+#' inputs are "short" and "verbose".
 #'
 #' @return returns a dataframe with location and visit events
 #'
