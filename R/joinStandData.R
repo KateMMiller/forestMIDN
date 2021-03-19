@@ -27,8 +27,8 @@
 #' \item{"THST"}{Thomas Stone NHS only}
 #' \item{"VAFO"}{Valley Forge NHP only}}
 #'
-#' @param from Year to start analysis
-#' @param to Year to stop analysis
+#' @param from Year to start analysis, ranging from 2007 to current year
+#' @param to Year to stop analysis, ranging from 2007 to current year
 #'
 #' @param QAQC Allows you to remove or include QAQC events.
 #' \describe{
@@ -37,28 +37,37 @@
 #'
 #' @param locType Allows you to only include plots that are part of the GRTS sample design or include all plots, such as deer exclosures
 #' \describe{
-#' \item{"VS"}{Default. Only include plots that are part of the Vital Signs GRTS sample design}
-#' \item{"all"}{Include all plots, such as deer exclosures and bonus plots}}
+#' \item{"VS"}{Only include plots that are part of the Vital Signs GRTS sample design}
+#' \item{"all"}{Include all plots, such as plots in deer exclosures or test plots.}}
+#'
+#' @param eventType Allows you to include only complete sampling events or all sampling events
+#' \describe{
+#' \item{"complete"}{Default. Only include sampling events for a plot that are complete.}
+#' \item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
+#' associated with that event (eg ACAD-029.2010). This feature is currently hard-coded in the function.}}
 #'
 #' @param panels Allows you to select individual panels from 1 to 4. Default is all 4 panels (1:4).
-#' If more than one panel is selected, specify by c(1,3), for example.
+#' If more than one panel is selected, specify by c(1, 3), for example.
+#'
+#' @param output Allows you to return all columns or just the most important columns for analysis. Valid
+#' inputs are "short" and "verbose".
 #'
 #' @return returns a dataframe with stand data attached to location and event data. Field names starting with "Pct" are midpoints
 #' between cover class ranges (e.g., 62.5 is the midpoint for 50-75%). Field names starting with "Txt" define the cover classes.
 #'
 #' @examples
 #' importData()
-#' # import 4 years of MABI stand data
-#' stand_df <- joinStandData(park = 'MABI', from = 2015, to = 2019)
+#' # import 4 years of BOWA stand data
+#' stand_df <- joinStandData(park = 'BOWA', from = 2015, to = 2019)
 #'
-#' # import all visits, including QAQC, from 2019 in ACAD. Only return important data fields.
-#' acad_stand <- joinStandData(park = ACAD, from = 2019, to = 2019, QAQC = TRUE, output = 'short')
+#' # import all visits, including QAQC, from 2019 in FRSP. Only return important data fields.
+#' frsp_stand <- joinStandData(park = FRSP, from = 2019, to = 2019, QAQC = TRUE, output = 'short')
 #' @export
 #'
 #------------------------
 # Join stand data
 #------------------------
-joinStandData <- function(park = 'all', QAQC = FALSE, locType = 'VS', panels = 1:4,
+joinStandData <- function(park = 'all', QAQC = FALSE, locType = c('VS', 'all'), panels = 1:4,
                           from = 2007, to = 2021, output = 'verbose', ...){
 
   # Match args and class

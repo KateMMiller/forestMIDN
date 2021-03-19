@@ -46,9 +46,9 @@ joinStandData(
 \item{panels}{Allows you to select individual panels from 1 to 4. Default is all 4 panels (1:4).
 If more than one panel is selected, specify by c(1, 3), for example.}
 
-\item{from}{Year to start analysis, ranging from 2006 to current year}
+\item{from}{Year to start analysis, ranging from 2007 to current year}
 
-\item{to}{Year to stop analysis, ranging from 2006 to current year}
+\item{to}{Year to stop analysis, ranging from 2007 to current year}
 
 \item{output}{Allows you to return all columns or just the most important columns for analysis. Valid
 inputs are "short" and "verbose".}
@@ -69,9 +69,9 @@ plot slope, canopy cover, etc. Must run importData first.
 }
 \examples{
 importData()
-# import 4 years of MABI stand data
-stand_df <- joinStandData(park = 'MABI', from = 2015, to = 2019)
+# import 4 years of BOWA stand data
+stand_df <- joinStandData(park = 'BOWA', from = 2015, to = 2019)
 
-# import all visits, including QAQC, from 2019 in ACAD. Only return important data fields.
-acad_stand <- joinStandData(park = ACAD, from = 2019, to = 2019, QAQC = TRUE, output = 'short')
+# import all visits, including QAQC, from 2019 in FRSP. Only return important data fields.
+frsp_stand <- joinStandData(park = FRSP, from = 2019, to = 2019, QAQC = TRUE, output = 'short')
 }

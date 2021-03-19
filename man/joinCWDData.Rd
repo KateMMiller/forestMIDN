@@ -34,9 +34,9 @@ joinCWDData(
 \item{"THST"}{Thomas Stone NHS only}
 \item{"VAFO"}{Valley Forge NHP only}}}
 
-\item{from}{Year to start analysis, ranging from 2006 to current year}
+\item{from}{Year to start analysis, ranging from 2007 to current year}
 
-\item{to}{Year to stop analysis, ranging from 2006 to current year}
+\item{to}{Year to stop analysis, ranging from 2007 to current year}
 
 \item{QAQC}{Allows you to remove or include QAQC events.
 \describe{

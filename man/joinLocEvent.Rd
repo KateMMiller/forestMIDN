@@ -35,9 +35,9 @@ joinLocEvent(
 \item{"THST"}{Thomas Stone NHS only}
 \item{"VAFO"}{Valley Forge NHP only}}}
 
-\item{from}{Year to start analysis, ranging from 2006 to current year}
+\item{from}{Year to start analysis, ranging from 2007 to current year}
 
-\item{to}{Year to stop analysis, ranging from 2006 to current year}
+\item{to}{Year to stop analysis, ranging from 2007 to current year}
 
 \item{QAQC}{Allows you to remove or include QAQC events.
 \describe{
@@ -56,7 +56,7 @@ If more than one panel is selected, specify by c(1, 3), for example.}
 \describe{
 \item{"complete"}{Default. Only include sampling events for a plot that are complete.}
 \item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
-associated with that event (eg ACAD-029.2010). This feature is currently hard-coded in the function.}}}
+associated with that event (eg COLO-380.2018). This feature is currently hard-coded in the function.}}}
 
 \item{output}{Allows you to return all columns or just the most important columns for analysis. Valid
 inputs are "short" and "verbose".}
