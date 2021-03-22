@@ -137,7 +137,7 @@ joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, loc
                                      IsExotic, TaxonGroupLabel)),
            error = function(e){stop("COMN_Taxa view not found. Please import view.")})
 
-  # left join with EventID from plot_events to make tree data as small as possible to speed up function
+  # subset with EventID from plot_events to make tree data as small as possible to speed up function
   plot_events <- force(joinLocEvent(park = park, from = from , to = to, QAQC = QAQC,
                                     panels = panels, locType = locType, eventType = eventType,
                                     abandoned = FALSE, output = 'short')) %>%
@@ -161,7 +161,7 @@ joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, loc
   # Drop unwanted events before merging
   tree_fol1 <- subset(foliage_vw, EventID %in% pe_list)
   tree_fol <- merge(tree_stat, tree_fol1, by = intersect(names(tree_vw), names(foliage_vw)),
-                    all.x = TRUE, all.y = TRUE)
+                    all.x = TRUE, all.y = FALSE)
 
   tree_taxa <- merge(tree_fol,
                      taxa[,c('TSN','ScientificName','CommonName','Family', 'Genus', 'IsExotic')],
