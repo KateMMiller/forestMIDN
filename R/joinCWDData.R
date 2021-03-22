@@ -25,8 +25,8 @@
 #' \item{"THST"}{Thomas Stone NHS only}
 #' \item{"VAFO"}{Valley Forge NHP only}}
 #'
-#' @param from Year to start analysis, ranging from 2006 to current year
-#' @param to Year to stop analysis, ranging from 2006 to current year
+#' @param from Year to start analysis, ranging from 2007 to current year
+#' @param to Year to stop analysis, ranging from 2007 to current year
 #'
 #' @param QAQC Allows you to remove or include QAQC events.
 #' \describe{
