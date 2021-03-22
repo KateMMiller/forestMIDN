@@ -31,6 +31,7 @@ Collate:
     'joinMicroShrubData.R'
     'joinQuadData.R'
     'joinRegenData.R'
+    'joinTreeFoliageCond.R'
     'makeSppList.R'
     'sumQuadGuilds.R'
     'sumSapDBHDist.R'
