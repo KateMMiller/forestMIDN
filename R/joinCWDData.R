@@ -1,6 +1,6 @@
 #' @include joinLocEvent.R
 #'
-#' @importFrom dplyr filter group_by mutate select summarize
+#' @importFrom dplyr arrange filter group_by mutate select summarize
 #' @importFrom magrittr %>%
 #'
 #' @title joinCWDData: compile coarse woody debris volume data.
@@ -177,7 +177,8 @@ joinCWDData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE,
   cwd_merge <- merge(plot_events,
                      cwd_vol, by = intersect(names(plot_events), names(cwd_vol)),
                      all.x = TRUE, all.y = FALSE) %>%
-    mutate(ScientificName = ifelse(is.na(ScientificName), paste0("None present"), ScientificName))
+    mutate(ScientificName = ifelse(is.na(ScientificName), paste0("None present"), ScientificName)) %>%
+    arrange(Plot_Name, StartYear, IsQAQC)
 
   cwd_final <- if(output == 'short'){
     cwd_merge %>% select(Plot_Name, ParkUnit, ParkSubUnit, StartYear, cycle,
