@@ -78,7 +78,7 @@ example, to select an area of trees that is 100 square meters in area, use a dis
 \describe{
 \item{"complete"}{Default. Only include sampling events for a plot that are complete.}
 \item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
-associated with that event (eg ACAD-029.2010). This feature is currently hard-coded in the function.}}}
+associated with that event. This feature is currently hard-coded in the function.}}}
 
 \item{output}{Allows you to return all columns or just the most important columns for analysis. Valid
 inputs are "short" and "verbose".}
