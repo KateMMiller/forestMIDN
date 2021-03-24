@@ -1,6 +1,6 @@
 #' @include joinLocEvent.R
 #'
-#' @importFrom dplyr case_when group_by mutate select summarize
+#' @importFrom dplyr arrange case_when group_by filter full_join left_join mutate select summarize
 #' @importFrom magrittr %>%
 #' @importFrom stringr str_pad
 #' @importFrom tidyr pivot_wider
@@ -177,9 +177,8 @@ joinStandData <- function(park = 'all', QAQC = FALSE, locType = c('VS', 'all'), 
   new_pcolt <- c("Txt_Understory_Low", "Txt_Understory_Mid", "Txt_Understory_High")
   names(pstrata_txt_wide)[match(old_pcol, names(pstrata_txt_wide))] <- new_pcolt # change col names to match prev. analyses
 
-  pstrata_wide <- merge(pstrata_pct_wide, pstrata_txt_wide,
-                        by = intersect(names(pstrata_pct_wide), names(pstrata_txt_wide)),
-                        all.x = TRUE, all.y = TRUE)
+  pstrata_wide <- full_join(pstrata_pct_wide, pstrata_txt_wide,
+                        by = intersect(names(pstrata_pct_wide), names(pstrata_txt_wide)))
 
   pstrata_wide <- pstrata_wide[,c("PlotID", "EventID", "ParkUnit", "PlotCode", "IsQAQC", "StartYear",
                                   "Pct_Understory_Low", "Txt_Understory_Low",
@@ -212,9 +211,8 @@ joinStandData <- function(park = 'all', QAQC = FALSE, locType = c('VS', 'all'), 
   new_fcolt <- c("Txt_Bare_Soil", "Txt_Rock", "Txt_Water", "Txt_Trampled", "Txt_Bryophyte", "Txt_Lichen")
   names(ffloor_txt_wide)[match(old_fcol, names(ffloor_txt_wide))] <- new_fcolt # change col names to match prev. analyses
 
-  ffloor_wide <- merge(ffloor_pct_wide, ffloor_txt_wide,
-                       by = intersect(names(ffloor_pct_wide), names(ffloor_txt_wide)),
-                       all.x = TRUE, all.y = TRUE)
+  ffloor_wide <- full_join(ffloor_pct_wide, ffloor_txt_wide,
+                       by = intersect(names(ffloor_pct_wide), names(ffloor_txt_wide)))
 
   ffloor_wide <- ffloor_wide[, c("PlotID", "EventID", "ParkUnit", "PlotCode", "IsQAQC", "StartYear",
                                  "Pct_Bare_Soil", "Txt_Bare_Soil", "Pct_Bryophyte", "Txt_Bryophyte",
@@ -243,9 +241,9 @@ joinStandData <- function(park = 'all', QAQC = FALSE, locType = c('VS', 'all'), 
                         c("PlotID", "EventID", "ParkUnit", "PlotCode","IsQAQC", "StartYear", "Plot_Name",
                           "PlotSlope")]
 
-  slopes_QAQC <- merge(subset(slopes_QAQC1, select = c(-PlotSlope)),
-                       subset(slopes, slopes$IsQAQC == FALSE, select = c(-PlotID, -EventID, -IsQAQC)),
-                       by = c("ParkUnit", "PlotCode", "Plot_Name", "StartYear"), all.x = T, all.y = F)
+  slopes_QAQC <- left_join(slopes_QAQC1 %>% select(-PlotSlope),
+                           slopes %>% filter(IsQAQC == FALSE) %>% select(-PlotID, -EventID, -IsQAQC),
+                           by = c("ParkUnit", "PlotCode", "Plot_Name", "StartYear"))
 
   slopes_QAQC <- slopes_QAQC[, c("PlotID", "EventID", "ParkUnit", "PlotCode", "IsQAQC", "StartYear", "PlotSlope")]
   slopes_init <- slopes_init[, c("PlotID", "EventID", "ParkUnit", "PlotCode", "IsQAQC", "StartYear", "PlotSlope")]
@@ -255,7 +253,7 @@ joinStandData <- function(park = 'all', QAQC = FALSE, locType = c('VS', 'all'), 
   merge_cols <- Reduce(intersect, list(names(standinfo), names(pstrata_wide), names(ffloor_wide),
                                        names(slopes_final), names(treeht_sum)))
 
-  stand_comb <- Reduce(function(x, y) merge (x = x, y = y, by = merge_cols, all.x = T, all.y = T),
+  stand_comb <- Reduce(function(x, y) full_join(x = x, y = y, by = merge_cols),
                        list(standinfo, slopes_final, pstrata_wide, ffloor_wide, treeht_sum)) %>% unique()
 
   #table(complete.cases(stand_comb[, merge_cols])) #All TRUE
@@ -267,9 +265,9 @@ joinStandData <- function(park = 'all', QAQC = FALSE, locType = c('VS', 'all'), 
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
            xCoordinate, yCoordinate, EventID, StartDate, StartYear, cycle, IsQAQC)
 
-  stand_merge <- merge(plot_events, stand_comb,
-                       intersect(names(plot_events), names(stand_comb)),
-                       all.x = TRUE, all.y = FALSE)
+  stand_merge <- left_join(plot_events, stand_comb,
+                       intersect(names(plot_events), names(stand_comb))) %>%
+                 arrange(Plot_Name, StartYear, IsQAQC)
 
   stand_final <- if(output == 'short'){
     stand_merge %>% select(Plot_Name, ParkUnit, ParkSubUnit, StartYear, cycle, IsQAQC,
