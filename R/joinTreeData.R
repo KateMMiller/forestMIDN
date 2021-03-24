@@ -1,7 +1,7 @@
 #' @include joinLocEvent.R
 #' @title joinTreeData: compiles tree data
 #'
-#' @importFrom dplyr case_when filter mutate select
+#' @importFrom dplyr arrange case_when filter left_join mutate select
 #' @importFrom magrittr %>%
 #'
 #' @description This function combines tree location and visit data for measurements that have only 1 record per visit.
@@ -24,8 +24,8 @@
 #' \item{"THST"}{Thomas Stone NHS only}
 #' \item{"VAFO"}{Valley Forge NHP only}}
 #'
-#' @param from Year to start analysis, ranging from 2006 to current year
-#' @param to Year to stop analysis, ranging from 2006 to current year
+#' @param from Year to start analysis, ranging from 2007 to current year
+#' @param to Year to stop analysis, ranging from 2007 to current year
 #'
 #' @param QAQC Allows you to remove or include QAQC events.
 #' \describe{
@@ -63,14 +63,15 @@
 #' \item{"all"}{Default. Returns all species.}
 #' \item{"native"}{Returns native species only}
 #' \item{"exotic"}{Returns exotic species only}
-#'
 #' }
 #'
 #' @param dist_m Filter trees by a distance that is less than or equal to the specified distance in meters
 #' of the tree to the center of the plot. If no distance is specified, then all trees will be selected. For
 #' example, to select an area of trees that is 100 square meters in area, use a distance of 5.64m.
 #'
-#' @return returns a dataframe with plot-level and visit-level tree data
+#' @return returns a dataframe with plot-level and visit-level tree data. Returns records for all specified
+#' plots and events, even if no trees meet the specified arguments (eg dead or exotic trees), although all
+#' associated data (eg TagCode, ScientificName), will be NA for those plot/events.
 #'
 #' @examples
 #' importData()
@@ -115,7 +116,7 @@ joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, loc
 
   env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
 
-  # Prepare the CWD data
+  # Prepare the tree data
   tryCatch(tree_vw <- subset(get("COMN_TreesByEvent", envir = env),
                              select = c(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, TreeLegacyID,
                                         TagCode, TaxonID, TSN, ScientificName, Fork, Azimuth, Distance, DBHcm, IsDBHVerified,
@@ -146,7 +147,7 @@ joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, loc
 
   pe_list <- unique(plot_events$EventID)
 
-  tree_evs <- subset(tree_vw, EventID %in% pe_list)
+  tree_evs <- filter(tree_vw, EventID %in% pe_list)
 
   # Drop unwanted status
   alive <- c("1", "AB", "AF", "AL" ,"AM" ,"AS", "RB", "RF", "RL", "RS")
@@ -159,13 +160,12 @@ joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, loc
   } else if(status == 'all'){(tree_evs)}
 
   # Drop unwanted events before merging
-  tree_fol1 <- subset(foliage_vw, EventID %in% pe_list)
-  tree_fol <- merge(tree_stat, tree_fol1, by = intersect(names(tree_vw), names(foliage_vw)),
-                    all.x = TRUE, all.y = FALSE)
+  tree_fol1 <- filter(foliage_vw, EventID %in% pe_list)
+  tree_fol <- left_join(tree_stat, tree_fol1, by = intersect(names(tree_vw), names(foliage_vw)))
 
-  tree_taxa <- merge(tree_fol,
+  tree_taxa <- left_join(tree_fol,
                      taxa[,c('TSN','ScientificName','CommonName','Family', 'Genus', 'IsExotic')],
-                     by = c("TSN", "ScientificName"), all.x = TRUE, all.y = FALSE)
+                     by = c("TSN", "ScientificName"))
 
   tree_taxa$BA_cm2 <- round(pi*((tree_taxa$DBHcm/2)^2),4)# basal area (cm^2)
 
@@ -197,10 +197,12 @@ joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, loc
   tree_dist <- if(!is.na(dist_m)){filter(tree_nat, Distance <= dist_m)
   } else {tree_nat}
 
-  tree_merge <- merge(plot_events, tree_dist,
-                      by = intersect(names(plot_events), names(tree_dist)),
-                      all.x = TRUE, all.y = FALSE)
+  tree_merge <- left_join(plot_events, tree_dist,
+                      by = intersect(names(plot_events), names(tree_dist))) %>%
+                arrange(Plot_Name, StartYear, IsQAQC, TagCode)
 
+  # Handling plots with missing status or species specified.
+  tree_merge$ScientificName <- ifelse(is.na(tree_merge$ScientificName), "None present", tree_merge$ScientificName)
   tree_merge$num_stems <- ifelse(is.na(tree_merge$TagCode), 0, 1) # for plots missing live or dead trees
   tree_merge$BA_cm2[is.na(tree_merge$TagCode)] <- 0 # for plots missing live or dead trees
   # Plots will have a record, but species, condition, DBH info will be NA.
@@ -210,7 +212,7 @@ joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, loc
                    "PlotID", "EventID", "IsQAQC", "StartYear", "TSN", "ScientificName",
                    "TagCode", "Fork", "Azimuth", "Distance", "DBHcm", "IsDBHVerified", "TreeStatusCode",
                    "CrownClassCode", "DecayClassCode", "Pct_Tot_Foliage_Cond",
-                   "HWACode", "BBDCode", "TreeEventNote")]
+                   "HWACode", "BBDCode", "BA_cm2", "num_stems", "TreeEventNote")]
   } else {tree_merge}
   #table(complete.cases(tree_merge[,intersect(names(plot_events), names(tree_dist))])) #All T
 
