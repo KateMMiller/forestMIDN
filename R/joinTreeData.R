@@ -71,7 +71,7 @@
 #'
 #' @return returns a dataframe with plot-level and visit-level tree data. Returns records for all specified
 #' plots and events, even if no trees meet the specified arguments (eg dead or exotic trees), although all
-#' associated data (eg TagCode, ScientificName), will be NA for those plot/events.
+#' associated data (eg TagCode, DBH), will be NA for those plot/events. ScientificName will be "None present".
 #'
 #' @examples
 #' importData()

@@ -37,9 +37,9 @@ joinTreeData(
 \item{"THST"}{Thomas Stone NHS only}
 \item{"VAFO"}{Valley Forge NHP only}}}
 
-\item{from}{Year to start analysis, ranging from 2006 to current year}
+\item{from}{Year to start analysis, ranging from 2007 to current year}
 
-\item{to}{Year to stop analysis, ranging from 2006 to current year}
+\item{to}{Year to stop analysis, ranging from 2007 to current year}
 
 \item{QAQC}{Allows you to remove or include QAQC events.
 \describe{
@@ -68,7 +68,6 @@ If more than one panel is selected, specify by c(1, 3), for example.}
 \item{"all"}{Default. Returns all species.}
 \item{"native"}{Returns native species only}
 \item{"exotic"}{Returns exotic species only}
-
 }}
 
 \item{dist_m}{Filter trees by a distance that is less than or equal to the specified distance in meters
@@ -85,7 +84,9 @@ associated with that event (eg ACAD-029.2010). This feature is currently hard-co
 inputs are "short" and "verbose".}
 }
 \value{
-returns a dataframe with plot-level and visit-level tree data
+returns a dataframe with plot-level and visit-level tree data. Returns records for all specified
+plots and events, even if no trees meet the specified arguments (eg dead or exotic trees), although all
+associated data (eg TagCode, DBH), will be NA for those plot/events. ScientificName will be "None present".
 }
 \description{
 This function combines tree location and visit data for measurements that have only 1 record per visit.
