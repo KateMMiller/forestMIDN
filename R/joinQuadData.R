@@ -1,35 +1,63 @@
 #' @include joinLocEvent.R
-#' @title joinQuadData: compiles quadrat species data
+#' @title joinQuadData: compiles quadrat character data
 #'
-#' @importFrom dplyr select filter arrange mutate summarise group_by left_join
+#' @importFrom dplyr arrange case_when full_join group_by left_join mutate select summarize ungroup
 #' @importFrom magrittr %>%
+#' @importFrom tidyr pivot_wider
 #'
-#' @description This function combines quadrat species cover data with species names
-#' and allows you to filter on species types, park, years, and visit type. Note that the
-#' Shrub guild also includes woody vine species. Note that quadrat seedling data, including
-#' percent cover and quadrat frequency of tree species that are seedling sized are reported
-#' in joinRegenData and not summarized here.
+#' @description This function compiles the quadrat character data (i.e., Soil, Rock, etc.) into a wide format,
+#' so that each quadrat has a column. Notes fields are not compiled in this function. For quadrat-related notes,
+#' use the joinQuadNotes() function.
 #'
-#'
-#' @param speciesType Allows you to filter on native, exotic or include all species.
+#' @param park Combine data from all parks or one or more parks at a time. Valid inputs:
 #' \describe{
-#' \item{"all"}{Default. Returns all species.}
-#' \item{"native"}{Returns native species only, including Robinia pseudoacacia}
-#' \item{"native_noROBPSE"}{Returns native species except Robinia pseudoacacia}
-#' \item{"exotic"}{Returns exotic species only}
+#' \item{"all"}{Includes all parks in the network}
+#' \item{"APCO"}{Appomattox Court House NHP only}
+#' \item{"ASIS"}{Assateague Island National Seashore}
+#' \item{"BOWA"}{Booker T. Washington NM only}
+#' \item{"COLO"}{Colonial NHP only}
+#' \item{"FRSP"}{Fredericksburg & Spotsylvania NMP only}
+#' \item{"GETT"}{Gettysburg NMP only}
+#' \item{"GEWA"}{George Washington Birthplace NM only}
+#' \item{"HOFU"}{Hopewell Furnace NHS only}
+#' \item{"PETE"}{Petersburg NBP only}
+#' \item{"RICH"}{Richmond NB only}
+#' \item{"SAHI"}{Sagamore Hill NHS only}
+#' \item{"THST"}{Thomas Stone NHS only}
+#' \item{"VAFO"}{Valley Forge NHP only}}
+#'
+#' @param from Year to start analysis, ranging from 2007 to current year
+#' @param to Year to stop analysis, ranging from 2007 to current year
+#'
+#' @param QAQC Allows you to remove or include QAQC events.
+#' \describe{
+#' \item{FALSE}{Default. Only returns visits that are not QAQC visits}
+#' \item{TRUE}{Returns all visits, including QAQC visits}}
+#'
+#' @param locType Allows you to only include plots that are part of the GRTS sample design or include all plots, such as deer exclosures
+#' \describe{
+#' \item{"VS"}{Only include plots that are part of the Vital Signs GRTS sample design}
+#' \item{"all"}{Include all plots, such as plots in deer exclosures or test plots.}}
+#'
+#' @param eventType Allows you to include only complete sampling events or all sampling events
+#' \describe{
+#' \item{"complete"}{Default. Only include sampling events for a plot that are complete.}
+#' \item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
+#' associated with that event (eg ACAD-029.2010). This feature is currently hard-coded in the function.}}
+#'
+#' @param valueType Allows you to return cover class midpoints (numeric) or cover class ranges (text)
+#' \describe{
+#' \item{"all"}{Default. Returns columns for midpoint and cover classes for each quad}
+#' \item{"midpoint"}{Default. Returns numeric cover class midpoints, with Pct prefix.}
+#' \item{"classes"}{Returns the text cover class definitions, with Txt prefix.}
 #' }
 #'
-#' @return Returns a dataframe with average quadrat cover and quadrat frequency for each species
-#' detected in the quadrats species section of the protocol. Starting in 2019 all woody species
-#' were estimated for percent cover and all life stages were lumped into one percent cover estimate.
-#' The new_2019 column indicates whether a species was recorded in avg.cover and avg.freq because
-#' of the protocol change in 2019. Seedling-sized tree species will continue to get percent cover
-#' estimates for 2019-2022 to maintain protocol overlap, and these data are covered in joinRegenData().
+#' @return Returns a dataframe with cover class midpoints for each quadrat and includes guild for each species.
 #'
 #' @examples
 #' importData()
-#' # compile quadrat data for exotic species in PETE for all years
-#' PETE_quads <- joinQuadData(park = 'PETE', speciesType = 'exotic')
+#' # compile quadrat data for invasive species in SARA for all years
+#' SARA_quads <- joinQuadData(park = 'SARA', speciesType = 'invasive')
 #'
 #' # compile native species only for all parks in most recent survey
 #' native_quads <- joinQuadData(speciesType = 'native', from = 2015, to = 2018)
@@ -37,105 +65,137 @@
 #' @export
 #'
 #------------------------
-# Joins quadrat tables and filters by park, year, and plot/visit type
+# Joins quadrat character data and filters by park, year, and plot/visit type
 #------------------------
-joinQuadData <- function(speciesType = c('all', 'native', 'native_noROBPSE', 'exotic'),
-                         park = 'all', from = 2007, to = 2019, QAQC = FALSE, locType = 'VS',
-                         panels = 1:4, output, ...){
+joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, panels = 1:4,
+                         locType = c('VS', 'all'), eventType = c('complete', 'all'),
+                         valueType = c('all', 'midpoint', 'classes'),  ...){
 
-  speciesType <- match.arg(speciesType)
+  # Match args and class
+  park <- match.arg(park, several.ok = TRUE,
+                    c("all", "APCO", "ASIS", "BOWA", "COLO", "FRSP", "GETT", "GEWA", "HOFU", "PETE",
+                      "RICH", "SAHI", "THST", "VAFO"))
+  stopifnot(class(from) == "numeric", from >= 2007)
+  stopifnot(class(to) == "numeric", to >= 2007)
+  stopifnot(class(QAQC) == 'logical')
+  stopifnot(panels %in% c(1, 2, 3, 4))
+  locType <- match.arg(locType)
+  eventType <- match.arg(eventType)
+  valueType <- match.arg(valueType)
 
-  # Prepare the quadrat data
-  quadsamp$numQuadrats <- apply(quadsamp[ , c(3:14)], 1, sum)
-  park.plots <- force(joinLocEvent(park = park, from = from, to = to, QAQC = QAQC,
-                                 locType = locType, panels = panels, output = 'short'))
+
+  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+
+  # Prepare the quad data
+  tryCatch(quadchar <- get("COMN_QuadCharacter", envir = env) %>%
+             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, SQQuadCharCode,
+                    IsTrampled, QuadratCode, CharacterLabel, CoverClassCode, CoverClassLabel),
+           error = function(e){stop("COMN_QuadCharacter view not found. Please import view.")}
+  )
+
+  # subset with EventID from plot_events to make function faster
+  plot_events <- force(joinLocEvent(park = park, from = from , to = to, QAQC = QAQC,
+                                    panels = panels, locType = locType, eventType = eventType,
+                                    abandoned = FALSE, output = 'short')) %>%
+    select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
+           xCoordinate, yCoordinate, EventID, StartDate, StartYear, cycle, IsQAQC)
+
+  pe_list <- unique(plot_events$EventID)
+
+  quadchar_evs <- filter(quadchar, EventID %in% pe_list)
+
+  # Hard code issues with quad sampling in RICH-073-2015 (EventID 1144) and RICH-063-2011 (EventID 592)
+  # They quads in question have NS for their SQ, but also have some % cover values. Turning them to NA
+  quadchar_evs$CoverClassCode[quadchar_evs$SQQuadCharCode == "NS"] <- NA
+  quadchar_evs$CoverClassLabel[quadchar_evs$SQQuadCharCode == "NS"] <- NA
+  quadchar_evs$CoverClassCode[quadchar_evs$EventID == 194] <- NA # COLO-380-2018
+
+  # prep for reshaping to wide
+  quadchar_evs2 <- quadchar_evs %>%
+    mutate(Pct_Cov = as.numeric(case_when(CoverClassCode == "0" ~ 0,
+                                          CoverClassCode == "1" ~ 0.1,
+                                          CoverClassCode == "2" ~ 1.5,
+                                          CoverClassCode == "3" ~ 3.5,
+                                          CoverClassCode == "4" ~ 7.5,
+                                          CoverClassCode == "5" ~ 17.5,
+                                          CoverClassCode == "6" ~ 37.5,
+                                          CoverClassCode == "7" ~ 62.5,
+                                          CoverClassCode == "8" ~ 85,
+                                          CoverClassCode == "9" ~ 97.5,
+                                          CoverClassCode %in% c("NC", "PM") ~ NA_real_,
+                                          TRUE ~ NA_real_)), # There are currently some blanks in the data
+           Txt_Cov = ifelse(CoverClassLabel == "-<1%", "<1%", CoverClassLabel),
+           Sampled = ifelse(SQQuadCharCode == "SS", 1, 0)) %>%
+    select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, SQQuadCharCode, QuadratCode,
+           Sampled, IsTrampled, CharacterLabel, Pct_Cov, Txt_Cov)
+
+  quad_sum <- quadchar_evs2 %>% group_by(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear,
+                                         IsQAQC, CharacterLabel) %>%
+                                summarize(num_quads = sum(Sampled, na.rm = T),
+                                          num_trampled = sum(IsTrampled, na.rm = T),
+                                          quad_avg_cov = sum(Pct_Cov, na.rm = T)/num_quads,
+                                          quad_pct_freq = (sum(Pct_Cov > 0, na.rm = T)/num_quads)*100,
+                                          .groups = 'drop') %>% ungroup()
 
 
-  quads1 <- merge(park.plots, quadsamp[,c("Event_ID","numQuadrats")], by="Event_ID", all.x = TRUE)
+  # make data wide on quad name
+  quadchar_wide <- quadchar_evs2 %>%  select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear,
+                                             IsQAQC, QuadratCode, CharacterLabel, Pct_Cov, Txt_Cov) %>%
+                                      pivot_wider(names_from = QuadratCode,
+                                      values_from = c(Pct_Cov, Txt_Cov),
+                                      values_fill = list(Pct_Cov = 0, Txt_Cov = "0%"))
+  # note that values_fill only fills non-existent combinations with 0 or 0%. NAs already in data remain NA.
 
-  plants <- plants %>% mutate(Tree = ifelse(Latin_Name == "Rhamnus cathartica", FALSE, Tree))
+  # RICH-073-2015 B8 is still an issue b/c didn't stub out like other NS quads. This may get resolved in
+  # next migration.
+  quadchar_wide$Pct_Cov_B5[quadchar_wide$EventID == 1144] <- NA
+  quadchar_wide$Pct_Cov_B8[quadchar_wide$EventID == 1144] <- NA
+  quadchar_wide$Txt_Cov_B8[quadchar_wide$EventID == 1144] <- "Permanently Missing"
+  quadchar_wide$Txt_Cov_B5[quadchar_wide$EventID == 1144] <- "Permanently Missing"
 
-  quads2<-merge(quads1,
-    quads[,c("Event_ID", "TSN", "qA2_Cover_Class_ID", "qA5_Cover_Class_ID", "qA8_Cover_Class_ID",
-             "qAA_Cover_Class_ID", "qB2_Cover_Class_ID", "qB5_Cover_Class_ID", "qB8_Cover_Class_ID",
-             "qBB_Cover_Class_ID", "qC2_Cover_Class_ID", "qC5_Cover_Class_ID", "qC8_Cover_Class_ID",
-             "qCC_Cover_Class_ID")], by = 'Event_ID', all.x = TRUE)
+  quadchar_wide$Pct_Cov_AA[quadchar_wide$EventID == 592] <- NA
+  quadchar_wide$Pct_Cov_B2[quadchar_wide$EventID == 592] <- NA
+  quadchar_wide$Pct_Cov_B5[quadchar_wide$EventID == 592] <- NA
+  quadchar_wide$Pct_Cov_B8[quadchar_wide$EventID == 592] <- NA
+  quadchar_wide$Txt_Cov_AA[quadchar_wide$EventID == 592] <- "Permanently Missing"
+  quadchar_wide$Txt_Cov_B2[quadchar_wide$EventID == 592] <- "Permanently Missing"
+  quadchar_wide$Txt_Cov_B5[quadchar_wide$EventID == 592] <- "Permanently Missing"
+  quadchar_wide$Txt_Cov_B8[quadchar_wide$EventID == 592] <- "Permanently Missing"
 
- # Convert coverclasses to midpoints for all 8 quadrats
+  quadchr_comb <- full_join(quad_sum, quadchar_wide,
+                            by = intersect(names(quad_sum), names(quadchar_wide)))
 
-  quad_names <- names(quads2[14:25])
+  quadchr_comb2 <- left_join(plot_events, quadchr_comb,
+                             by = intersect(names(plot_events), names(quadchr_comb))) %>%
+                   filter(!is.na(CharacterLabel)) # drops plots without SQs
 
-  quads2[ , quad_names][quads2[ , quad_names] == 1] <- 0.1
-  quads2[ , quad_names][quads2[ , quad_names] == 2] <- 1.5
-  quads2[ , quad_names][quads2[ , quad_names] == 3] <- 3.5
-  quads2[ , quad_names][quads2[ , quad_names] == 4] <- 7.5
-  quads2[ , quad_names][quads2[ , quad_names] == 5] <- 17.5
-  quads2[ , quad_names][quads2[ , quad_names] == 6] <- 37.5
-  quads2[ , quad_names][quads2[ , quad_names] == 7] <- 62.5
-  quads2[ , quad_names][quads2[ , quad_names] == 8] <- 85
-  quads2[ , quad_names][quads2[ , quad_names] == 9] <- 97.5
+  # select columns based on specified valueType
+  req_cols <- c("Plot_Name", "Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode", "PanelCode",
+                "PlotCode", "PlotID", "EventID", "IsQAQC", "StartYear", "cycle",
+                "CharacterLabel", "num_quads", "num_trampled", "quad_avg_cov", "quad_pct_freq")
 
-  new.names<-c('A2','A5','A8','AA','B2','B5','B8','BB','C2','C5','C8','CC')
+  pct_cols <- c("Pct_Cov_A2", "Pct_Cov_A5", "Pct_Cov_A8", "Pct_Cov_AA",
+                "Pct_Cov_B2", "Pct_Cov_B5", "Pct_Cov_B8", "Pct_Cov_BB",
+                "Pct_Cov_C2", "Pct_Cov_C5", "Pct_Cov_C8", "Pct_Cov_CC")
 
-  colnames(quads2) <- c(names(quads2[1:13]), new.names)
+  txt_cols <- c("Txt_Cov_A2", "Txt_Cov_A5", "Txt_Cov_A8", "Txt_Cov_AA",
+                "Txt_Cov_B2", "Txt_Cov_B5", "Txt_Cov_B8", "Txt_Cov_BB",
+                "Txt_Cov_C2", "Txt_Cov_C5", "Txt_Cov_C8", "Txt_Cov_CC")
 
-  quads2[ , new.names][is.na(quads2[ , new.names])] <- 0
-  quads3 <- quads2 %>% mutate(avg.cover = (A2+A5+A8+AA+B2+B5+B8+BB+C2+C5+C8+CC)/numQuadrats) #%>% select(Event_ID:TSN,avg.cover)
-  quads3[ , c(new.names)][quads3[ , c(new.names)] > 0] <- 1
-  quads3 <- quads3 %>% mutate(avg.freq = (A2+A5+A8+AA+B2+B5+B8+BB+C2+C5+C8+CC)/numQuadrats)
+  # Need to reset PMs to NA after pivot_wider
+  invisible(lapply(seq_along(pct_cols), function(x){
+    quadchr_comb2[,pct_cols[[x]]][quadchr_comb2[,txt_cols[[x]]] == "Permanently Missing"] <- NA
+  }))
 
-  #intersect(names(park.plots), names(quads3))
-  quads3b <- quads3[ , c("Location_ID", "Event_ID", "numQuadrats", "TSN", "A2", "A5",
-                         "A8", "AA", "B2", "B5", "B8", "BB", "C2", "C5", "C8", "CC",
-                         "avg.cover", "avg.freq")]
-
-  quads3c <- merge(park.plots[, c("Location_ID", "Event_ID", "Plot_Name")],
-                   quads3b, by = c("Location_ID", "Event_ID"),
-                   all.x = TRUE, all.y = TRUE)
-
-  quads4 <- merge(quads3c, plants[ , c('TSN', "Latin_Name", "Common", "Tree", "Shrub",
-                                      "Vine", "Graminoid", "Herbaceous", "Fern_Ally", "Exotic",
-                                      "Indicator_MIDN")],
-                      by = "TSN", all.x = TRUE)
-
-  quads5 <- if (speciesType == 'native'){filter(quads4, Exotic == FALSE)
-  } else if (speciesType == 'exotic'){filter(quads4, Exotic == TRUE)
-  } else if (speciesType == 'native_noROBPSE'){
-    filter(quads4, Exotic == FALSE, Latin_Name !="Robinia pseudoacacia")
-  } else if (speciesType == 'all'){(quads4)
+  quadchr_final <- if(valueType == "midpoint"){
+    quadchr_comb2[, c(req_cols, pct_cols)]
+  } else if(valueType == "classes"){
+    quadchr_comb2[, c(req_cols, txt_cols)]
+  } else if(valueType == "all"){
+    quadchr_comb2[, c(req_cols, pct_cols, txt_cols)]
   }
 
+  return(quadchr_final)
 
-  quads6 <- quads5 %>% mutate(avg.cover = ifelse(TSN == -9999999951, 0, avg.cover),
-                              avg.freq = ifelse(TSN == -9999999951, 0, avg.freq)) %>%
-                       select(Event_ID, TSN, numQuadrats:Indicator_MIDN)
-
-  quad_comb <- merge(park.plots, quads6, by = "Event_ID", all.x = TRUE) %>% select(-numQuadrats)
-
-  quad_comb2 <- merge(quad_comb, quadsamp[,c("Event_ID","numQuadrats")], by="Event_ID", all.x = TRUE)
-
-  na_nums <- c("A2", "A5", "A8", "AA", "B2", "B5", "B8", "BB", "C2", "C5", "C8", "CC",
-              "avg.cover", "avg.freq")
-  na_chrs <- c("Latin_Name", "Common")
-  na_TF <- c("Tree", "Shrub", "Vine", "Graminoid", "Herbaceous", "Fern_Ally", "Exotic", "Indicator_MIDN")
-
-  quad_comb2[ , na_nums][is.na(quad_comb2[, na_nums])] <-0
-  quad_comb2[ , na_chrs][is.na(quad_comb2[, na_chrs])] <- "No species recorded"
-  quad_comb2[ , "TSN"][is.na(quad_comb2[, "TSN"])] <- -9999999951
-
-  quad_final <- quad_comb2[ , c("Location_ID", "Event_ID", "Unit_Code", "Plot_Name",
-                                "Plot_Number", "X_Coord", "Y_Coord", "Panel", "Year",
-                                "Event_QAQC", "cycle", "TSN", "numQuadrats", "A2", "A5",
-                                "A8", "AA", "B2", "B5", "B8", "BB", "C2", "C5", "C8", "CC",
-                                "avg.cover", "avg.freq", "Latin_Name", "Common",
-                                "Tree", "Shrub", "Vine", "Graminoid", "Herbaceous",
-                                "Fern_Ally", "Exotic", "Indicator_MIDN")]
-
-  quad_final <- quad_final %>% mutate(new_2019 = ifelse((Tree == TRUE | Shrub == TRUE) &
-                                                         Indicator_MIDN == FALSE &
-                                                         !is.na(Tree) & !is.na(Shrub) &
-                                                         Year == 2019, TRUE, FALSE))
-
-  return(data.frame(quad_final))
 } # end of function
 
