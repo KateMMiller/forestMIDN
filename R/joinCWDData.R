@@ -1,9 +1,10 @@
 #' @include joinLocEvent.R
 #'
+#' @title joinCWDData: compile coarse woody debris volume data.
+#'
 #' @importFrom dplyr arrange filter group_by mutate select summarize
 #' @importFrom magrittr %>%
-#'
-#' @title joinCWDData: compile coarse woody debris volume data.
+#' @importFrom stringr str_pad
 #'
 #' @description his function combines and calculates CWD volume for each plot. Must run importData() first. Function
 #' only works for complete visits.

@@ -1,4 +1,4 @@
-#' @include joinLocEvent.R
+#' @include joinTreeData.R
 #' @title joinTreeConditions: compiles live and dead tree conditions
 #'
 #' @importFrom dplyr arrange filter full_join group_by left_join mutate select summarize

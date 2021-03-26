@@ -1,4 +1,4 @@
-#' @include joinLocEvent.R
+#' @include joinTreeData.R
 #' @title joinTreeFoliageCond: compiles live tree foliage data
 #'
 #' @importFrom dplyr arrange case_when filter full_join left_join mutate mutate_at select

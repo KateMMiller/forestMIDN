@@ -1,4 +1,4 @@
-#' @include joinLocEvent.R
+#' @include joinTreeData.R
 #' @title joinTreeVineSpecies: compiles trees with vine conditions and the vine species
 #'
 #' @importFrom dplyr arrange filter full_join group_by left_join mutate select summarize
