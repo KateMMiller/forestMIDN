@@ -33,6 +33,7 @@
 
 importData <- function(instance = c("local", "server"), server = "localhost", new_env = TRUE){
 
+  options(scipen = 100) # For TSNs
   instance <- match.arg(instance)
 
   # Check that suggested package required for this function are installed
