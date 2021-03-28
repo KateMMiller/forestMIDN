@@ -1,6 +1,8 @@
 #' @title joinLocEvent: compile Location and Event data with filtering options.
 #'
+#' @importFrom dplyr filter full_join select
 #' @importFrom stringr str_pad
+#' @importFrom magrittr %>%
 #'
 #' @description This function combines location and event data. Must run importData first.
 #'
@@ -100,13 +102,13 @@ joinLocEvent<-function(park = "all", from = 2007, to = 2021, QAQC = FALSE, aband
   )
 
   # Merge COMN_Plots and COMN_Events
-  plots <- subset(plots, select = -ExportDate)
-  events <- subset(events, select = -ExportDate)
+  plots <- plots %>% select(-ExportDate)
+  events <- events %>% select(-ExportDate)
   merge_names <- intersect(names(plots), names(events))
   # merge_names: "Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode", "PlotTypeLabel",
   # "PanelCode", "PanelLabel", "PlotCode", "IsAbandoned"
 
-  plot_events <- merge(plots, events, by = merge_names, all.x = TRUE, all.y = TRUE)
+  plot_events <- full_join(plots, events, by = merge_names)
 
     # Filter output based on function arguments
   plot_events <- if(output == 'short'){
@@ -125,20 +127,20 @@ joinLocEvent<-function(park = "all", from = 2007, to = 2021, QAQC = FALSE, aband
                                  stringr::str_pad(plot_events$PlotCode, 3, side = 'left', "0"),
                                  sep = "-")
 
-  plot_events1 <- if(locType == 'VS'){subset(plot_events, PlotTypeCode == "VS")
+  plot_events1 <- if(locType == 'VS'){filter(plot_events, PlotTypeCode == "VS")
   } else if (locType=='all') {(plot_events)}
 
-  plot_events2 <- if(abandoned == FALSE){subset(plot_events1, IsAbandoned == FALSE)
+  plot_events2 <- if(abandoned == FALSE){filter(plot_events1, IsAbandoned == FALSE)
   } else if (abandoned == TRUE) {(plot_events1)}
 
-  plot_events3 <- if(all(park == "all")){plot_events2
-  } else {subset(plot_events2, ParkUnit %in% park)}
+  plot_events3 <- if(park == "all"){plot_events2
+  } else {filter(plot_events2, ParkUnit %in% park)}
 
-  plot_events4 <- if(QAQC == FALSE){subset(plot_events3, IsQAQC == 0)
+  plot_events4 <- if(QAQC == FALSE){filter(plot_events3, IsQAQC == 0)
   } else {plot_events3}
 
   plot_events5 <- if(eventType == "complete"){
-    subset(plot_events4, !(Plot_Name == 'COLO-380' & StartDate == '2018-08-15'))
+    filter(plot_events4, !(Plot_Name == 'COLO-380' & StartDate == '2018-08-15'))
   } else {plot_events4}
 
   plot_events6 <- plot_events5[plot_events5$PanelCode %in% c(panels), ]
