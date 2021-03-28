@@ -56,11 +56,11 @@
 #'
 #' @examples
 #' importData()
-#' # compile quadrat data for invasive species in SARA for all years
-#' SARA_quads <- joinQuadData(park = 'SARA', speciesType = 'invasive')
+#' # compile quadrat data cover class midpoints invasive species in VAFO for all years
+#' VAFO_quads <- joinQuadData(park = 'VAFO', valueType = 'midpoint')
 #'
-#' # compile native species only for all parks in most recent survey
-#' native_quads <- joinQuadData(speciesType = 'native', from = 2015, to = 2018)
+#' # compile quadrat data for cycle 3
+#' native_quads <- joinQuadData( from = 2015, to = 2018)
 #'
 #' @export
 #'
@@ -88,8 +88,8 @@ joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pan
 
   # Prepare the quad data
   tryCatch(quadchar <- get("COMN_QuadCharacter", envir = env) %>%
-             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, SQQuadCharCode,
-                    IsTrampled, QuadratCode, CharacterLabel, CoverClassCode, CoverClassLabel),
+                       select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, SQQuadCharCode,
+                       IsTrampled, QuadratCode, CharacterLabel, CoverClassCode, CoverClassLabel),
            error = function(e){stop("COMN_QuadCharacter view not found. Please import view.")}
   )
 
@@ -97,8 +97,9 @@ joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pan
   plot_events <- force(joinLocEvent(park = park, from = from , to = to, QAQC = QAQC,
                                     panels = panels, locType = locType, eventType = eventType,
                                     abandoned = FALSE, output = 'short')) %>%
-    select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
-           xCoordinate, yCoordinate, EventID, StartDate, StartYear, cycle, IsQAQC)
+                  select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
+                         PlotCode, PlotID, xCoordinate, yCoordinate, EventID, StartDate,
+                         StartYear, cycle, IsQAQC)
 
   pe_list <- unique(plot_events$EventID)
 
@@ -142,8 +143,8 @@ joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pan
   quadchar_wide <- quadchar_evs2 %>%  select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear,
                                              IsQAQC, QuadratCode, CharacterLabel, Pct_Cov, Txt_Cov) %>%
                                       pivot_wider(names_from = QuadratCode,
-                                      values_from = c(Pct_Cov, Txt_Cov),
-                                      values_fill = list(Pct_Cov = 0, Txt_Cov = "0%"))
+                                                  values_from = c(Pct_Cov, Txt_Cov),
+                                                  values_fill = list(Pct_Cov = 0, Txt_Cov = "0%"))
   # note that values_fill only fills non-existent combinations with 0 or 0%. NAs already in data remain NA.
 
   # RICH-073-2015 B8 is still an issue b/c didn't stub out like other NS quads. This may get resolved in

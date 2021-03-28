@@ -71,10 +71,10 @@ use the joinQuadNotes() function.
 }
 \examples{
 importData()
-# compile quadrat data for invasive species in SARA for all years
-SARA_quads <- joinQuadData(park = 'SARA', speciesType = 'invasive')
+# compile quadrat data cover class midpoints invasive species in VAFO for all years
+VAFO_quads <- joinQuadData(park = 'VAFO', valueType = 'midpoint')
 
-# compile native species only for all parks in most recent survey
-native_quads <- joinQuadData(speciesType = 'native', from = 2015, to = 2018)
+# compile quadrat data for cycle 3
+native_quads <- joinQuadData( from = 2015, to = 2018)
 
 }
