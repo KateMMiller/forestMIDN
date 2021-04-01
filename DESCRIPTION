@@ -30,6 +30,7 @@ Collate:
     'joinCWDData.R'
     'joinMicroShrubData.R'
     'joinQuadData.R'
+    'joinQuadNotes.R'
     'prepTaxa.R'
     'joinQuadSpecies.R'
     'joinRegenData.R'
