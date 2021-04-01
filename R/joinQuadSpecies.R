@@ -63,9 +63,10 @@
 #' \item{"all"}{Default. Returns columns for midpoint and cover classes for each quad}
 #' \item{"midpoint"}{Default. Returns numeric cover class midpoints, with Pct prefix.}
 #' \item{"classes"}{Returns the text cover class definitions, with Txt prefix.}
+#' \item{"averages"}{Returns only the plot-level average cover and percent frequency.}
 #' }
 #'
-#' @return Returns a dataframe with cover class midpoints for each quadrat and includes guild for each species.
+#' @return Returns a dataframe with a row for each species/visit combination for quadrat data
 #'
 #' @examples
 #' importData()
@@ -83,7 +84,7 @@
 joinQuadSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, panels = 1:4,
                             locType = c('VS', 'all'), eventType = c('complete', 'all'),
                             speciesType = c('all', 'native', 'exotic', 'invasive'),
-                            valueType = c('all', 'midpoint', 'classes'), ...){
+                            valueType = c('all', 'midpoint', 'classes', 'averages'), ...){
   # Match args and class
   park <- match.arg(park, several.ok = TRUE,
                     c("all", "APCO", "ASIS", "BOWA", "COLO", "FRSP", "GETT", "GEWA", "HOFU", "PETE",
@@ -126,15 +127,11 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, 
                            taxa_wide[, c("TSN", "ScientificName", "Exotic", "InvasiveMIDN", "FilterMIDN")],
                            by = c("TSN", "ScientificName"))
 
-  quadspp_filt <- if(speciesType == 'native'){
-    filter(quadspp_tax, Exotic == FALSE)
-  } else if(speciesType == 'exotic') {
-    filter(quadspp_tax, Exotic == TRUE)
-  } else if(speciesType == 'invasive'){
-    filter(quadspp_tax, InvasiveMIDN == TRUE)
-  } else if(speciesType == 'all'){
-    quadspp_tax
-  }
+  quadspp_filt <- switch(speciesType,
+                         'native' = filter(quadspp_tax, Exotic == FALSE),
+                         'exotic' = filter(quadspp_tax, Exotic == TRUE),
+                         'invasive' = filter(quadspp_tax, InvasiveMIDN == TRUE),
+                         'all' = quadspp_tax)
 
   quad_check <- quadspp_filt %>% group_by(PlotID, EventID, ParkUnit, PlotCode, StartYear, IsQAQC,
                                           TSN, ScientificName) %>%
@@ -260,13 +257,11 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, 
 
   quadspp_comb3 <- quadspp_comb3 %>% filter(!is.na(ScientificName))
 
-  quadspp_final <- if(valueType == "midpoint"){
-    quadspp_comb3[, c(req_cols, pct_cols, taxa_cols, "QuadSppNote")]
-  } else if(valueType == "classes"){
-    quadspp_comb3[, c(req_cols, txt_cols, taxa_cols, "QuadSppNote")]
-  } else if(valueType == "all"){
-    quadspp_comb3[, c(req_cols, pct_cols, txt_cols, taxa_cols, "QuadSppNote")]
-  }
+  quadspp_final <- switch(valueType,
+                          "midpoint" = quadspp_comb3[, c(req_cols, pct_cols, taxa_cols, "QuadSppNote")],
+                          "classes" = quadspp_comb3[, c(req_cols, txt_cols, taxa_cols, "QuadSppNote")],
+                          "all" = quadspp_comb3[, c(req_cols, pct_cols, txt_cols, taxa_cols, "QuadSppNote")],
+                          "averages" = quadspp_comb3[, c(req_cols, taxa_cols)])
 
   return(quadspp_final)
 } # end of function

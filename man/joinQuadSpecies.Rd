@@ -13,7 +13,7 @@ joinQuadSpecies(
   locType = c("VS", "all"),
   eventType = c("complete", "all"),
   speciesType = c("all", "native", "exotic", "invasive"),
-  valueType = c("all", "midpoint", "classes"),
+  valueType = c("all", "midpoint", "classes", "averages"),
   ...
 )
 }
@@ -69,10 +69,11 @@ associated with that event (eg ACAD-029.2010). This feature is currently hard-co
 \item{"all"}{Default. Returns columns for midpoint and cover classes for each quad}
 \item{"midpoint"}{Default. Returns numeric cover class midpoints, with Pct prefix.}
 \item{"classes"}{Returns the text cover class definitions, with Txt prefix.}
+\item{"averages"}{Returns only the plot-level average cover and percent frequency.}
 }}
 }
 \value{
-Returns a dataframe with cover class midpoints for each quadrat and includes guild for each species.
+Returns a dataframe with a row for each species/visit combination for quadrat data
 }
 \description{
 This function combines quadrat species data with species names and allows you to filter on species types, park,
