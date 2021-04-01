@@ -36,7 +36,7 @@ importCSV<- function(path = NA, new_env = TRUE, zip_name = NA){
   options(scipen = 100) # For TSNs
 
   view_list <- c("COMN_AdditionalSpecies", "COMN_CWD", "COMN_EventObservers", "COMN_Events",
-                 "COMN_MicroplotShrubs", "COMN_Plots", "COMN_QuadCharacter", "COMN_QuadNotes",
+                 "COMN_MicroplotShrubs", "COMN_Plots", "COMN_QuadCharacter",
                  "COMN_StandDisturbances", "COMN_StandForestFloor", "COMN_StandPlantCoverStrata",
                  "COMN_StandSlopes", "COMN_StandTreeHeights", "COMN_Taxa", "COMN_TreesByEvent",
                  "COMN_TreesConditions", "COMN_TreesFoliageCond", "COMN_TreesVine",

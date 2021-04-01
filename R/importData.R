@@ -65,7 +65,8 @@ importData <- function(instance = c("local", "server"), server = "localhost", ne
   )
 
   # Fetch names of views
-  view_list <- as.vector(RODBC::sqlTables(con, schema = "Analysis")$TABLE_NAME)
+  view_list1 <- as.vector(RODBC::sqlTables(con, schema = "Analysis")$TABLE_NAME)
+  view_list <- view_list1[!view_list1 %in% "COMN_QuadNotes"]
 
   # Setup progress bar
   pb <- txtProgressBar(min = 0, max = length(view_list), style = 3)
