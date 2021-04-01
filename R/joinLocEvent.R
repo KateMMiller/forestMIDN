@@ -133,7 +133,7 @@ joinLocEvent<-function(park = "all", from = 2007, to = 2021, QAQC = FALSE, aband
   plot_events2 <- if(abandoned == FALSE){filter(plot_events1, IsAbandoned == FALSE)
   } else if (abandoned == TRUE) {(plot_events1)}
 
-  plot_events3 <- if(park == "all"){plot_events2
+  plot_events3 <- if(any(park == "all")){plot_events2
   } else {filter(plot_events2, ParkUnit %in% park)}
 
   plot_events4 <- if(QAQC == FALSE){filter(plot_events3, IsQAQC == 0)
