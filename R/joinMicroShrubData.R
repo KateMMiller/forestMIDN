@@ -1,26 +1,83 @@
 #' @include joinLocEvent.R
+#' @include prepTaxa.R
+#'
 #' @title joinMicroShrubData: compiles shrub data collected in microplots
 #'
-#' @importFrom dplyr select filter arrange mutate summarise group_by
+#' @importFrom dplyr between case_when filter group_by left_join mutate select summarize
 #' @importFrom magrittr %>%
+#' @importFrom tidyr pivot_wider
 #'
-#' @description This function combines shrub stem (cycle 1) and percent cover (cycle 2+) data from microplots. Must run importData first.
+#' @description This function compiles shrub data sampled in microplots. Note that from 2007 to
+#' 2008, stem tallies and DRC were recorded instead of % cover for all shrub species. From 2009 to 2010,
+#' some shrubs were still stem tallies and DRC, while others were % cover. Starting in 2011, all
+#' shrub species were measured with percent cover. For records missing percent cover data, this function
+#' will summarize percent microplot frequency by species, but average percent cover will be NA. For more
+#' information on how methods evolved for shrubs in MIDN, refer to Table S17.3 in the Summary of Major
+#' Protocol Changes and Deviations document located in the Long-Term Forest Monitoring Protocol IRMA Project:
+#'    https://irma.nps.gov/Datastore/Reference/Profile/2189101.
+#'
+#'
+#' @param park Combine data from all parks or one or more parks at a time. Valid inputs:
+#' \describe{
+#' \item{"all"}{Includes all parks in the network}
+#' \item{"APCO"}{Appomattox Court House NHP only}
+#' \item{"ASIS"}{Assateague Island National Seashore}
+#' \item{"BOWA"}{Booker T. Washington NM only}
+#' \item{"COLO"}{Colonial NHP only}
+#' \item{"FRSP"}{Fredericksburg & Spotsylvania NMP only}
+#' \item{"GETT"}{Gettysburg NMP only}
+#' \item{"GEWA"}{George Washington Birthplace NM only}
+#' \item{"HOFU"}{Hopewell Furnace NHS only}
+#' \item{"PETE"}{Petersburg NBP only}
+#' \item{"RICH"}{Richmond NB only}
+#' \item{"SAHI"}{Sagamore Hill NHS only}
+#' \item{"THST"}{Thomas Stone NHS only}
+#' \item{"VAFO"}{Valley Forge NHP only}}
+#'
+#' @param from Year to start analysis, ranging from 2007 to current year
+#' @param to Year to stop analysis, ranging from 2007 to current year
+#'
+#' @param QAQC Allows you to remove or include QAQC events.
+#' \describe{
+#' \item{FALSE}{Default. Only returns visits that are not QAQC visits}
+#' \item{TRUE}{Returns all visits, including QAQC visits}}
+#'
+#' @param locType Allows you to only include plots that are part of the GRTS sample design or
+#' include all plots, such as deer exclosures.
+#' \describe{
+#' \item{"VS"}{Only include plots that are part of the Vital Signs GRTS sample design}
+#' \item{"all"}{Include all plots, such as plots in deer exclosures or test plots.}}
+#'
+#' @param eventType Allows you to include only complete sampling events or all sampling events
+#' \describe{
+#' \item{"complete"}{Default. Only include sampling events for a plot that are complete.}
+#' \item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
+#' associated with that event (eg COLO-380.2018). This feature is currently hard-coded in the function.}}
 #'
 #' @param speciesType Allows you to filter on native, exotic or include all species.
 #' \describe{
 #' \item{"all"}{Default. Returns all species.}
 #' \item{"native"}{Returns native species only}
 #' \item{"exotic"}{Returns exotic species only}
+#' \item{"invasive"}{Returns species on the Indicator Invasive List}
 #' }
 #'
-#' @param numMicros Allows you to select 1, 2, or 3 microplots of data to summarize
+#' @param valueType Allows you to return cover class midpoints (numeric) or cover class ranges (text)
+#' \describe{
+#' \item{"all"}{Default. Returns columns for midpoint and cover classes for each quad}
+#' \item{"midpoint"}{Default. Returns numeric cover class midpoints, with Pct prefix, for each
+#' microplot/species combination.}
+#' \item{"classes"}{Returns the text cover class definitions, with Txt prefix, for each microplot/
+#' species combination.}
+#' \item{"averages"}{Returns only the plot-level average cover and percent frequency per species.}
+#' }
 #'
 #' @return returns a dataframe with shrub data collected in microplots
 #'
 #' @examples
 #' importData()
-#' # native shrubs in RICH all years
-#' native_shrubs <- joinMicroShrubData(park ='RICH', speciesType = 'native')
+#' # native shrubs in MORR all years
+#' native_shrubs <- joinMicroShrubData(park ='MORR', speciesType = 'native')
 #'
 #' # all parks with exotic shrubs in most recent survey
 #' exotic_shrubs <- joinMicroShrubData(from = 2015, to = 2018, speciesType = 'exotic')
@@ -30,70 +87,188 @@
 #------------------------
 # Joins microplot tables and filters by park, year, and plot/visit type
 #------------------------
-joinMicroShrubData <- function(speciesType = c('all', 'native','exotic'), numMicros = 3, park='all',
-                             from = 2007, to = 2019, QAQC = FALSE, locType = 'VS', panels = 1:4, output, ...){
+joinMicroShrubData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, panels = 1:4,
+                               locType = c('VS', 'all'), eventType = c('complete', 'all'),
+                               speciesType = c('all', 'native', 'exotic', 'invasive'),
+                               valueType = c('all', 'midpoint', 'classes', 'averages'), ...){
 
+  # Match args and class
+  park <- match.arg(park, several.ok = TRUE,
+                    c("all", "APCO", "ASIS", "BOWA", "COLO", "FRSP", "GETT", "GEWA", "HOFU", "PETE",
+                      "RICH", "SAHI", "THST", "VAFO"))
+  stopifnot(class(from) == "numeric", from >= 2007)
+  stopifnot(class(to) == "numeric", to >= 2007)
+  stopifnot(class(QAQC) == 'logical')
+  stopifnot(panels %in% c(1, 2, 3, 4))
+  locType <- match.arg(locType)
+  eventType <- match.arg(eventType)
   speciesType <- match.arg(speciesType)
+  valueType <- match.arg(valueType)
 
-  park.plots <- force(joinLocEvent(park = park, from = from,to = to, QAQC = QAQC,locType = locType,
-                                 rejected = F, panels = panels, output = 'verbose'))
+  options(scipen = 100) # for TSNs
 
-  park.plots <- park.plots %>% select(Location_ID, Event_ID, Unit_Code, Plot_Name, Plot_Number, X_Coord, Y_Coord,
-                                      Panel, Year, Event_QAQC, cycle, Loc_Type)
+  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
 
-  # Prepare the sapling data
-  shrub1 <- merge(micro, shrub[,c("Microplot_Characterization_Data_ID", "TSN", "Num_Stems",
-                                "DBH_DRC", "Cover_Class_ID")], by = "Microplot_Characterization_Data_ID",
-                all.x=T, all.y=T)
+  # Prepare the quadrat data
+  tryCatch(shrubs <- get("COMN_MicroplotShrubs", envir = env) %>%
+             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, SQShrubCode,
+                    MicroplotCode, TSN, ScientificName, CoverClassCode, CoverClassLabel, SQShrubNotes, ShrubNote),
+           error = function(e){stop("COMN_MicroplotShrubs view not found. Please import view.")})
 
-  shrub2 <- merge(park.plots, shrub1, by = 'Event_ID', all.x = T)
+  taxa_wide <- force(prepTaxa())
 
-  shrub3 <- merge(shrub2, plants[,c("TSN", "Latin_Name", "Common", 'Exotic')], by = "TSN", all.x = T)
+  # subset with EventID from plot_events to make function faster
+  plot_events <- force(joinLocEvent(park = park, from = from , to = to, QAQC = QAQC,
+                                    panels = panels, locType = locType, eventType = eventType,
+                                    abandoned = FALSE, output = 'short')) %>%
+    select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
+           xCoordinate, yCoordinate, EventID, StartDate, StartYear, cycle, IsQAQC)
 
-  # For data with # stems or DRC change anything >0 to 1 for Present.old. For % Cover, change cover classes to midpoint
-  shrub3 <- shrub3 %>% mutate(present.old =
-                                ifelse(Year <= 2010 & (Cover_Class_ID > 0 | Num_Stems > 0 | DBH_DRC > 0), 1, NA))
-  # Cycle 1 changed from stem counts and DRC to a combination of % cover and stems in 2009 & 2010 to all cover in 2011.
-  # Due to these changes, we're only going to use cover data for cycle 2 (2011) and after, but will record species as
-  # present.old if they were recorded from 2007 to 2010.
-  shrub3 <- shrub3 %>% mutate(cover =
-      case_when(Cover_Class_ID == 1 ~ 0.1,
-                Cover_Class_ID == 2 ~ 3,
-                Cover_Class_ID == 3 ~ 7.5,
-                Cover_Class_ID == 4 ~ 17.5,
-                Cover_Class_ID == 5 ~ 37.5,
-                Cover_Class_ID == 6 ~ 62.5,
-                Cover_Class_ID == 7 ~ 85,
-                Cover_Class_ID == 8 ~ 97.5,
-                Cover_Class_ID == 0 ~ 0))
+  pe_list <- unique(plot_events$EventID)
 
-  shrub3 <- shrub3 %>% mutate(cover = ifelse(TSN == -9999999951 & Year > 2010, 0, cover)) # Where 'no species recorded' was entered
-  # and after % cover being used, record 0.
+  shrub_evs <- filter(shrubs, EventID %in% pe_list) %>%
+    left_join(plot_events, .,
+              by = intersect(names(plot_events), names(.)))
 
-  shrub4<- if (numMicros==1) {filter(shrub3, Microplot_Name=='UR') %>% droplevels()
-  } else if (numMicros==2) {filter(shrub3, Microplot_Name %in% c("UR","B")) %>% droplevels()
-  } else if (numMicros==3) {shrub3}
+  shrub_tax <- left_join(shrub_evs,
+                         taxa_wide[, c("TSN", "ScientificName", "Exotic", "InvasiveMIDN", "Shrub", "Vine")],
+                         by = c("TSN", "ScientificName"))
 
-  shrub5<-shrub4 %>% group_by(Event_ID, TSN, Latin_Name, Common, Exotic, Loc_Type) %>%
-    summarise(present.old = ifelse(sum(present.old) > 0, 1, NA),
-    cover = sum(cover))
+  shrub_filt <- switch(speciesType,
+                       'native' = filter(shrub_tax, Exotic == FALSE),
+                       'exotic' = filter(shrub_tax, Exotic == TRUE),
+                       'invasive' = filter(shrub_tax, InvasiveMIDN == TRUE),
+                       'all' = shrub_tax)
 
-    shrub6 <- shrub5 %>% group_by(Event_ID, TSN, Latin_Name, Common, Exotic) %>%
-    summarise(present.old = present.old, cover = cover/ ifelse(Loc_Type=='Deer', 1, numMicros))
+  shrub_mic1 <- shrub_filt %>% mutate(Pct_Cov1 = case_when(CoverClassCode == "1" ~ 0.1,
+                                                           CoverClassCode == "2" ~ 3,
+                                                           CoverClassCode == "3" ~ 7.5,
+                                                           CoverClassCode == "4" ~ 17.5,
+                                                           CoverClassCode == "5" ~ 37.5,
+                                                           CoverClassCode == "6" ~ 62.5,
+                                                           CoverClassCode == "7" ~ 85,
+                                                           CoverClassCode == "8" ~ 97.5,
+                                                           CoverClassCode == "PM" ~ NA_real_,
+                                                           TRUE ~ 0),
+                                      Pct_Cov = case_when(StartYear < 2009 ~ NA_real_,
+                                                          StartYear >= 2009 & SQShrubCode %in% c("NS", "ND", "PM") ~ NA_real_,
+                                                          TRUE ~ Pct_Cov1),
+                                      Txt_Cov = case_when(StartYear < 2009 ~ paste("Not Collected"),
+                                                          between(StartYear, 2009, 2010) & SQShrubCode == "NP" ~ "0%",
+                                                          between(StartYear, 2009, 2010) & SQShrubCode %in% c("NS", "ND") ~ "Not Sampled",
+                                                          between(StartYear, 2009, 2010) & SQShrubCode == "PM" ~ "Not Collected",
+                                                          between(StartYear, 2009, 2010) & CoverClassCode == "PM" ~ "Not Collected",
+                                                          StartYear >= 2011 & SQShrubCode == "NP" ~ "0%",
+                                                          StartYear >= 2011 & SQShrubCode %in% c("ND", "PM") ~ "Permanently Missing",
+                                                          TRUE ~ paste(CoverClassLabel)),
+                                     ScientificName = ifelse(SQShrubCode == "NP" & is.na(ScientificName),
+                                                             "None present", ScientificName)) %>%
+                                     select(-Pct_Cov1, -ShrubNote)
 
-  shrub7<- if (speciesType=='native'){filter(shrub6,Exotic==FALSE)
-  } else if (speciesType=='exotic'){filter(shrub6,Exotic==TRUE)
-  } else if (speciesType=='all'){(shrub6)
-  }
+  shrub_mic1$Txt_Cov <- ifelse(shrub_mic1$Txt_Cov == "-<1%", "<1%", shrub_mic1$Txt_Cov)
 
-  shrub8 <- shrub7 %>% filter(TSN != -9999999951) %>% droplevels()
+  # table(shrub_mic1$StartYear, shrub_mic1$Pct_Cov, useNA = 'always')
+  # table(shrub_mic1$StartYear, shrub_mic1$Txt_Cov, useNA = 'always')
 
-  shrub9<-merge(park.plots,
-                shrub8[,c("Event_ID","TSN","Latin_Name","Common","Exotic","present.old","cover")],by="Event_ID",all.x=T)
+  shrub_wide <- shrub_mic1 %>% select(-SQShrubCode, -SQShrubNotes, -CoverClassCode, -CoverClassLabel) %>%
+    pivot_wider(names_from = "MicroplotCode",
+                values_from = c("Pct_Cov", "Txt_Cov"))
 
-  shrub9[,'cover'][is.na(shrub9$cover)]<-0
-  shrub9[,c('Latin_Name','Common')][is.na(shrub9[,c('Latin_Name','Common')])]<-"No shrub species"
-  return(data.frame(shrub9))
+  shrub_pres <- shrub_mic1 %>% group_by(PlotID, EventID, TSN, ScientificName) %>%
+    summarize(num_pres = sum(!is.na(MicroplotCode)),
+              .groups = 'drop')
+
+  micro_samp <- shrub_mic1 %>% select(PlotID, EventID, MicroplotCode) %>% unique() %>%
+    group_by(PlotID, EventID) %>% summarize(num_micros = n(), .groups = 'drop')
+
+  shrub_comb1 <- left_join(shrub_wide, shrub_pres, by = intersect(names(shrub_wide), names(shrub_pres)))
+
+  shrub_comb2 <- shrub_comb1 %>% left_join(., micro_samp, by = intersect(names(.), names(micro_samp)))
+
+  shrub_comb3 <- shrub_comb2 %>%
+    mutate(
+      Pct_Cov_UR = case_when(is.na(Pct_Cov_UR) & (!Txt_Cov_UR %in% c("Permanently Missing", "Not Collected"))
+                               & StartYear > 2010 ~ 0,
+                             is.na(Pct_Cov_UR) & (!is.na(Pct_Cov_UL) | !is.na(Pct_Cov_B)) &
+                               StartYear > 2008 ~ 0, # for indicators with %cov
+                             TRUE ~ Pct_Cov_UR),
+      Pct_Cov_B = case_when(is.na(Pct_Cov_B) & (!Txt_Cov_B %in% c("Permanently Missing", "Not Collected"))
+                              & StartYear > 2010 ~ 0,
+                            is.na(Pct_Cov_B) & (!is.na(Pct_Cov_UL) | !is.na(Pct_Cov_UR)) &
+                              StartYear > 2008 ~ 0, # for indicators with %cov
+                            TRUE ~ Pct_Cov_B),
+      Pct_Cov_UL = case_when(is.na(Pct_Cov_UL) & (!Txt_Cov_UL %in% c("Permanently Missing", "Not Collected"))
+                               & StartYear > 2010 ~ 0,
+                             is.na(Pct_Cov_UL) &(!is.na(Pct_Cov_UR) | !is.na(Pct_Cov_B)) &
+                               StartYear > 2008 ~ 0,# for indicators with %cov
+                             TRUE ~ Pct_Cov_UL),
+
+      Txt_Cov_UR = case_when(is.na(Pct_Cov_UR) & (!is.na(Pct_Cov_UL) | !is.na(Pct_Cov_B)) &
+                                 StartYear > 2008 ~ "0%",
+                             is.na(Txt_Cov_UR) & is.na(Pct_Cov_UL) & is.na(Pct_Cov_B) &
+                                 #num_micros == 3 & # num_micros is always 3
+                                 between(StartYear, 2007, 2010) ~ "Not Collected",
+                             is.na(Txt_Cov_UR) & StartYear > 2010 ~ "0%",
+                             TRUE ~ Txt_Cov_UR),
+      Txt_Cov_UL = case_when(is.na(Pct_Cov_UL) & (!is.na(Pct_Cov_UR) | !is.na(Pct_Cov_B)) &
+                                 StartYear > 2008 ~ "0%",
+                             is.na(Txt_Cov_UL) & is.na(Pct_Cov_UR) & is.na(Pct_Cov_B) &
+                                 between(StartYear, 2007, 2010) ~ "Not Collected",
+                             is.na(Txt_Cov_UL) & StartYear > 2010 ~ "0%",
+                             TRUE ~ Txt_Cov_UL),
+      Txt_Cov_B =  case_when(is.na(Pct_Cov_B) & (!is.na(Pct_Cov_UR) | !is.na(Pct_Cov_UL)) &
+                               StartYear > 2008 ~ "0%",
+                             is.na(Txt_Cov_B) & is.na(Pct_Cov_UR) & is.na(Pct_Cov_UL) &
+                               between(StartYear, 2007, 2010) ~ "Not Collected",
+                             is.na(Txt_Cov_B) & StartYear > 2010 ~ "0%",
+                             TRUE ~ Txt_Cov_B),
+      num_pres = ifelse(ScientificName == 'None present', 0, num_pres))
+
+  # Still missing some logic
+  shrub_comb3$Pct_Cov_UR[shrub_comb3$Txt_Cov_UR %in% c("Permanently Missing", "Not Collected")] <- NA_real_
+  shrub_comb3$Pct_Cov_UL[shrub_comb3$Txt_Cov_UL %in% c("Permanently Missing", "Not Collected")] <- NA_real_
+  shrub_comb3$Pct_Cov_B[shrub_comb3$Txt_Cov_B %in% c("Permanently Missing", "Not Collected")] <- NA_real_
+  shrub_comb3$Txt_Cov_UR[shrub_comb3$Pct_Cov_UR == 0 & is.na(shrub_comb3$Txt_Cov_UR)] <- "0%"
+  shrub_comb3$Txt_Cov_UL[shrub_comb3$Pct_Cov_UL == 0 & is.na(shrub_comb3$Txt_Cov_UL)] <- "0%"
+  shrub_comb3$Txt_Cov_B[shrub_comb3$Pct_Cov_B == 0 & is.na(shrub_comb3$Txt_Cov_B)] <- "0%"
+
+  shrub_comb3$shrub_avg_cov <- as.numeric(NA)
+  shrub_comb3$shrub_avg_cov <- ifelse(shrub_comb3$ScientificName != "None present" &
+                                        rowSums(shrub_comb3[, c("Pct_Cov_UR", "Pct_Cov_UL", "Pct_Cov_B")], na.rm = TRUE) > 0,
+                                        rowSums(shrub_comb3[, c("Pct_Cov_UR", "Pct_Cov_UL", "Pct_Cov_B")], na.rm = TRUE)/
+                                        shrub_comb3$num_micros, NA_real_
+                                      )
+  shrub_comb3$shrub_avg_cov[shrub_comb3$Txt_Cov_UR != "Not Collected" &
+                              shrub_comb3$ScientificName == "None present"] <- 0
+  shrub_comb3$shrub_pct_freq <- as.numeric(NA)
+  shrub_comb3$shrub_pct_freq <- shrub_comb3$num_pres/shrub_comb3$num_micros * 100
+
+  # When 1 microplot has a None present, but other micros have species, None present is still listed in the final
+  # dataset. Next lines clean this up
+  shrub_clean <- shrub_comb3 %>% group_by(Plot_Name, StartYear, IsQAQC) %>%
+    mutate(count_spp = sum(ScientificName != "None present")) %>%
+    filter(!(ScientificName == "None present" & count_spp > 0)) %>%
+    select(-count_spp)
+
+  # Clean up column name order
+  req_cols <- c("Plot_Name", "Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode", "PanelCode",
+                "PlotCode", "PlotID", "EventID", "IsQAQC", "StartYear", "cycle",
+                "TSN", "ScientificName")
+
+  taxa_cols <- c("Exotic", "InvasiveMIDN", "Shrub", "Vine")
+
+  pct_cols <- c("Pct_Cov_UR", "Pct_Cov_UL", "Pct_Cov_B")
+  txt_cols <- c("Txt_Cov_UR", "Txt_Cov_UL", "Txt_Cov_B")
+  avg_cols <- c("shrub_avg_cov", "shrub_pct_freq")
+
+  shrub_final <- switch(valueType,
+                        "midpoint" = shrub_clean[, c(req_cols, pct_cols, avg_cols, taxa_cols)],
+                        "classes" = shrub_clean[, c(req_cols, txt_cols, avg_cols, taxa_cols)],
+                        "all" = shrub_clean[, c(req_cols, pct_cols, txt_cols, avg_cols, taxa_cols)],
+                        "averages" = shrub_clean[, c(req_cols, avg_cols, taxa_cols)])
+
+
+  return(shrub_final)
 } # end of function
 
 
