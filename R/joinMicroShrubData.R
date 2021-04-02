@@ -7,12 +7,12 @@
 #' @importFrom magrittr %>%
 #' @importFrom tidyr pivot_wider
 #'
-#' @description This function compiles shrub data sampled in microplots. Note that from 2007 to
-#' 2008, stem tallies and DRC were recorded instead of % cover for all shrub species. From 2009 to 2010,
-#' some shrubs were still stem tallies and DRC, while others were % cover. Starting in 2011, all
-#' shrub species were measured with percent cover. For records missing percent cover data, this function
-#' will summarize percent microplot frequency by species, but average percent cover will be NA. For more
-#' information on how methods evolved for shrubs in MIDN, refer to Table S17.3 in the Summary of Major
+#' @description This function compiles shrub data sampled in microplots. For microplot or species-level notes
+#' run the joinMicroNotes function. Note that from 2007 to 2008, stem tallies and DRC were recorded instead of
+#' % cover for all shrub species. From 2009 to 2010, some shrubs were still stem tallies and DRC, while others
+#' were % cover. Starting in 2011, all shrub species were measured with percent cover. For records missing percent
+#' cover data, this function will summarize percent microplot frequency by species, but average percent cover will be
+#' NA. For more information on how methods evolved for shrubs in MIDN, refer to Table S17.3 in the Summary of Major
 #' Protocol Changes and Deviations document located in the Long-Term Forest Monitoring Protocol IRMA Project:
 #'    https://irma.nps.gov/Datastore/Reference/Profile/2189101.
 #'
@@ -109,10 +109,10 @@ joinMicroShrubData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
 
   env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
 
-  # Prepare the quadrat data
+  # Prepare the shrub data
   tryCatch(shrubs <- get("COMN_MicroplotShrubs", envir = env) %>%
              select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, SQShrubCode,
-                    MicroplotCode, TSN, ScientificName, CoverClassCode, CoverClassLabel, SQShrubNotes, ShrubNote),
+                    MicroplotCode, TSN, ScientificName, CoverClassCode, CoverClassLabel),
            error = function(e){stop("COMN_MicroplotShrubs view not found. Please import view.")})
 
   taxa_wide <- force(prepTaxa())
@@ -140,7 +140,14 @@ joinMicroShrubData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
                        'invasive' = filter(shrub_tax, InvasiveMIDN == TRUE),
                        'all' = shrub_tax)
 
-  shrub_mic1 <- shrub_filt %>% mutate(Pct_Cov1 = case_when(CoverClassCode == "1" ~ 0.1,
+  # Add plots that were filtered out. Easiest to do here for fill logic
+  shrub_full <- left_join(plot_events, shrub_filt, by = intersect(names(plot_events), names(shrub_filt))) %>%
+    mutate(ScientificName = ifelse(is.na(SQShrubCode) & is.na(ScientificName),
+                                   "None present", ScientificName)) # for the records added by left_join
+
+  shrub_mic1 <- shrub_full %>% mutate(ScientificName = ifelse(SQShrubCode == "NP" & is.na(ScientificName),
+                                                              "None present", ScientificName),
+                                      Pct_Cov1 = case_when(CoverClassCode == "1" ~ 0.1,
                                                            CoverClassCode == "2" ~ 3,
                                                            CoverClassCode == "3" ~ 7.5,
                                                            CoverClassCode == "4" ~ 17.5,
@@ -152,6 +159,7 @@ joinMicroShrubData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
                                                            TRUE ~ 0),
                                       Pct_Cov = case_when(StartYear < 2009 ~ NA_real_,
                                                           StartYear >= 2009 & SQShrubCode %in% c("NS", "ND", "PM") ~ NA_real_,
+                                                          StartYear >= 2009 & ScientificName == "None present" ~ 0,
                                                           TRUE ~ Pct_Cov1),
                                       Txt_Cov = case_when(StartYear < 2009 ~ paste("Not Collected"),
                                                           between(StartYear, 2009, 2010) & SQShrubCode == "NP" ~ "0%",
@@ -160,17 +168,15 @@ joinMicroShrubData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
                                                           between(StartYear, 2009, 2010) & CoverClassCode == "PM" ~ "Not Collected",
                                                           StartYear >= 2011 & SQShrubCode == "NP" ~ "0%",
                                                           StartYear >= 2011 & SQShrubCode %in% c("ND", "PM") ~ "Permanently Missing",
-                                                          TRUE ~ paste(CoverClassLabel)),
-                                     ScientificName = ifelse(SQShrubCode == "NP" & is.na(ScientificName),
-                                                             "None present", ScientificName)) %>%
-                                     select(-Pct_Cov1, -ShrubNote)
+                                                          TRUE ~ paste(CoverClassLabel))) %>%
+                                     select(-Pct_Cov1)
 
   shrub_mic1$Txt_Cov <- ifelse(shrub_mic1$Txt_Cov == "-<1%", "<1%", shrub_mic1$Txt_Cov)
 
   # table(shrub_mic1$StartYear, shrub_mic1$Pct_Cov, useNA = 'always')
   # table(shrub_mic1$StartYear, shrub_mic1$Txt_Cov, useNA = 'always')
 
-  shrub_wide <- shrub_mic1 %>% select(-SQShrubCode, -SQShrubNotes, -CoverClassCode, -CoverClassLabel) %>%
+  shrub_wide <- shrub_mic1 %>% select(-SQShrubCode, -CoverClassCode, -CoverClassLabel) %>%
     pivot_wider(names_from = "MicroplotCode",
                 values_from = c("Pct_Cov", "Txt_Cov"))
 
