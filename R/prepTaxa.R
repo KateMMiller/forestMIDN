@@ -23,18 +23,14 @@ prepTaxa <- function(){
 
   tryCatch(taxa <- get("COMN_Taxa", envir = env) %>%
              select(TaxonID, TSN, ScientificName, CommonName, Order, Family,
-                    Genus, Species, SubSpecies, IsExotic, InvasiveNETN, IsFernAlly,
+                    Genus, Species, SubSpecies, IsExotic, InvasiveNETN, IsCanopyExclusion, IsFernAlly,
                     TaxonGroupLabel, DeerIndicatorTree, DeerIndicatorHerb, FilterMIDN),
            error = function(e){stop("COMN_Taxa view not found. Please import view.")})
-  sort(taxa$ScientificName[taxa$InvasiveNETN == 1])
-
-  #+++++++++++++++++++++++++
-  # When the canopy exclusion column is added back, need to include in this function
-  #+++++++++++++++++++++++++
 
   # Clean up taxa table so easier to work with
   names(taxa)[names(taxa) == "IsFernAlly"] <- "FernAlly"
   names(taxa)[names(taxa) == "IsExotic"] <- "Exotic"
+  names(taxa)[names(taxa) == "IsCanopyExclusion"] <- "CanopyExclusion"
 
   cols <- c("Order", "Family", "Genus", "Species", "SubSpecies")
   taxa[, cols] <- invisible(lapply(taxa[, cols], gsub, pattern = "NOT DETERMINED", replacement = NA))
@@ -56,7 +52,7 @@ prepTaxa <- function(){
                 values_fill = 0) %>%
     select(TaxonID, TSN, ScientificName, CommonName, Order, Family, Genus, Species, SubSpecies,
            Tree, TreeShrub, Shrub, Vine, Herbaceous, Graminoid, FernAlly, MossLichen, Exotic,
-           InvasiveMIDN, DeerIndicatorTree, DeerIndicatorHerb, FilterMIDN)
+           CanopyExclusion, InvasiveMIDN, DeerIndicatorTree, DeerIndicatorHerb, FilterMIDN)
 
-  return(taxa_wide)
+  return(data.frame(taxa_wide))
 }
