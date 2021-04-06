@@ -132,6 +132,6 @@ joinTreeVineSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
   vines_final <- vine_nat %>% filter(!is.na(Plot_Name)) %>%
     arrange(Plot_Name, StartYear, IsQAQC, TagCode)# drops trees that are not the selected status
 
-  return(vines_final)
+  return(data.frame(vines_final))
 } # end of function
 

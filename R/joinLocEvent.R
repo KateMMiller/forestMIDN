@@ -181,6 +181,6 @@ joinLocEvent<-function(park = "all", from = 2007, to = 2021, QAQC = FALSE, aband
   plot_events7$cycle[plot_events7$ParkUnit %in% midn & plot_events7$StartYear %in% cycle3] <- 3
   plot_events7$cycle[plot_events7$ParkUnit %in% midn & plot_events7$StartYear %in% cycle4] <- 4
 
-  return(plot_events7)
+  return(data.frame(plot_events7))
 } # end of function
 

@@ -232,6 +232,6 @@ joinTreeConditions <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
   trcond_final <- tree_comb2 %>% filter(!is.na(Plot_Name)) %>%
     arrange(Plot_Name, StartYear, IsQAQC, TagCode)# drops trees that are not the selected status
 
-  return(trcond_final)
+  return(data.frame(trcond_final))
 } # end of function
 

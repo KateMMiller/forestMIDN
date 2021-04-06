@@ -144,7 +144,7 @@ joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, loc
                                     panels = panels, locType = locType, eventType = eventType,
                                     abandoned = FALSE, output = 'short')) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
-           xCoordinate, yCoordinate, EventID, StartDate, StartYear, cycle, IsQAQC)
+           EventID, StartDate, StartYear, cycle, IsQAQC)
 
   pe_list <- unique(plot_events$EventID)
 
@@ -217,6 +217,6 @@ joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, loc
   } else {tree_merge}
   #table(complete.cases(tree_merge[,intersect(names(plot_events), names(tree_dist))])) #All T
 
-  return(tree_final)
+  return(data.frame(tree_final))
 } # end of function
 

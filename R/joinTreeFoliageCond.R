@@ -187,6 +187,6 @@ joinTreeFoliageCond <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
   fol_final <- filter(fol_wide2, !is.na(Plot_Name)) %>%  # NA row added if cond code missing
                arrange(Plot_Name, StartYear, IsQAQC, TagCode)
 
-  return(fol_final)
+  return(data.frame(fol_final))
 } # end of function
 
