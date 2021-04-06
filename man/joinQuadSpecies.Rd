@@ -79,8 +79,10 @@ Returns a dataframe with a row for each species/visit combination for quadrat da
 This function combines quadrat species data with species names and allows you to filter on species types, park,
 years, and visit type. Note that the Shrub guild also includes woody vine species. Species-level notes are returned. For
 quadrat-specific notes, use the joinQuadNotes() function. Note that starting in 2019, all woody species were added to the
-indicator list, and any year from 2019 and on will have many more woody species recorded than earlier years. For more on
-indicator species list changes, refer to the Summary of Major Protocol Changes document for the MIDN forest protocol.
+indicator list, and any year from 2019 and on will have many more woody species recorded than earlier years. For more
+information on how the indicator list has changed over time in MIDN, refer to Table S17.4 in the Summary of Major
+Protocol Changes and Deviations document located in the Long-Term Forest Monitoring Protocol IRMA Project:
+   https://irma.nps.gov/Datastore/Reference/Profile/2189101.
 }
 \examples{
 importData()
