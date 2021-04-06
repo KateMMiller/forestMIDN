@@ -154,6 +154,6 @@ joinQuadNotes <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pa
                 arrange(Plot_Name, StartYear, IsQAQC, Note_Info, Note_Type) %>%
                 select(Plot_Name:IsQAQC, Note_Type, Sample_Info, Note_Info, Notes)
 
-  return(quad_notes)
+  return(data.frame(quad_notes))
 
 }

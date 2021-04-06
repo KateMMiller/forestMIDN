@@ -98,8 +98,7 @@ joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pan
                                     panels = panels, locType = locType, eventType = eventType,
                                     abandoned = FALSE, output = 'short')) %>%
                   select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-                         PlotCode, PlotID, xCoordinate, yCoordinate, EventID, StartDate,
-                         StartYear, cycle, IsQAQC)
+                         PlotCode, PlotID, EventID, StartDate, StartYear, cycle, IsQAQC)
 
   pe_list <- unique(plot_events$EventID)
 
@@ -193,7 +192,7 @@ joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pan
                           "classes" = quadchr_comb2[, c(req_cols, txt_cols)],
                           "all" = quadchr_comb2[, c(req_cols, pct_cols, txt_cols)])
 
-  return(quadchr_final)
+  return(data.frame(quadchr_final))
 
 } # end of function
 

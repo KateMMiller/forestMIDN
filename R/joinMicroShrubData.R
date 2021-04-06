@@ -122,7 +122,7 @@ joinMicroShrubData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
                                     panels = panels, locType = locType, eventType = eventType,
                                     abandoned = FALSE, output = 'short')) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
-           xCoordinate, yCoordinate, EventID, StartDate, StartYear, cycle, IsQAQC)
+           EventID, StartDate, StartYear, cycle, IsQAQC)
 
   pe_list <- unique(plot_events$EventID)
 
@@ -274,7 +274,7 @@ joinMicroShrubData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
                         "averages" = shrub_clean[, c(req_cols, avg_cols, taxa_cols)])
 
 
-  return(shrub_final)
+  return(data.frame(shrub_final))
 } # end of function
 
 
