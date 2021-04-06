@@ -277,5 +277,5 @@ joinStandData <- function(park = 'all', QAQC = FALSE, locType = c('VS', 'all'), 
                            Avg_height_Codom, Avg_height_Inter)
   } else if(output == 'verbose'){stand_merge}
 
-  return(stand_final)
+  return(data.frame(stand_final))
 }
