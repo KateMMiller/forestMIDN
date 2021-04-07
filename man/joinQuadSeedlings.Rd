@@ -13,7 +13,7 @@ joinQuadSeedlings(
   locType = c("VS", "all"),
   eventType = c("complete", "all"),
   speciesType = c("all", "native", "exotic", "invasive"),
-  canopyForm = c("canopy", "all"),
+  canopyForm = c("all", "canopy"),
   valueType = c("all", "midpoint", "classes"),
   ...
 )
@@ -67,8 +67,8 @@ associated with that event (eg ACAD-029.2010). This feature is currently hard-co
 
 \item{canopyForm}{Allows you to filter on species growth form
 \describe{
-\item{"all"}{Returns all species, including low canopy species.}
-\item{"canopy"}{Default. Returns canopy-forming species only}
+\item{"all"}{Default. Returns all species, including low canopy species.}
+\item{"canopy"}{Returns canopy-forming species only}
 }}
 
 \item{valueType}{Allows you to return cover class midpoints (numeric) or cover class ranges (text)
