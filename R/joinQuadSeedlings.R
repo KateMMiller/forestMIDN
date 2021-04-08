@@ -126,7 +126,7 @@ joinQuadSeedlings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
                                     panels = panels, locType = locType, eventType = eventType,
                                     abandoned = FALSE, output = 'short')) %>%
                  select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
-                        EventID, StartDate, StartYear, cycle, IsQAQC)
+                        EventID, StartYear, cycle, IsQAQC)
 
   pe_list <- unique(plot_events$EventID)
 
@@ -155,7 +155,7 @@ joinQuadSeedlings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
   # Create the left data.frame to join back to after filtering species types
   seed_left <- seed_wide %>% select(Plot_Name:QuadratCode) %>% unique() #%>%
     # group_by(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode,
-    #          PlotID, EventID, StartDate, StartYear, cycle, IsQAQC) %>%
+    #          PlotID, EventID, StartYear, cycle, IsQAQC) %>%
     # mutate(numquads = length(QuadratCode))
     # COLO-380-2018 is the only plot with 1 NA quad instead of 12
 

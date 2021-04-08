@@ -5,32 +5,70 @@
 \title{joinRegenData: compiles seedling and sapling data}
 \usage{
 joinRegenData(
-  speciesType = c("all", "native", "native_noROBPSE", "exotic"),
-  canopyForm = c("canopy", "all"),
-  units = c("sq.m", "ha", "acres"),
   park = "all",
   from = 2007,
-  to = 2019,
+  to = 2021,
   QAQC = FALSE,
-  locType = "VS",
   panels = 1:4,
-  output,
+  locType = c("VS", "all"),
+  eventType = c("complete", "all"),
+  speciesType = c("all", "native", "exotic", "invasive"),
+  canopyForm = c("all", "canopy"),
+  units = c("sq.m", "ha", "acres"),
   ...
 )
 }
 \arguments{
+\item{park}{Combine data from all parks or one or more parks at a time. Valid inputs:
+\describe{
+\item{"all"}{Includes all parks in the network}
+\item{"APCO"}{Appomattox Court House NHP only}
+\item{"ASIS"}{Assateague Island National Seashore}
+\item{"BOWA"}{Booker T. Washington NM only}
+\item{"COLO"}{Colonial NHP only}
+\item{"FRSP"}{Fredericksburg & Spotsylvania NMP only}
+\item{"GETT"}{Gettysburg NMP only}
+\item{"GEWA"}{George Washington Birthplace NM only}
+\item{"HOFU"}{Hopewell Furnace NHS only}
+\item{"PETE"}{Petersburg NBP only}
+\item{"RICH"}{Richmond NB only}
+\item{"SAHI"}{Sagamore Hill NHS only}
+\item{"THST"}{Thomas Stone NHS only}
+\item{"VAFO"}{Valley Forge NHP only}}}
+
+\item{from}{Year to start analysis, ranging from 2007 to current year}
+
+\item{to}{Year to stop analysis, ranging from 2007 to current year}
+
+\item{QAQC}{Allows you to remove or include QAQC events.
+\describe{
+\item{FALSE}{Default. Only returns visits that are not QAQC visits}
+\item{TRUE}{Returns all visits, including QAQC visits}}}
+
+\item{locType}{Allows you to only include plots that are part of the GRTS sample design or
+include all plots, such as deer exclosures.
+\describe{
+\item{"VS"}{Only include plots that are part of the Vital Signs GRTS sample design}
+\item{"all"}{Include all plots, such as plots in deer exclosures or test plots.}}}
+
+\item{eventType}{Allows you to include only complete sampling events or all sampling events
+\describe{
+\item{"complete"}{Default. Only include sampling events for a plot that are complete.}
+\item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
+associated with that event (eg COLO-380-2018). This feature is currently hard-coded in the function.}}}
+
 \item{speciesType}{Allows you to filter on native, exotic or include all species.
 \describe{
-\item{"all"}{Default. Returns all species}
-\item{"native"}{Returns native species only, including Robinia pseudoacacia}
-\item{"native_noROBPSE"}{Returns native species except Robinia pseudoacacia}
-\item{"exotic"}{Returns exotic species only, not including Robinia pseudoacacia}
+\item{"all"}{Default. Returns all species.}
+\item{"native"}{Returns native species only}
+\item{"exotic"}{Returns exotic species only}
+\item{"invasive"}{Returns species on the Indicator Invasive List}
 }}
 
-\item{canopyForm}{Allows you to filter on canopy species only or include all species.
+\item{canopyForm}{Allows you to filter on species growth form
 \describe{
-\item{"all"}{Returns all species, including low canopy species.}
-\item{"canopy"}{Default. Returns canopy-forming species only}
+\item{"all"}{Default. Returns all species, including low canopy species.}
+\item{"canopy"}{Returns canopy-forming species only.}
 }}
 
 \item{units}{Calculates seedling and sapling densities based on different units.
@@ -39,17 +77,25 @@ joinRegenData(
 \item{"ha"}{Returns seedling and sapling densities per hectare}
 \item{"acres"}{Returns densities per acre}
 }}
+
+\item{valueType}{Allows you to return cover class midpoints (numeric) or cover class ranges (text)
+\describe{
+\item{"all"}{Default. Returns columns for midpoint and cover classes for each quad}
+\item{"midpoint"}{Default. Returns numeric cover class midpoints, with Pct prefix.}
+\item{"classes"}{Returns the text cover class definitions, with Txt prefix.}
+\item{"averages"}{Returns only the plot-level average cover and percent frequency.}
+}}
 }
 \value{
-returns a dataframe with seedling and sapling densities, stocking index,
-quadrat seedling cover and quadrat seedling frequency. Quadrat frequency is based on
-cover > 0 in a quadrat.
+returns a dataframe with seedling and sapling densities, stocking index.
 }
 \description{
-This function combines seedling and sapling data, and calculates stocking index at the 1 sq. m level.
-Quadrat percent cover is also averaged across the quadrats, and only includes cover of seedling sized tree species
-(i.e. the original protocol method). Stocking index thresholds are 2 for areas with low deer, and 8 for areas
-with high deer. Must run importData first.
+This function combines live seedling and sapling data collected in quadrats and microplots, and
+calculates the stocking index. Each row represents a species observed per visit. If no seedlings
+or saplings were observed, function returns "None present" for ScientificName and 0 for densities.
+If a record has a blank ScientificName and associated data, it means it's a missing value. These are
+rare, but mostly occur in data <2011. Note that the stocking index only includes saplings < 2.5cm DBH,
+but the sapling density returned is all saplings > 1cm and <10cm DBH. Must run importData first.
 }
 \examples{
 importCSV('./forest_csvs/')
