@@ -20,7 +20,8 @@
 #' importCSV(path = "C:/Forest_Health/exports/MIDN", new_env = FALSE)
 #'
 #' # Import zipped csvs into VIEWS_MIDN environment
-#' importCSV("C:/Forest_Health/exports/MIDN", zip = TRUE)
+#' path <- "C:/Forest_Health/exports/MIDN"
+#' importCSV(path = path, zip_name = "MIDN_Forest_20210409.zip")
 #'
 #' @export
 
@@ -37,6 +38,7 @@ importCSV<- function(path = NA, new_env = TRUE, zip_name = NA){
 
   view_list <- c("COMN_AdditionalSpecies", "COMN_CWD", "COMN_EventObservers", "COMN_Events",
                  "COMN_MicroplotShrubs", "COMN_Plots", "COMN_QuadCharacter",
+                 "COMN_SoilHeader", "COMN_SoilSample", "COMN_SoilLab",
                  "COMN_StandDisturbances", "COMN_StandForestFloor", "COMN_StandPlantCoverStrata",
                  "COMN_StandSlopes", "COMN_StandTreeHeights", "COMN_Taxa", "COMN_TreesByEvent",
                  "COMN_TreesConditions", "COMN_TreesFoliageCond", "COMN_TreesVine",
