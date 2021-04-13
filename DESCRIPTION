@@ -37,6 +37,8 @@ Collate:
     'joinQuadSeedlings.R'
     'joinQuadSpecies.R'
     'joinRegenData.R'
+    'joinSoilLabData.R'
+    'joinSoilSampleData.R'
     'joinTreeConditions.R'
     'joinTreeFoliageCond.R'
     'joinTreeVineSpecies.R'
