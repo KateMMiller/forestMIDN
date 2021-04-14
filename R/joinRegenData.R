@@ -188,7 +188,7 @@ joinRegenData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pa
                                     panels = panels, locType = locType, eventType = eventType,
                                     abandoned = FALSE, output = 'short')) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
-           EventID, StartYear, cycle, IsQAQC)
+           EventID, StartYear, StartDate, cycle, IsQAQC)
 
   reg_wide2 <- left_join(plot_events, reg_wide, by = intersect(names(plot_events), names(reg_wide)))
 
@@ -221,7 +221,7 @@ joinRegenData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pa
 
   # Summarise data at plot level and by square meter (different steps than NETN)
   reg_sum <- reg_nums %>% group_by(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-                                   PlotCode, PlotID, EventID, IsQAQC, StartYear, cycle,
+                                   PlotCode, PlotID, EventID, IsQAQC, StartYear, StartDate, cycle,
                                    TSN, ScientificName, CanopyExclusion, Exotic, InvasiveMIDN) %>%
                           summarize(num_quads = first(num_quads),
                                     num_micros = first(num_micros),

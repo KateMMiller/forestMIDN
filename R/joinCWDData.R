@@ -173,7 +173,7 @@ joinCWDData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE,
                                     panels = panels, locType = locType, eventType = "complete",
                                     abandoned = FALSE, output = 'short')) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
-           EventID, StartDate, StartYear, cycle, IsQAQC)
+           EventID, StartYear, StartDate, cycle, IsQAQC)
 
   cwd_merge <- merge(plot_events,
                      cwd_vol, by = intersect(names(plot_events), names(cwd_vol)),
@@ -182,7 +182,7 @@ joinCWDData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE,
     arrange(Plot_Name, StartYear, IsQAQC)
 
   cwd_final <- if(output == 'short'){
-    cwd_merge %>% select(Plot_Name, ParkUnit, ParkSubUnit, StartYear, cycle,
+    cwd_merge %>% select(Plot_Name, ParkUnit, ParkSubUnit, StartYear, StartDate, cycle,
                          IsQAQC, TSN, ScientificName, DecayClassCode, CWD_Vol)
   } else {cwd_merge}
 

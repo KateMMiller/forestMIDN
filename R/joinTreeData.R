@@ -118,25 +118,25 @@ joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, loc
   env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
 
   # Prepare the tree data
-  tryCatch(tree_vw <- subset(get("COMN_TreesByEvent", envir = env),
-                             select = c(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, TreeLegacyID,
-                                        TagCode, TaxonID, TSN, ScientificName, Fork, Azimuth, Distance, DBHcm, IsDBHVerified,
-                                        IsDBHUnusual, TreeStatusCode, TreeStatusLabel, CrownClassCode, CrownClassLabel,
-                                        DecayClassCode, HWACode, HWALabel, BBDCode, BBDLabel, TreeEventNote)),
+  tryCatch(tree_vw <- get("COMN_TreesByEvent", envir = env) %>%
+                      select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, TreeLegacyID,
+                             TagCode, TaxonID, TSN, ScientificName, Fork, Azimuth, Distance, DBHcm, IsDBHVerified,
+                             IsDBHUnusual, TreeStatusCode, TreeStatusLabel, CrownClassCode, CrownClassLabel,
+                             DecayClassCode, HWACode, HWALabel, BBDCode, BBDLabel, TreeEventNote),
 
            error = function(e){stop("COMN_TreesByEvent view not found. Please import view.")}
   )
 
-  tryCatch(foliage_vw <- unique(subset(get("COMN_TreesFoliageCond", envir = env),
-                                       select = c(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC,
-                                                  TreeLegacyID, TagCode, #TotalFoliageConditionCode, TotalFoliageConditionLabel))),
-                                                  TotalFoliageCondition.Code, TotalFoliageCondition.Label))),
+  tryCatch(foliage_vw <- get("COMN_TreesFoliageCond", envir = env) %>%
+                         select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC,
+                                TreeLegacyID, TagCode, #TotalFoliageConditionCode, TotalFoliageConditionLabel))),
+                                TotalFoliageCondition.Code, TotalFoliageCondition.Label) %>% unique(),
            error = function(e){stop("COMN_TreeFoliageCond view not found. Please import view.")})
 
 
-  tryCatch(taxa <- subset(get("COMN_Taxa", envir = env),
-                          select = c(TaxonID, TSN, ScientificName, CommonName, Order, Family, Genus, Species, SubSpecies,
-                                     IsExotic, TaxonGroupLabel)),
+  tryCatch(taxa <- get("COMN_Taxa", envir = env) %>%
+                   select(TaxonID, TSN, ScientificName, CommonName, Order, Family, Genus, Species, SubSpecies,
+                          IsExotic, TaxonGroupLabel),
            error = function(e){stop("COMN_Taxa view not found. Please import view.")})
 
   # subset with EventID from plot_events to make tree data as small as possible to speed up function
@@ -210,7 +210,7 @@ joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, loc
 
   tree_final <- if(output == 'short'){
     tree_merge[, c("Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode", "PanelCode", "PlotCode",
-                   "PlotID", "EventID", "IsQAQC", "StartYear", "TSN", "ScientificName",
+                   "PlotID", "EventID", "IsQAQC", "StartYear", "StartDate", "TSN", "ScientificName",
                    "TagCode", "Fork", "Azimuth", "Distance", "DBHcm", "IsDBHVerified", "TreeStatusCode",
                    "CrownClassCode", "DecayClassCode", "Pct_Tot_Foliage_Cond",
                    "HWACode", "BBDCode", "BA_cm2", "num_stems", "TreeEventNote")]

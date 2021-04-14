@@ -110,7 +110,7 @@ joinTreeFoliageCond <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
                                     abandoned = FALSE, status = 'live', speciesType = speciesType,
                                     dist_m = dist_m, output = 'verbose')) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-           PlotCode, PlotID, EventID, IsQAQC, StartYear, TSN, ScientificName,
+           PlotCode, PlotID, EventID, IsQAQC, StartYear, StartDate, TSN, ScientificName,
            TagCode, TreeStatusCode, Pct_Tot_Foliage_Cond, Txt_Tot_Foliage_Cond)
 
   te_list <- unique(tree_events$EventID)
@@ -149,13 +149,13 @@ joinTreeFoliageCond <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
 
   fol_wide <- if(valueType == "midpoint"){
     fol_evs4 %>% pivot_wider(id_cols = c(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-                                         PlotCode, PlotID, EventID, IsQAQC, StartYear, TSN, ScientificName,
+                                         PlotCode, PlotID, EventID, IsQAQC, StartYear, StartDate, TSN, ScientificName,
                                          TagCode, Pct_Tot_Foliage_Cond, Txt_Tot_Foliage_Cond),
                              names_from = FoliageConditionCode,
                              values_from = c(Pct_Leaves_Aff, Pct_Leaf_Area))
   } else if(valueType == "classes"){
     fol_evs4 %>% pivot_wider(id_cols = c(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-                                         PlotCode, PlotID, EventID, IsQAQC, StartYear, TSN, ScientificName,
+                                         PlotCode, PlotID, EventID, IsQAQC, StartYear, StartDate, TSN, ScientificName,
                                          TagCode, Pct_Tot_Foliage_Cond, Txt_Tot_Foliage_Cond),
                              names_from = FoliageConditionCode,
                              values_from = c(Txt_Leaves_Aff, Txt_Leaf_Area))

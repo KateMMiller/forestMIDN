@@ -109,7 +109,7 @@ joinTreeVineSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
                                     dist_m = dist_m, output = 'verbose')) %>%
                  filter(ScientificName != 'None present') %>%
                  select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-                        PlotCode, PlotID, EventID, IsQAQC, StartYear, TagCode)
+                        PlotCode, PlotID, EventID, IsQAQC, StartYear, StartDate, TagCode)
 
   te_list <- unique(tree_events$EventID)
 

@@ -118,7 +118,7 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
 
   # Prepare the microplot data
   tryCatch(saps_vw <- get("MIDN_MicroplotSaplings", envir = env) %>%
-             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, SQSaplingCode,
+             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, StartDate, IsQAQC, SQSaplingCode,
                     MicroplotCode, TSN, ScientificName, TagCode, Fork, SaplingStatusCode, DBHcm,
                     IsDBHVerified),
            error = function(e){stop("MIDN_MicroplotSaplings view not found. Please import view.")})
@@ -130,7 +130,7 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
                                     panels = panels, locType = locType, eventType = eventType,
                                     abandoned = FALSE, output = 'short')) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
-           EventID, StartYear, cycle, IsQAQC)
+           EventID, StartYear, StartDate, cycle, IsQAQC)
 
   pe_list <- unique(plot_events$EventID)
 
@@ -186,7 +186,7 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
                     "exotic" = filter(sap_can, Exotic == TRUE),
                     "invasive" = filter(sap_can, InvasiveMIDN == TRUE)) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-           PlotCode, PlotID, EventID, IsQAQC, StartYear, cycle, SQSaplingCode, MicroplotCode,
+           PlotCode, PlotID, EventID, IsQAQC, StartYear, StartDate, cycle, SQSaplingCode, MicroplotCode,
            TSN, ScientificName, CanopyExclusion, Exotic, InvasiveMIDN, TagCode, Fork,
            SaplingStatusCode, DBHcm, IsDBHVerified, Count)
 

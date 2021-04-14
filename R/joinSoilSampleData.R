@@ -116,7 +116,7 @@ joinSoilSampleData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALS
                                     panels = panels, locType = locType, eventType = "complete",
                                     abandoned = FALSE, output = 'short')) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
-           EventID, StartDate, StartYear, cycle, IsQAQC)
+           EventID, StartYear, StartDate, cycle, IsQAQC)
 
   pe_list <- unique(plot_events$EventID)
   soilsamp_evs <- filter(soilsamp_vw, EventID %in% pe_list)
@@ -160,7 +160,7 @@ joinSoilSampleData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALS
   soil_comb <- rbind(soillab_wide2, soilsamp_new)
   soil_final <- left_join(soil_comb, plot_events, by = intersect(names(soil_comb), names(plot_events))) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-           PlotCode, PlotID, EventID, StartYear, IsQAQC, cycle,
+           PlotCode, PlotID, EventID, StartYear, StartDate, IsQAQC, cycle,
            num_samps, Litter_cm, O_Horizon_cm, A_Horizon_cm,
            Total_Depth_cm, Lab_QC, Field_misID_O, Field_misID_A)
 

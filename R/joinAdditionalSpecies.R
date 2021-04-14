@@ -109,7 +109,7 @@ joinAdditionalSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = F
                                     panels = panels, locType = locType, eventType = eventType,
                                     abandoned = FALSE, output = 'short')) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
-           EventID, StartDate, StartYear, cycle, IsQAQC)
+           EventID, StartYear, StartDate, cycle, IsQAQC)
 
   pe_list <- unique(plot_events$EventID)
 
@@ -139,7 +139,7 @@ joinAdditionalSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = F
 
   addspp_final <- addspp_comb %>% select(Plot_Name, Network, ParkUnit, ParkSubUnit,
                                          PlotTypeCode, PanelCode, PlotCode, PlotID,
-                                         EventID, IsQAQC, StartYear, cycle, TSN,
+                                         EventID, IsQAQC, StartYear, StartDate, cycle, TSN,
                                          ScientificName, present, Exotic, InvasiveMIDN,
                                          Confidence, IsCollected, Note, SQAddSppNotes)
   return(data.frame(addspp_final))

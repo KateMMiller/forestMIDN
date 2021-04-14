@@ -88,7 +88,7 @@ joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pan
 
   # Prepare the quad data
   tryCatch(quadchar <- get("COMN_QuadCharacter", envir = env) %>%
-                       select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, SQQuadCharCode,
+                       select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, StartDate, IsQAQC, SQQuadCharCode,
                        IsTrampled, QuadratCode, CharacterLabel, CoverClassCode, CoverClassLabel),
            error = function(e){stop("COMN_QuadCharacter view not found. Please import view.")}
   )
@@ -98,7 +98,7 @@ joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pan
                                     panels = panels, locType = locType, eventType = eventType,
                                     abandoned = FALSE, output = 'short')) %>%
                   select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-                         PlotCode, PlotID, EventID, StartDate, StartYear, cycle, IsQAQC)
+                         PlotCode, PlotID, EventID, StartYear, StartDate, cycle, IsQAQC)
 
   pe_list <- unique(plot_events$EventID)
 
@@ -126,11 +126,11 @@ joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pan
                                           TRUE ~ NA_real_)), # There are currently some blanks in the data
            Txt_Cov = ifelse(CoverClassLabel == "-<1%", "<1%", CoverClassLabel),
            Sampled = ifelse(SQQuadCharCode == "SS", 1, 0)) %>%
-    select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, SQQuadCharCode, QuadratCode,
+    select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, StartDate, IsQAQC, SQQuadCharCode, QuadratCode,
            Sampled, IsTrampled, CharacterLabel, Pct_Cov, Txt_Cov)
 
   quad_sum <- quadchar_evs2 %>% group_by(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear,
-                                         IsQAQC, CharacterLabel) %>%
+                                         StartDate, IsQAQC, CharacterLabel) %>%
                                 summarize(num_quads = sum(Sampled, na.rm = T),
                                           num_trampled = sum(IsTrampled, na.rm = T),
                                           quad_avg_cov = sum(Pct_Cov, na.rm = T)/num_quads,
@@ -140,7 +140,7 @@ joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pan
 
   # make data wide on quad name
   quadchar_wide <- quadchar_evs2 %>%  select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear,
-                                             IsQAQC, QuadratCode, CharacterLabel, Pct_Cov, Txt_Cov) %>%
+                                             StartDate, IsQAQC, QuadratCode, CharacterLabel, Pct_Cov, Txt_Cov) %>%
                                       pivot_wider(names_from = QuadratCode,
                                                   values_from = c(Pct_Cov, Txt_Cov),
                                                   values_fill = list(Pct_Cov = 0, Txt_Cov = "0%"))
@@ -171,7 +171,7 @@ joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pan
 
   # select columns based on specified valueType
   req_cols <- c("Plot_Name", "Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode", "PanelCode",
-                "PlotCode", "PlotID", "EventID", "IsQAQC", "StartYear", "cycle",
+                "PlotCode", "PlotID", "EventID", "IsQAQC", "StartYear", "StartDate", "cycle",
                 "CharacterLabel", "num_quads", "num_trampled", "quad_avg_cov", "quad_pct_freq")
 
   pct_cols <- c("Pct_Cov_A2", "Pct_Cov_A5", "Pct_Cov_A8", "Pct_Cov_AA",

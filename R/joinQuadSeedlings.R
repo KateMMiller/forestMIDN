@@ -126,7 +126,7 @@ joinQuadSeedlings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
                                     panels = panels, locType = locType, eventType = eventType,
                                     abandoned = FALSE, output = 'short')) %>%
                  select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
-                        EventID, StartYear, cycle, IsQAQC)
+                        EventID, StartYear, StartDate, cycle, IsQAQC)
 
   pe_list <- unique(plot_events$EventID)
 
@@ -187,7 +187,7 @@ joinQuadSeedlings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
                      "exotic" = filter(seed_can, Exotic == TRUE),
                      "invasive" = filter(seed_can, InvasiveMIDN == TRUE)) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-           PlotCode, PlotID, EventID, IsQAQC, StartYear, cycle, SQSeedlingCode,
+           PlotCode, PlotID, EventID, IsQAQC, StartYear, StartDate, cycle, SQSeedlingCode,
            QuadratCode,
            CoverClassCode, CoverClassLabel, BrowsedCount, IsCollected,
            TSN, ScientificName, CanopyExclusion, Exotic, InvasiveMIDN,

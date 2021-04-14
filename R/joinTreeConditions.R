@@ -126,7 +126,7 @@ joinTreeConditions <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
                                     abandoned = FALSE, status = status, speciesType = speciesType,
                                     dist_m = dist_m, output = 'verbose')) %>%
                  select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-                        PlotCode, PlotID, EventID, IsQAQC, StartYear, TSN, ScientificName,
+                        PlotCode, PlotID, EventID, IsQAQC, StartYear, StartDate, TSN, ScientificName,
                         TagCode, TreeStatusCode, HWACode, HWALabel, BBDCode, BBDLabel) %>%
                  filter(ScientificName != "None present") # drop plot-events without trees that match
                                                 # the specified speciesType and/or status
@@ -141,7 +141,7 @@ joinTreeConditions <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
                    mutate(present = ifelse(!is.na(TreeConditionCode), 1, 0))
 
   vine_evs2 <- left_join(tree_events %>% select(Plot_Name, ParkUnit, ParkSubUnit, PlotCode, PlotID, EventID,
-                                                IsQAQC, StartYear, TagCode, TreeStatusCode),
+                                                IsQAQC, StartYear, StartDate, TagCode, TreeStatusCode),
                          vine_evs,
                          by = c("ParkUnit", "ParkSubUnit", "PlotCode", "PlotID",
                                 "EventID", "IsQAQC", "StartYear", "TagCode"))
@@ -166,8 +166,8 @@ joinTreeConditions <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
   # Reshape tree condition data to wide
   trcond_wide <- trcond_evs3 %>% arrange(TreeConditionCode) %>%
                                  pivot_wider(id_cols = c(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-                                                         PlotCode, PlotID, EventID, IsQAQC, StartYear, TSN, ScientificName,
-                                                         TagCode, TreeStatusCode, HWACode, BBDCode),
+                                                         PlotCode, PlotID, EventID, IsQAQC, StartYear, StartDate, TSN,
+                                                         ScientificName, TagCode, TreeStatusCode, HWACode, BBDCode),
                                              names_from = TreeConditionCode,
                                              values_from = present,
                                              values_fill = 0) #%>%
@@ -177,7 +177,7 @@ joinTreeConditions <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
   all_vine_codes <- data.frame(VinePositionCode = c("B", "C"))
   vine_evs3 <- full_join(vine_evs2, all_vine_codes, by = "VinePositionCode")
 
-  vine_wide <- vine_evs3 %>% group_by(PlotID, EventID, ParkUnit, PlotCode, StartYear, IsQAQC,
+  vine_wide <- vine_evs3 %>% group_by(PlotID, EventID, ParkUnit, PlotCode, StartYear, StartDate, IsQAQC,
                                       TagCode, VinePositionCode) %>%
                              summarize(num_spp = sum(!is.na(ScientificName)),
                                        .groups = 'drop') %>%
@@ -198,8 +198,8 @@ joinTreeConditions <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
   tree_comb$num_cond <- rowSums(tree_comb[, cond_sum]) # num of conditions recorded
 
   req_cols <- c("Plot_Name", "Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode", "PanelCode",
-                "PlotCode", "PlotID", "EventID", "IsQAQC", "StartYear", "TSN", "ScientificName",
-                "TagCode", "TreeStatusCode")
+                "PlotCode", "PlotID", "EventID", "IsQAQC", "StartYear", "StartDate",
+                "TSN", "ScientificName", "TagCode", "TreeStatusCode")
 
   live_cols <- c("AD", "ALB", "BBD", "BC", "BWA", "CAVL", "CAVS", "CW", "DBT", "DOG", "EAB",
                  "EB", "EHS", "G", "GM", "HWA", "ID", "OTH", "RPS", "SB", "SOD", "SPB",

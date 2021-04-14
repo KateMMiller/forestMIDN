@@ -270,7 +270,7 @@ joinStandData <- function(park = 'all', QAQC = FALSE, locType = c('VS', 'all'), 
                  arrange(Plot_Name, StartYear, IsQAQC)
 
   stand_final <- if(output == 'short'){
-    stand_merge %>% select(Plot_Name, ParkUnit, ParkSubUnit, StartYear, cycle, IsQAQC,
+    stand_merge %>% select(Plot_Name, ParkUnit, ParkSubUnit, StartYear, StartDate, cycle, IsQAQC,
                            Stand_Structure, Pct_Crown_Closure, Deer_Browse_Index, Microtopography,
                            Water_on_Plot, PlotSlope, Pct_Understory_Low, Pct_Understory_Mid, Pct_Understory_High,
                            Pct_Bare_Soil, Pct_Bryophyte, Pct_Lichen, Pct_Rock, Pct_Trampled, Pct_Water,
