@@ -84,8 +84,8 @@ joinAdditionalSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = F
   park <- match.arg(park, several.ok = TRUE,
                     c("all", "APCO", "ASIS", "BOWA", "COLO", "FRSP", "GETT", "GEWA", "HOFU", "PETE",
                       "RICH", "SAHI", "THST", "VAFO"))
-  stopifnot(class(from) == "numeric", from >= 2006)
-  stopifnot(class(to) == "numeric", to >= 2006)
+  stopifnot(class(from) == "numeric", from >= 2007)
+  stopifnot(class(to) == "numeric", to >= 2007)
   stopifnot(class(QAQC) == 'logical')
   stopifnot(panels %in% c(1, 2, 3, 4))
   locType <- match.arg(locType)
@@ -114,7 +114,7 @@ joinAdditionalSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = F
   pe_list <- unique(plot_events$EventID)
 
   addspp_evs <- addspp_vw %>% filter(EventID %in% pe_list) %>%
-    mutate(present = case_when(SQAddSppCode == "SS" ~ 1,
+    mutate(addspp_present = case_when(SQAddSppCode == "SS" ~ 1,
                                SQAddSppCode == "NP" ~ 0,
                                TRUE ~ NA_real_))
 
@@ -136,11 +136,12 @@ joinAdditionalSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = F
 
   addspp_comb$ScientificName[addspp_comb$SQAddSppCode %in% c("ND", "NS")] <- "Not Sampled"
   addspp_comb$ScientificName[addspp_comb$SQAddSppCode == "NP"] <- "None present"
+  addspp_comb$ScientificName[is.na(addspp_comb$ScientificName)] <- "None present" # needed for filtered spp.
 
   addspp_final <- addspp_comb %>% select(Plot_Name, Network, ParkUnit, ParkSubUnit,
                                          PlotTypeCode, PanelCode, PlotCode, PlotID,
                                          EventID, IsQAQC, StartYear, StartDate, cycle, TSN,
-                                         ScientificName, present, Exotic, InvasiveMIDN,
+                                         ScientificName, addspp_present, Exotic, InvasiveMIDN,
                                          Confidence, IsCollected, Note, SQAddSppNotes)
   return(data.frame(addspp_final))
 } # end of function
