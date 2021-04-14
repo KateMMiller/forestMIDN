@@ -117,7 +117,7 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, 
                                     panels = panels, locType = locType, eventType = eventType,
                                     abandoned = FALSE, output = 'short')) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
-           EventID, StartDate, StartYear, cycle, IsQAQC)
+           EventID, StartYear, StartDate, cycle, IsQAQC)
 
   pe_list <- unique(plot_events$EventID)
 
@@ -233,7 +233,7 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, 
 
   # select columns based on specified valueType
   req_cols <- c("Plot_Name", "Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode", "PanelCode",
-                "PlotCode", "PlotID", "EventID", "IsQAQC", "StartYear", "cycle",
+                "PlotCode", "PlotID", "EventID", "IsQAQC", "StartYear", "StartDate", "cycle",
                 "TSN", "ScientificName", "Confidence", "num_quads",
                 "quad_avg_cov", "quad_pct_freq")
 
