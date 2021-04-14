@@ -119,33 +119,33 @@ joinQuadNotes <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pa
   # Split spp and seed quadrat-level notes from species-level notes for easier compiling
   spp_notes <- quadspp_evs %>% select(-SQQuadSppCode, -QuadratCode, -SQQuadSppNotes) %>%
                                filter(!is.na(QuadSppNote)) %>%
-                               mutate(Note_Type = "Species Notes",
+                               mutate(Note_Type = "Quad_Species",
                                       Sample_Info = ifelse(IsCollected == 1, "Collected", NA)) %>%
                                unique() %>% rename(Note_Info = ScientificName,
                                                    Notes = QuadSppNote) %>%
                                select(-IsCollected)
 
   quadspp_notes <- quadspp_evs %>% select(-ScientificName, -IsCollected, -QuadSppNote) %>%
-                                   mutate(Note_Type = "SQQ Species") %>%
+                                   mutate(Note_Type = "Quad_SQ_Species") %>%
                                    filter(!is.na(SQQuadSppNotes)) %>%
                                    rename(Sample_Info = SQQuadSppCode, Notes = SQQuadSppNotes,
                                    Note_Info = QuadratCode) %>% unique()
 
   seed_notes <- quadseed_evs %>% select(-SQSeedlingCode, -SQSeedlingNotes, -QuadratCode) %>%
                                  filter(!is.na(SeedlingCoverNote)) %>%
-                                 mutate(Note_Type = "Seedling Notes",
+                                 mutate(Note_Type = "Quad_Seedling",
                                         Sample_Info = ifelse(IsCollected == 1, "Collected", NA)) %>%
                                  unique() %>% rename(Note_Info = ScientificName,
                                                      Notes = SeedlingCoverNote) %>%
                                  select(-IsCollected)
 
   quadseed_notes <- quadseed_evs %>% select(-ScientificName, -IsCollected, -SeedlingCoverNote) %>%
-                                     mutate(Note_Type = "SQQ Seedlings") %>%
+                                     mutate(Note_Type = "Quad_SQ_Seedlings") %>%
                                      filter(!is.na(SQSeedlingNotes)) %>% unique() %>%
                                      rename(Sample_Info = SQSeedlingCode, Notes = SQSeedlingNotes,
                                             Note_Info = QuadratCode)
 
-  quadchr_notes <- quadchr_evs %>% mutate(Note_Type = "SQQ Character") %>%
+  quadchr_notes <- quadchr_evs %>% mutate(Note_Type = "Quad_SQ_Character") %>%
                                    rename(Sample_Info = SQQuadCharCode, Notes = SQQuadCharNotes,
                                    Note_Info = QuadratCode)
 
