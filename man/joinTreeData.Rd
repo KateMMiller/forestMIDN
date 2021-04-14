@@ -12,7 +12,7 @@ joinTreeData(
   locType = c("VS", "all"),
   panels = 1:4,
   status = c("active", "live", "dead", "all"),
-  speciesType = c("all", "native", "exotic"),
+  speciesType = c("all", "native", "exotic", "invasive"),
   dist_m = NA,
   eventType = c("complete", "all"),
   output = "short",
@@ -68,6 +68,7 @@ If more than one panel is selected, specify by c(1, 3), for example.}
 \item{"all"}{Default. Returns all species.}
 \item{"native"}{Returns native species only}
 \item{"exotic"}{Returns exotic species only}
+\item{"invasive"}{Returns species on the Indicator Invasive List}
 }}
 
 \item{dist_m}{Filter trees by a distance that is less than or equal to the specified distance in meters
