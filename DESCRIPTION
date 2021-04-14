@@ -13,6 +13,7 @@ Imports:
     magrittr,
     stringr,
     ggplot2,
+    purrr,
     tidyr
 Suggests: 
     RODBC,
@@ -20,6 +21,7 @@ Suggests:
     ggrepel,
     cowplot
 Collate: 
+    'prepTaxa.R'
     'joinLocEvent.R'
     'joinTreeData.R'
     'joinStandData.R'
@@ -27,7 +29,6 @@ Collate:
     'exportCSV.R'
     'importCSV.R'
     'importData.R'
-    'prepTaxa.R'
     'joinAdditionalSpecies.R'
     'joinCWDData.R'
     'joinMicroNotes.R'
@@ -46,9 +47,9 @@ Collate:
     'joinTreeNotes.R'
     'joinTreeVineSpecies.R'
     'joinVisitNotes.R'
-    'makeSppList.R'
     'sumQuadGuilds.R'
     'sumSapDBHDist.R'
+    'sumSpeciesList.R'
     'sumTreeDBHDist.R'
     'theme_FVM.R'
     'treeMapPrep.R'
