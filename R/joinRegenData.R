@@ -181,7 +181,17 @@ joinRegenData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pa
 
   reg_wide <- reg_long %>% pivot_wider(names_from = "SizeClass",
                                        values_from = "Count")
-  # table(complete.cases(reg_wide$ScientificName)) # No NA scientific Names b/c NS were dropped
+
+  size_classes <- c("sd_15_30cm", "sd_30_100cm", "sd_100_150cm", "sd_p150cm", "Sapling", "Sapling_SI")
+
+  reg_wide <- reg_long %>% pivot_wider(names_from = "SizeClass",
+                                       values_from = "Count",
+                                       values_fill = NA_real_) #%>% select(-MicroplotCode)
+
+  # Fixes for size classes not represented in filtered regen
+  all_cols <- unique(c(names(reg_wide), size_classes))
+  missing_cols <- setdiff(all_cols, names(reg_wide))
+  reg_wide[missing_cols] <- NA_real_
 
   # Helps to add all events back for MIDN
   plot_events <- force(joinLocEvent(park = park, from = from , to = to, QAQC = QAQC,
@@ -190,6 +200,8 @@ joinRegenData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pa
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
            EventID, StartYear, StartDate, cycle, IsQAQC)
 
+  if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
+
   reg_wide2 <- left_join(plot_events, reg_wide, by = intersect(names(plot_events), names(reg_wide)))
 
   # Fill 0s for plots without issues using the not_sampled_evs
@@ -197,12 +209,9 @@ joinRegenData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pa
   # might be here that shouldn't, but the summary metrics will be correct
   not_sampled_evs <- unique(rbind(not_sampled_sds, not_sampled_saps))
 
-  reg_wide2$sd_15_30cm[(!reg_wide2$EventID %in% not_sampled_evs$EventID) & is.na(reg_wide2$sd_15_30cm)] <- 0
-  reg_wide2$sd_30_100cm[(!reg_wide2$EventID %in% not_sampled_evs$EventID) & is.na(reg_wide2$sd_30_100cm)] <- 0
-  reg_wide2$sd_100_150cm[(!reg_wide2$EventID %in% not_sampled_evs$EventID) & is.na(reg_wide2$sd_100_150cm)] <- 0
-  reg_wide2$sd_p150cm[(!reg_wide2$EventID %in% not_sampled_evs$EventID) & is.na(reg_wide2$sd_p150cm)] <- 0
-  reg_wide2$Sapling[(!reg_wide2$EventID %in% not_sampled_evs$EventID)  & is.na(reg_wide2$Sapling)] <- 0
-  reg_wide2$Sapling_SI[(!reg_wide2$EventID %in% not_sampled_evs$EventID) & is.na(reg_wide2$Sapling_SI)] <- 0
+  reg_wide2[, size_classes][is.na(reg_wide2[, size_classes])] <- 0
+  reg_wide2[, size_classes][reg_wide2$EventID %in% not_sampled_evs$EventID,] <- NA_real_
+
   reg_wide2$ScientificName[(!reg_wide2$EventID %in% not_sampled_evs$EventID)
                            & is.na(reg_wide2$ScientificName)] <- "None present"
   reg_wide2$ScientificName[(reg_wide2$EventID %in% not_sampled_evs$EventID)
