@@ -46,14 +46,13 @@ Collate:
     'joinTreeNotes.R'
     'joinTreeVineSpecies.R'
     'joinVisitNotes.R'
+    'plotTreeMap.R'
     'sumQuadGuilds.R'
     'sumSapDBHDist.R'
     'sumSpeciesList.R'
     'sumStrStage.R'
     'sumTreeDBHDist.R'
     'theme_FVM.R'
-    'treeMapPrep.R'
-    'treeMap.R'
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
