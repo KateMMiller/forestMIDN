@@ -11,7 +11,7 @@ joinTreeConditions(
   QAQC = FALSE,
   locType = c("VS", "all"),
   panels = 1:4,
-  status = c("active", "live", "dead", "all"),
+  status = c("all", "active", "live", "dead"),
   speciesType = c("all", "native", "exotic"),
   dist_m = NA,
   ...
@@ -55,10 +55,10 @@ If more than one panel is selected, specify by c(1, 3), for example.}
 
 \item{status}{Filter by live, dead, or all. Acceptable options are:
 \describe{
+\item{"all"}{Default. Includes all trees with any status, including excluded or missing.}
 \item{"active"}{Includes all trees with an active monitoring status, including "DF".}
 \item{"live"}{Live trees only}
 \item{"dead"}{Dead trees only. Note that prior to 2012, status was not assessed for dead trees and will be NA.}
-\item{"all"}{Includes all trees with any status, including excluded or missing.}
 }}
 
 \item{speciesType}{Allows you to filter on native, exotic or include all species.

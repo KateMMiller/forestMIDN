@@ -54,10 +54,10 @@
 #'
 #' @param status Filter by live, dead, or all. Acceptable options are:
 #' \describe{
+#' \item{"all"}{Default. Includes all trees with any status, including excluded or missing.}
 #' \item{"active"}{Includes all trees with an active monitoring status, including "DF".}
 #' \item{"live"}{live trees only}
 #' \item{"dead"}{dead trees only}
-#' \item{"all"}{Includes all trees with any status, including excluded or missing.}
 #' }
 #'
 #' @param speciesType Allows you to filter on native, exotic or include all species.
@@ -99,7 +99,7 @@
 # Joins tbl_Trees and tbl_Tree_Data tables and filters by park, year, and plot/visit type
 #------------------------
 joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, locType = c('VS', 'all'), panels = 1:4,
-                         status = c('active', 'live', 'dead', 'all'), speciesType = c('all', 'native','exotic', 'invasive'),
+                         status = c('all', 'active', 'live', 'dead'), speciesType = c('all', 'native','exotic', 'invasive'),
                          dist_m = NA, eventType = c('complete', 'all'), output = 'short', ...){
 
   # Match args and class
