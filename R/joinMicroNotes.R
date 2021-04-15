@@ -85,6 +85,8 @@ joinMicroNotes <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, p
                               locType = locType, eventType = eventType, output = 'verbose') %>%
     select(Plot_Name, PlotID, EventID, StartYear, IsQAQC)
 
+  if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
+
   saps_long <- saps_vw %>% rename(Micro_SQ_Sapling = SQSaplingNotes,
                                   Micro_Sapling = SaplingNote) %>%
     pivot_longer(cols = c(Micro_SQ_Sapling, Micro_Sapling),

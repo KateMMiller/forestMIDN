@@ -98,6 +98,8 @@ joinVisitNotes <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, p
                                   Observer_Tab_Notes = EventNotes,
                                   Stand_Notes = StandNotes)
 
+  if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
+
   plot_evs_long <- plot_events %>% pivot_longer(cols = c(Plot_Notes, Directions, Observer_Tab_Notes, Stand_Notes),
                                                 names_to = "Note_Type",
                                                 values_to = "Notes",

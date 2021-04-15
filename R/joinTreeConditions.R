@@ -131,6 +131,8 @@ joinTreeConditions <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
                  filter(ScientificName != "None present") # drop plot-events without trees that match
                                                 # the specified speciesType and/or status
 
+  if(nrow(tree_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
+
   te_list <- unique(tree_events$EventID)
 
   trcond_evs <- filter(trcond_vw, EventID %in% te_list)

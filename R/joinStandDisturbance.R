@@ -95,6 +95,8 @@ joinStandDisturbance<- function(park = 'all', QAQC = FALSE, locType = c('VS', 'a
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
            EventID, StartYear, StartDate, cycle, IsQAQC)
 
+  if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
+
   sdist_evs <- left_join(plot_events, sdist, by = intersect(names(plot_events), names(sdist)))
   sdist_evs$DisturbanceCode[is.na(sdist_evs$DisturbanceCode)] <- 0
   sdist_evs$DisturbanceLabel[is.na(sdist_evs$DisturbanceLabel)] <- "None present"

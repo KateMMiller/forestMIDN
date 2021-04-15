@@ -144,6 +144,8 @@ joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, loc
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
            EventID, StartDate, StartYear, cycle, IsQAQC)
 
+  if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
+
   pe_list <- unique(plot_events$EventID)
 
   tree_evs <- filter(tree_vw, EventID %in% pe_list)

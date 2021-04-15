@@ -265,6 +265,8 @@ joinStandData <- function(park = 'all', QAQC = FALSE, locType = c('VS', 'all'), 
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
            xCoordinate, yCoordinate, EventID, StartDate, StartYear, cycle, IsQAQC)
 
+  if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
+
   stand_merge <- left_join(plot_events, stand_comb,
                        intersect(names(plot_events), names(stand_comb))) %>%
                  arrange(Plot_Name, StartYear, IsQAQC)

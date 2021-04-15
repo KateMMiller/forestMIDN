@@ -82,6 +82,8 @@ joinTreeNotes <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pa
                               locType = locType, eventType = eventType, output = 'verbose') %>%
     select(Plot_Name, PlotID, EventID, StartYear, IsQAQC)
 
+  if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
+
   tree_evs <- inner_join(plot_events, tree_vw, by = intersect(names(plot_events), names(tree_vw))) %>%
     mutate(Sample_Info = paste0("Tree Tag: ", TagCode),
            Note_Type = "Tree_Notes",

@@ -113,6 +113,8 @@ joinTreeFoliageCond <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
            PlotCode, PlotID, EventID, IsQAQC, StartYear, StartDate, TSN, ScientificName,
            TagCode, TreeStatusCode, Pct_Tot_Foliage_Cond, Txt_Tot_Foliage_Cond)
 
+  if(nrow(tree_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
+
   te_list <- unique(tree_events$EventID)
 
   fol_evs <- filter(foliage_vw, EventID %in% te_list)

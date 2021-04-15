@@ -110,6 +110,8 @@ joinLocEvent<-function(park = "all", from = 2007, to = 2021, QAQC = FALSE, aband
 
   plot_events <- full_join(plots, events, by = merge_names)
 
+  if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
+
     # Filter output based on function arguments
   plot_events <- if(output == 'short'){
     plot_events[, c("Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode", "PanelCode", "PlotCode",
@@ -118,7 +120,6 @@ joinLocEvent<-function(park = "all", from = 2007, to = 2021, QAQC = FALSE, aband
                     "Orientation", "GRTS", "IsOrientationChanged", "IsStuntedWoodland",
                     "EventID", "EventLegacyID", "StartDate", "IsQAQC", "StartYear",
                     "PlotNotes", "Directions", "EventNotes", "StandNotes")]} else {plot_events}
-
 
   # microbenchmark::microbenchmarl(plot_events$Plot_Name <- paste(plot_events$ParkUnit,
   #                                sprintf("%03d", plot_events$Plot.Code), sep = "-"), #sprintf was 2x slower
