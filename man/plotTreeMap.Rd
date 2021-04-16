@@ -14,6 +14,7 @@ plotTreeMap(
   dist_m = NA,
   status = c("all", "active", "live", "dead"),
   speciesType = c("all", "native", "exotic", "invasive"),
+  canopyPosition = c("all", "canopy"),
   plotName = NA,
   path = NA,
   output_to = c("view", "file"),
@@ -74,6 +75,13 @@ example, to select an area of trees that is 100 square meters in area, use a dis
 \item{"native"}{Returns native species only}
 \item{"exotic"}{Returns exotic species only}
 \item{"invasive"}{Returns species on the Indicator Invasive List}
+}}
+
+\item{canopyPosition}{Allows you to filter on tree crown class
+\describe{
+\item{"all"}{Returns all canopy positions}
+\item{"canopy"}{Returns only dominant, codominant, and intermediate crown classes. Since only live trees
+are assigned crown classes, this also only returns live trees.}
 }}
 
 \item{plotName}{Allows you to select a specific plot to run function for. Value inputs are "PARK-###", like "ACAD-001".

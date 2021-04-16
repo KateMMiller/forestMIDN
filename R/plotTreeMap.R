@@ -66,6 +66,13 @@
 #' \item{"invasive"}{Returns species on the Indicator Invasive List}
 #' }
 #'
+#' @param canopyPosition Allows you to filter on tree crown class
+#' \describe{
+#' \item{"all"}{Returns all canopy positions}
+#' \item{"canopy"}{Returns only dominant, codominant, and intermediate crown classes. Since only live trees
+#' are assigned crown classes, this also only returns live trees.}
+#' }
+#'
 #' @param dist_m Filter trees by a distance that is less than or equal to the specified distance in meters
 #' of the tree to the center of the plot. If no distance is specified, then all trees will be selected. For
 #' example, to select an area of trees that is 100 square meters in area, use a distance of 5.64m.
@@ -103,8 +110,8 @@
 #------------------------
 plotTreeMap <- function(park = 'all', from = 2007, to = 2021, locType = c('VS', 'all'), panels = 1:4,
                         eventType = c('complete', 'all'), dist_m = NA, status = c('all', 'active', 'live', 'dead'),
-                        speciesType = c('all', 'native','exotic', 'invasive'), plotName = NA, path = NA,
-                        output_to = c('view', 'file'), ...){
+                        speciesType = c('all', 'native','exotic', 'invasive'), canopyPosition = c('all', 'canopy'),
+                        plotName = NA, path = NA, output_to = c('view', 'file'), ...){
 
   if(!requireNamespace("ggrepel", quietly = TRUE)){
     stop("Package 'ggrepel' needed for this function to work. Please install it.", call. = FALSE)
@@ -126,7 +133,7 @@ plotTreeMap <- function(park = 'all', from = 2007, to = 2021, locType = c('VS', 
   speciesType <- match.arg(speciesType)
   status <- match.arg(status)
   output_to <- match.arg(output_to)
-
+  canopyPosition <- match.arg(canopyPosition)
   stopifnot(nchar(plotName) == 8 | is.na(plotName))
 
   # Error handling for path
@@ -231,7 +238,8 @@ plotTreeMap <- function(park = 'all', from = 2007, to = 2021, locType = c('VS', 
 
   if(nrow(ev_check) > 0){warning("Detected ", nrow(ev_check), " plots with more than 1 plot visit. Only the most recent will be plotted.")}
 
-  tree_events <- do.call(joinTreeData, c(arglist, list(status = status, speciesType = speciesType))) %>%
+  tree_events <- do.call(joinTreeData, c(arglist, list(status = status, speciesType = speciesType,
+                                                       canopyPosition = canopyPosition, dist_m = dist_m))) %>%
                  select(Plot_Name, ParkUnit, PlotID, EventID, StartYear, IsQAQC, TagCode, TreeStatusCode,
                         Distance, Azimuth, DBHcm, BA_cm2)
 

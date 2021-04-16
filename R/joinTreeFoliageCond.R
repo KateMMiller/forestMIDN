@@ -105,7 +105,7 @@ joinTreeFoliageCond <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
            error = function(e){stop("COMN_TreeFoliageCond view not found. Please import view.")})
 
   # subset with EventID from tree_events to make tree data as small as possible to speed up function
-  tree_events <- force(joinTreeData(park = park, from = from , to = to, QAQC = QAQC,
+  tree_events <- force(joinTreeData(park = park, from = from , to = to, QAQC = QAQC, ...,
                                     locType = locType, panels = panels, eventType = 'complete',
                                     abandoned = FALSE, status = 'live', speciesType = speciesType,
                                     dist_m = dist_m, output = 'verbose')) %>%
