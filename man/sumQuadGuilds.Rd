@@ -5,37 +5,88 @@
 \title{sumQuadGuilds: summarizes quadrat species data by guilds}
 \usage{
 sumQuadGuilds(
-  speciesType = c("native", "exotic", "all"),
   park = "all",
-  from = 2006,
-  to = 2019,
+  from = 2007,
+  to = 2021,
   QAQC = FALSE,
-  locType = "VS",
-  output,
+  panels = 1:4,
+  locType = c("VS", "all"),
+  speciesType = c("all", "native", "exotic", "invasive"),
+  splitHerb = TRUE,
   ...
 )
 }
 \arguments{
+\item{park}{Combine data from all parks or one or more parks at a time. Valid inputs:
+\arguments{
+\item{"all"}{Includes all parks in the network}
+\item{"APCO"}{Appomattox Court House NHP only}
+\item{"ASIS"}{Assateague Island National Seashore}
+\item{"BOWA"}{Booker T. Washington NM only}
+\item{"COLO"}{Colonial NHP only}
+\item{"FRSP"}{Fredericksburg & Spotsylvania NMP only}
+\item{"GETT"}{Gettysburg NMP only}
+\item{"GEWA"}{George Washington Birthplace NM only}
+\item{"HOFU"}{Hopewell Furnace NHS only}
+\item{"PETE"}{Petersburg NBP only}
+\item{"RICH"}{Richmond NB only}
+\item{"SAHI"}{Sagamore Hill NHS only}
+\item{"THST"}{Thomas Stone NHS only}
+\item{"VAFO"}{Valley Forge NHP only}}}
+
+\item{from}{Year to start analysis, ranging from 2007 to current year}
+
+\item{to}{Year to stop analysis, ranging from 2007 to current year}
+
+\item{QAQC}{Allows you to remove or include QAQC events.
+\describe{
+\item{FALSE}{Default. Only returns visits that are not QAQC visits}
+\item{TRUE}{Returns all visits, including QAQC visits}}}
+
+\item{panels}{Allows you to select individual panels from 1 to 4. Default is all 4 panels (1:4).
+If more than one panel is selected, specify by c(1, 3), for example.}
+
+\item{locType}{Allows you to only include plots that are part of the GRTS sample design or
+include all plots, such as deer exclosures.
+\describe{
+\item{"VS"}{Only include plots that are part of the Vital Signs GRTS sample design}
+\item{"all"}{Include all plots, such as plots in deer exclosures or test plots.}}}
+
 \item{speciesType}{Allows you to filter on native, exotic or include all species.
 \describe{
-\item{"all"}{Returns all species.}
-\item{"native"}{Default. Returns native species only}
+\item{"all"}{Default. Returns all species.}
+\item{"native"}{Returns native species only}
 \item{"exotic"}{Returns exotic species only}
+\item{"invasive"}{Returns species on the Indicator Invasive List}
 }}
+
+\item{splitHerb}{TRUE/FALSE. If TRUE (Default), splits the herbaceous group into forb and fern. If FALSE,
+then resulting data frame will be summarized for tree, shrub, herbaceous, and graminoid guilds.}
 }
 \value{
-Returns a dataframe with average quadrat cover, percent quadrat frequency and quadrat frequency count for tree,shrub/vine,herbaceous,and graminoid. Data are sither summarized for all species, native only, exotic only, or invasive only.
+Returns a data frame with average quadrat cover, percent quadrat frequency and quadrat
+frequency count for tree, shrub/vine, herbaceous, and graminoid for each plot visit. Data are either
+summarized for all species, native only, exotic only, or invasive only.
 }
 \description{
-This function summarizes output from joinQuadData and calculates average cover and quadrat frequency for each guild. Average cover is corrected for number of quadrats sampled.
+This function summarizes output from joinQuadData and calculates average cover and quadrat frequency for each guild.
+Average cover is corrected for number of quadrats sampled. Guilds are tree, shrub, forb, fern, and graminoid. If herbaceous guild
+is split, then cover of ferns does not overlap with cover of herbaceous. If herbaceous guild is not split, then cover of herbaceous
+guild includes fern and other herbaceous (but not graminoid) species cover. Only works for complete events, but does include plots
+where a few quadrats were not sampled. Note that this function does not account for changes in the indicator list over time. Starting
+in 2019, all woody species were sampled in quadrats, and will show a large increase in tree and shrub cover as a result. Seedling cover
+recorded in the quadrat seedlings tab are not summarized here. For more information on how the indicator list has changed over time in
+MIDN, refer to Table S17.4 in the Summary of Major Protocol Changes and Deviations document located in the Long-Term Forest Monitoring
+Protocol IRMA Project:
+   https://irma.nps.gov/Datastore/Reference/Profile/2189101.
 }
 \examples{
 importData()
 
-# compile exotic quad data for all parks and most recent survey.
-exo_guilds <- sumQuadGuilds(speciesType = 'exotic', from = 2015, to = 2018)
+# compile invasive quad data for all parks and most recent survey. Keep ferns in with herbs
+inv_guilds <- sumQuadGuilds(speciesType = 'invasive', from = 2015, to = 2018, splitHerb = FALSE)
 
-# compile native quad data for more recent survey in COLO, with ferns and forbs split in separate guilds
-COLO_guilds <- sumQuadGuilds(speciesType = 'native', from = 2015, to = 2018)
+# compile native quad data for more recent survey in BOWA, with ferns and forbs split in separate guilds
+BOWA_guilds <- sumQuadGuilds(speciesType = 'native', from = 2015, to = 2018, splitHerb = TRUE)
 
 }

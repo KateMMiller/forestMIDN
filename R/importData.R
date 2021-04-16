@@ -1,172 +1,94 @@
-#' @title importData: Import tables directly from MIDN forest database
+#' @title importData: Import views directly from MIDN forest database
 #'
-#' @description This function imports database tables from a named ODBC datasource from
-#' MIDN forest backend databases. Each table is assigned to the global environment
-#' with names that functions in this package depend on. You must use the 32-bit version of R to work.
+#' @description This function imports all views in the ANALYSIS schema of the MIDN_Forest backend. Each view
+#' is added to a VIEWS_MIDN environment in your workspace, or to your global environment based on whether
+#' new_env = TRUE or FALSE.
 #'
-#' @param type Select whether to use the default DSN to import data or a different database
+#' @param instance Specify whether you are connecting to the local instance or server.
 #' \describe{
-#' \item{"DSN"}{Default. DSN database. If not specified, will use "NETNFVM" .}
-#' \item{"file"}{A different database than default DSN}
-#' }
-#' @param path Quoted path of database backend file, including the name of the backend.
-#' @return Assigns database tables to global environment
+#' \item{"local"}{Default. Connects to local install of backend database}
+#' \item{"server"}{Connects to main backend on server. Note that you must have permission to access the server, and
+#' connection speeds are likely to be much slower than the local instance. You must also be connected to VPN or NPS network.}}
 #'
-#' @param import_tables Specify whether to import all tables or individual tables
-#' \describe{
-#' \item{"all"}{Default. Imports all relevant tables from the backend database.}
-#' \item{"single"}{Imports an individual table or tables from the backend database. If single is specified,
-#' you must then specify the exact table name in quotes from the backend database. The table will be given
-#' the same object name as if all tables were imported so that package functions are still useable.}
-#' }
+#' @param server Quoted name of the server to connect to. Valid inputs are your computer name or
+#' "localhost" (default) for the local instance, or the server address (currently "INP2300VTSQL16\\IRMADEV1")
+#' to connect to the main database.
 #'
-#' @param table_name Specify a quoted list of one or more table names
+#' @param new_env Logical. Specifies which environment to store views in. If \code{TRUE}(Default), stores
+#' views in VIEWS_MIDN environment. If \code{FALSE}, stores views in global environment
 #'
 #' @examples
-#' # Import database in specific folder:
-#' importData(type='file', path='./Data/MIDN_Forest_Backend.mdb')
+#' # Import using default settings of local instance, server = 'localhost' and add VIEWS_MIDN environment
+#' importData()
 #'
-#' # Import ODBC named database
-#' importData(type='DSN', odbc="MIDNFVM")
+#' # Import using computer name (# should be real numbers)
+#' importData(server = "INPNETN-######", new_env = TRUE)
 #'
-#' # Import individual tables
-#' importData(import_tables='single',table_name=c('tlu_Plants','tbl_Quadrat_Species_Data'))
+#' # Import from main database on server
+#' importData(server = "INP2300VTSQL16\\IRMADEV1", instance = "server", new_env = TRUE)
+#'
+#' @return MIDN database views in specified environment
 #'
 #' @export
 
-importData<- function(type = c('DSN','file'), odbc = 'MIDNFVM', path = NA,
-                      import_tables = c('all','single'), table_name = NA){
+importData <- function(instance = c("local", "server"), server = "localhost", new_env = TRUE){
 
-  type<-match.arg(type)
-  import_tables<-match.arg(import_tables)
+  options(scipen = 100) # For TSNs
+  instance <- match.arg(instance)
 
-  if(import_tables == 'single' && all(is.na(table_name))==TRUE){
-    stop("Must specify a table_name that matches a table in the database to use this option.")}
-
-  # set up dataframe linking object name for global environment and table name in access
-  objectnames<-c("loc", "parknames", "event", "treedata", "trees", "treecond", "xrtreecond", "cwd", "plants",
-                 "saps", "micro", "sdlg", "shrub", "quadsamp", "quadchr", "quadchrtlu", "quads", "addspp",
-                 "stand", "stdtlu", "disturb", "disttlu", "disttlutc", "soildata", "soillab", "soilsamp",
-                 "metaevent", "metaloc", "quadnotes", "treecore", "xrfolcond")
-
-  tablenames<-c("tbl_Locations", "tlu_Park_Names", "tbl_Events", "tbl_Tree_Data", "tbl_Trees", "tlu_Tree_Conditions",
-                "xref_Tree_Conditions", "tbl_CWD_Transect_Data", "tlu_Plants", "tbl_Microplot_Sapling_Data_MIDN",
-                "tbl_Microplot_Characterization_Data", "tbl_Quadrat_Seedling_Data", "tbl_Microplot_Shrub_Data",
-                "tbl_Quadrat_Sampled", "tbl_Quadrat_Character_Data", "tlu_Quadrats", "tbl_Quadrat_Species_Data",
-                "tbl_Plot_Additional_Species", "tbl_Stand_Data", "tlu_Stand_Structures", "tbl_Disturbances",
-                "tlu_Disturbance_Codes", "tlu_Disturbance_Threshhold_Codes", "tbl_Soil_Data", "tbl_Soil_Data_Lab",
-                "tbl_Soil_Sample_Data", "tbl_Meta_Events", "tbl_Meta_Locations", "tbl_Quadrat_Notes",
-                "tbl_Tree_Core", "xref_Foliage_Conditions")
-
-  namesdf<-data.frame(cbind(objectnames,tablenames))
-
-  if(any(!(is.na(table_name)) && !(table_name %in% tablenames))){
-    stop('At least one table_name does not match table name listed in the backend.')
+  # Check that suggested package required for this function are installed
+  if(!requireNamespace("RODBC", quietly = TRUE)){
+    stop("Package 'RODBC' needed for this function to work. Please install it.", call. = FALSE)
   }
 
-  if(!requireNamespace("odbc", quietly = TRUE)){
-    stop("Package 'odbc' needed for this function to work. Please install it.", call. = FALSE)
-  }
-  if(!requireNamespace("DBI", quietly = TRUE)){
-    stop("Package 'DBI' needed for this function to work. Please install it.", call. = FALSE)
+  # Set up connection
+  connect <- if(instance == 'local'){
+    paste0("Driver={SQL Server};server=", server, "\\SQLEXPRESS;database=MIDN_Forest;trusted_connection=TRUE;ReadOnly=True")
+  } else if (instance == 'server'){
+    paste0("Driver={SQL Server};server=", server, ";database=MIDN_Forest;trusted_connection=TRUE;ReadOnly=True")
   }
 
-  pb = txtProgressBar(min = 0, max = 31, style = 3)
-  db<- if (type=='DSN'){
-    db<- DBI::dbConnect(drv=odbc::odbc(),dsn=odbc)
-  }
-  else if (type=='file'){
-    db<- DBI::dbConnect(drv=odbc::odbc(),
-                        .connection_string=paste0("Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=",path))
-  }
-  # import all important tables
-  if(import_tables=='all'){
-  assign("loc", DBI::dbReadTable(db, "tbl_Locations"), envir=.GlobalEnv)
-  setTxtProgressBar(pb,1)
-  assign("parknames", DBI::dbReadTable(db, "tlu_Park_Names"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,2)
-  assign("event", DBI::dbReadTable(db, "tbl_Events"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,3)
-  assign("treedata", DBI::dbReadTable(db, "tbl_Tree_Data"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,4)
-  assign("trees", DBI::dbReadTable(db, "tbl_Trees"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,5)
-  assign("treecond", DBI::dbReadTable(db,"tlu_Tree_Conditions"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,6)
-  assign("xrtreecond", DBI::dbReadTable(db,"xref_Tree_Conditions"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,7)
-  assign("cwd", DBI::dbReadTable(db,"tbl_CWD_Transect_Data"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,8)
-  plants <- DBI::dbReadTable(db, "tlu_Plants")
-  plants$Exotic[plants$Latin_Name == "Robinia pseudoacacia"] <- FALSE
-  assign("plants", plants, envir=.GlobalEnv)
-  #assign("plants", DBI::dbReadTable(db, "tlu_Plants"),envir=.GlobalEnv)
-  plants$Exotic[plants$Latin_Name == "Robinia pseudoacacia"] <- FALSE
-  setTxtProgressBar(pb,9)
-  assign("saps", DBI::dbReadTable(db,"tbl_Microplot_Sapling_Data_MIDN"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,10)
-  assign("micro", DBI::dbReadTable(db,"tbl_Microplot_Characterization_Data"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,11)
-  assign("sdlg", DBI::dbReadTable(db,"tbl_Quadrat_Seedling_Data"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,12)
-  assign("shrub", DBI::dbReadTable(db,"tbl_Microplot_Shrub_Data"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,13)
-  assign("quadsamp", DBI::dbReadTable(db,"tbl_Quadrat_Sampled"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,14)
-  assign("quadchr", DBI::dbReadTable(db,"tbl_Quadrat_Character_Data"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,15)
-  assign("quadchrtlu", DBI::dbReadTable(db,"tlu_Quadrats"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,16)
-  assign("quads", DBI::dbReadTable(db,"tbl_Quadrat_Species_Data"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,17)
-  assign("addspp", DBI::dbReadTable(db,"tbl_Plot_Additional_Species"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,18)
-  assign("stand", DBI::dbReadTable(db,"tbl_Stand_Data"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,19)
-  assign("stdtlu", DBI::dbReadTable(db,"tlu_Stand_Structures"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,20)
-  assign("disturb", DBI::dbReadTable(db,"tbl_Disturbances"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,21)
-  assign("disttlu", DBI::dbReadTable(db,"tlu_Disturbance_Codes"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,22)
-  assign("disttlutc", DBI::dbReadTable(db,"tlu_Disturbance_Threshhold_Codes"),envir=.GlobalEnv)
-  setTxtProgressBar(pb,23)
-  assign("soildata", DBI::dbReadTable(db, "tbl_Soil_Data"), envir=.GlobalEnv)
-  setTxtProgressBar(pb,24)
-  assign("soillab", DBI::dbReadTable(db, "tbl_Soil_Data_Lab"), envir=.GlobalEnv)
-  setTxtProgressBar(pb,25)
-  assign("soilsamp", DBI::dbReadTable(db, "tbl_Soil_Sample_Data"), envir=.GlobalEnv)
-  setTxtProgressBar(pb,26)
-  assign("metaevent", DBI::dbReadTable(db, "tbl_Meta_Events"), envir=.GlobalEnv)
-  setTxtProgressBar(pb,27)
-  assign("metaloc", DBI::dbReadTable(db, "tbl_Meta_Locations"), envir=.GlobalEnv)
-  setTxtProgressBar(pb,28)
-  assign("quadnotes", DBI::dbReadTable(db, "tbl_Quadrat_Notes"), envir=.GlobalEnv)
-  setTxtProgressBar(pb,29)
-  assign("treecore", DBI::dbReadTable(db, "tbl_Tree_Core"), envir=.GlobalEnv)
-  setTxtProgressBar(pb,30)
-  assign("xrfolcond", DBI::dbReadTable(db, "xref_Foliage_Conditions"), envir=.GlobalEnv)
-  setTxtProgressBar(pb,31)
-  DBI::dbDisconnect(db)
+  error_mess <- paste("Unable to connect to SQL database.",
+                      ifelse(instance == 'server',
+                             paste0("Make sure you are connected to VPN or NPS network, and server is spelled correctly (see examples)."),
+                             paste0("Make sure you have a local installation of the database, and the server is spelled correctly (see examples).")))
+
+  # Test connection. If successful, continues to next step. If fails, exits function with error message.
+  tryCatch(
+    con <- RODBC::odbcDriverConnect(connection = connect, readOnlyOptimize = TRUE, rows_at_time = 1),
+    error = function(e){
+      stop(error_mess)
+    },
+    warning = function(w){
+      stop(error_mess)
+    }
+  )
+
+  # Fetch names of views
+  view_list1 <- as.vector(RODBC::sqlTables(con, schema = "Analysis")$TABLE_NAME)
+  view_list <- view_list1[!view_list1 %in% "COMN_QuadNotes"]
+
+  # Setup progress bar
+  pb <- txtProgressBar(min = 0, max = length(view_list), style = 3)
+
+  # Import views using their names and show progress bar
+  view_import <- lapply(seq_along(view_list), function(x){
+    setTxtProgressBar(pb, x)
+    RODBC::sqlQuery(con, paste0("SELECT * FROM ", "[MIDN_Forest].[ANALYSIS].[", view_list[x], "]"))
+  })
+
   close(pb)
-  noquote('database import complete')
-  }
+  RODBC::odbcClose(con)
 
-  else if(import_tables=='single'){
-    table_select<-namesdf %>% filter(tablenames %in% table_name) %>% data.frame() %>% droplevels()
+  view_import <- setNames(view_import, view_list)
 
-    lapply(seq_along(dim(table_select)[1]), function(i){
-      pb = txtProgressBar(min = 0, max = length(table_select), style = 3)
-      assign(as.character(table_select[i,1]),
-             DBI::dbReadTable(db, as.character(table_select[i,2])), envir=.GlobalEnv)
-      setTxtProgressBar(pb,i)
-    })
+  print(ifelse(new_env == TRUE, paste0("Import complete. Views are located in VIEWS_MIDN environment."),
+               paste0("Import complete. Views are located in global environment.")), quote = FALSE)
 
-    DBI::dbDisconnect(db)
-    close(pb)
-    noquote('database import complete')
-  }
-
+  if(new_env == TRUE){
+    VIEWS_MIDN <<- new.env()
+    list2env(view_import, envir = VIEWS_MIDN)
+  } else {
+    list2env(view_import, envir = .GlobalEnv)}
 }
-
 

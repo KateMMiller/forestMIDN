@@ -5,23 +5,61 @@
 \title{joinTreeData: compiles tree data}
 \usage{
 joinTreeData(
-  status = c("all", "live", "dead"),
-  speciesType = c("all", "native", "exotic"),
   park = "all",
   from = 2007,
-  to = 2019,
+  to = 2021,
   QAQC = FALSE,
-  locType = "VS",
+  locType = c("VS", "all"),
   panels = 1:4,
+  status = c("all", "active", "live", "dead"),
+  speciesType = c("all", "native", "exotic", "invasive"),
+  canopyPosition = c("all", "canopy"),
   dist_m = NA,
-  output,
+  eventType = c("complete", "all"),
+  output = "short",
   ...
 )
 }
 \arguments{
+\item{park}{Combine data from all parks or one or more parks at a time. Valid inputs:
+\describe{
+\item{"all"}{Includes all parks in the network}
+\item{"APCO"}{Appomattox Court House NHP only}
+\item{"ASIS"}{Assateague Island National Seashore}
+\item{"BOWA"}{Booker T. Washington NM only}
+\item{"COLO"}{Colonial NHP only}
+\item{"FRSP"}{Fredericksburg & Spotsylvania NMP only}
+\item{"GETT"}{Gettysburg NMP only}
+\item{"GEWA"}{George Washington Birthplace NM only}
+\item{"HOFU"}{Hopewell Furnace NHS only}
+\item{"PETE"}{Petersburg NBP only}
+\item{"RICH"}{Richmond NB only}
+\item{"SAHI"}{Sagamore Hill NHS only}
+\item{"THST"}{Thomas Stone NHS only}
+\item{"VAFO"}{Valley Forge NHP only}}}
+
+\item{from}{Year to start analysis, ranging from 2007 to current year}
+
+\item{to}{Year to stop analysis, ranging from 2007 to current year}
+
+\item{QAQC}{Allows you to remove or include QAQC events.
+\describe{
+\item{FALSE}{Default. Only returns visits that are not QAQC visits}
+\item{TRUE}{Returns all visits, including QAQC visits}}}
+
+\item{locType}{Allows you to only include plots that are part of the GRTS sample design or include all plots,
+such as deer exclosures
+\describe{
+\item{"VS"}{Only include plots that are part of the Vital Signs GRTS sample design}
+\item{"all"}{Include all plots, such as plots in deer exclosures or test plots.}}}
+
+\item{panels}{Allows you to select individual panels from 1 to 4. Default is all 4 panels (1:4).
+If more than one panel is selected, specify by c(1, 3), for example.}
+
 \item{status}{Filter by live, dead, or all. Acceptable options are:
 \describe{
-\item{"all"}{Includes all standing trees}
+\item{"all"}{Default. Includes all trees with any status, including excluded or missing.}
+\item{"active"}{Includes all trees with an active monitoring status, including "DF".}
 \item{"live"}{live trees only}
 \item{"dead"}{dead trees only}
 }}
@@ -31,32 +69,53 @@ joinTreeData(
 \item{"all"}{Default. Returns all species.}
 \item{"native"}{Returns native species only}
 \item{"exotic"}{Returns exotic species only}
+\item{"invasive"}{Returns species on the Indicator Invasive List}
+}}
+
+\item{canopyPosition}{Allows you to filter on tree crown class
+\describe{
+\item{"all"}{Returns all canopy positions}
+\item{"canopy"}{Returns only dominant, codominant, and intermediate crown classes. Since only live trees
+are assigned crown classes, this also only returns live trees.}
 }}
 
 \item{dist_m}{Filter trees by a distance that is less than or equal to the specified distance in meters
 of the tree to the center of the plot. If no distance is specified, then all trees will be selected. For
 example, to select an area of trees that is 100 square meters in area, use a distance of 5.64m.}
+
+\item{eventType}{Allows you to include only complete sampling events or all sampling events
+\describe{
+\item{"complete"}{Default. Only include sampling events for a plot that are complete.}
+\item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
+associated with that event. This feature is currently hard-coded in the function.}}}
+
+\item{output}{Allows you to return all columns or just the most important columns for analysis. Valid
+inputs are "short" and "verbose".}
 }
 \value{
-returns a dataframe with plot-level and visit-level tree data
+returns a dataframe with plot-level and visit-level tree data. Returns records for all specified
+plots and events, even if no trees meet the specified arguments (eg dead or exotic trees), although all
+associated data (eg TagCode, DBH), will be NA for those plot/events. ScientificName will be "None present".
 }
 \description{
-This function combines location and event-level Tree data. Note that BA_cm2 was corrected
-for Loc_Type=='Deer' to be the same as Loc_Type=='VS' by multiplying BA_cm2 by 4 to get BA_cm2/400m2.
-Must run importData first.
+This function combines tree location and visit data for measurements that have only 1 record per visit.
+Must run importData first. Abandoned plots are excluded from function.
 }
 \examples{
 importData()
-# compile tree data for live trees only in most recent survey in all parks
+# compile tree data in all parks for live trees only in cycle 3, excluding QAQC visits
 live_trees <- joinTreeData(status = 'live', from = 2015, to = 2018)
 
-# compile FRSP trees within 7.3152m radius (FIA subplot size) in most recent survey
-FRSP_100m <- joinTreeData(park = 'FRSP', from = 2015, to = 2018, dist_m = 7.3152)
+# compile APCO trees within 100m^2 circle in cycle 3
+GEWA_100m <- joinTreeData(park = 'GEWA', from = 2016, to = 2019, dist_m = 5.64)
 
-# compile dead trees in GETT in most recent survey
-GETT_dead <- joinTreeData(park = 'GETT', from = 2015, to = 2018, status = 'dead')
+# compile dead trees in PETE for cycle 3
+PETE_dead <- joinTreeData(park = 'PETE', from = 2015, to = 2018, status = 'dead')
 
 # compile exotic trees in VAFO in all years
-VAFO_exotic <- joinTreeData(park = 'VAFO', from = 2015, to = 2018, speciesType = 'exotic')
+VAFO_exotic <- joinTreeData(park = 'VAFO', speciesType = 'exotic')
+
+# compile all visits in GETT for 2019, including QAQC visits
+GETT_trees <- joinTreeData(park = "GETT", from = 2019, to = 2019, QAQC = TRUE)
 
 }

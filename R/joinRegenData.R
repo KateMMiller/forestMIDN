@@ -1,27 +1,80 @@
 #' @include joinLocEvent.R
+#' @include joinMicroSaplings.R
+#' @include joinQuadSeedlings.R
+#'
 #' @title joinRegenData: compiles seedling and sapling data
 #'
-#' @importFrom dplyr select filter arrange mutate summarise group_by ungroup
+#' @importFrom dplyr anti_join case_when left_join filter select
 #' @importFrom magrittr %>%
-#' @importFrom stringr str_sub str_pad
+#' @importFrom tidyr pivot_longer pivot_wider
 #'
-#' @description This function combines seedling and sapling data, and calculates stocking index at the 1 sq. m level.
-#' Quadrat percent cover is also averaged across the quadrats, and only includes cover of seedling sized tree species
-#' (i.e. the original protocol method). Stocking index thresholds are 2 for areas with low deer, and 8 for areas
-#' with high deer. Must run importData first.
+#' @description This function combines live seedling and sapling data collected in quadrats and microplots, and
+#' calculates the stocking index. Each row represents a species observed per visit. If no seedlings
+#' or saplings were observed, function returns "None present" for ScientificName and 0 for densities.
+#' If a record has a blank ScientificName and associated data, it means it's a missing value. These are
+#' rare, but mostly occur in data <2011. Note that the stocking index only includes saplings < 2.5cm DBH,
+#' but the sapling density returned is all saplings > 1cm and <10cm DBH. Must run importData first.
+#'
+#'
+#' @param park Combine data from all parks or one or more parks at a time. Valid inputs:
+#' \describe{
+#' \item{"all"}{Includes all parks in the network}
+#' \item{"APCO"}{Appomattox Court House NHP only}
+#' \item{"ASIS"}{Assateague Island National Seashore}
+#' \item{"BOWA"}{Booker T. Washington NM only}
+#' \item{"COLO"}{Colonial NHP only}
+#' \item{"FRSP"}{Fredericksburg & Spotsylvania NMP only}
+#' \item{"GETT"}{Gettysburg NMP only}
+#' \item{"GEWA"}{George Washington Birthplace NM only}
+#' \item{"HOFU"}{Hopewell Furnace NHS only}
+#' \item{"PETE"}{Petersburg NBP only}
+#' \item{"RICH"}{Richmond NB only}
+#' \item{"SAHI"}{Sagamore Hill NHS only}
+#' \item{"THST"}{Thomas Stone NHS only}
+#' \item{"VAFO"}{Valley Forge NHP only}}
+#'
+#' @param from Year to start analysis, ranging from 2007 to current year
+#' @param to Year to stop analysis, ranging from 2007 to current year
+#'
+#' @param QAQC Allows you to remove or include QAQC events.
+#' \describe{
+#' \item{FALSE}{Default. Only returns visits that are not QAQC visits}
+#' \item{TRUE}{Returns all visits, including QAQC visits}}
+#'
+#' @param locType Allows you to only include plots that are part of the GRTS sample design or
+#' include all plots, such as deer exclosures.
+#' \describe{
+#' \item{"VS"}{Only include plots that are part of the Vital Signs GRTS sample design}
+#' \item{"all"}{Include all plots, such as plots in deer exclosures or test plots.}}
+#'
+#' @param eventType Allows you to include only complete sampling events or all sampling events
+#' \describe{
+#' \item{"complete"}{Default. Only include sampling events for a plot that are complete.}
+#' \item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
+#' associated with that event (eg COLO-380-2018). This feature is currently hard-coded in the function.}}
 #'
 #' @param speciesType Allows you to filter on native, exotic or include all species.
 #' \describe{
-#' \item{"all"}{Default. Returns all species}
-#' \item{"native"}{Returns native species only, including Robinia pseudoacacia}
-#' \item{"native_noROBPSE"}{Returns native species except Robinia pseudoacacia}
-#' \item{"exotic"}{Returns exotic species only, not including Robinia pseudoacacia}
+#' \item{"all"}{Default. Returns all species.}
+#' \item{"native"}{Returns native species only}
+#' \item{"exotic"}{Returns exotic species only}
+#' \item{"invasive"}{Returns species on the Indicator Invasive List}
 #' }
-#' @param canopyForm Allows you to filter on canopy species only or include all species.
+#'
+#' @param canopyForm Allows you to filter on species growth form
 #' \describe{
-#' \item{"all"}{Returns all species, including low canopy species.}
-#' \item{"canopy"}{Default. Returns canopy-forming species only}
+#' \item{"all"}{Default. Returns all species, including low canopy species.}
+#' \item{"canopy"}{Returns canopy-forming species only.}
 #'}
+#'
+#' @param valueType Allows you to return cover class midpoints (numeric) or cover class ranges (text)
+#' \describe{
+#' \item{"all"}{Default. Returns columns for midpoint and cover classes for each quad}
+#' \item{"midpoint"}{Default. Returns numeric cover class midpoints, with Pct prefix.}
+#' \item{"classes"}{Returns the text cover class definitions, with Txt prefix.}
+#' \item{"averages"}{Returns only the plot-level average cover and percent frequency.}
+#' }
+#'
 #' @param units Calculates seedling and sapling densities based on different units.
 #' \describe{
 #' \item{"sq.m"}{Default. Returns seedling and sapling densities per square meter.}
@@ -29,9 +82,7 @@
 #' \item{"acres"}{Returns densities per acre}
 #'}
 #'
-#' @return returns a dataframe with seedling and sapling densities, stocking index,
-#' quadrat seedling cover and quadrat seedling frequency. Quadrat frequency is based on
-#' cover > 0 in a quadrat.
+#' @return returns a dataframe with seedling and sapling densities, stocking index.
 #'
 #' @examples
 #' importCSV('./forest_csvs/')
@@ -48,150 +99,188 @@
 #' @export
 #'
 #------------------------
-# Joins quadrat and microplot tables and filters by park, year, and plot/visit type
+# Joins microplot tables and filters by park, year, and plot/visit type
 #------------------------
-joinRegenData <- function(speciesType = c('all', 'native', 'native_noROBPSE', 'exotic'), canopyForm = c('canopy', 'all'),
-  units = c('sq.m', 'ha', 'acres'), park = 'all', from = 2007, to = 2019, QAQC = FALSE,
-  locType = 'VS', panels=1:4, output, ...){
+joinRegenData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, panels = 1:4,
+                          locType = c('VS', 'all'), eventType = c('complete', 'all'),
+                          speciesType = c('all', 'native', 'exotic', 'invasive'),
+                          canopyForm = c('all', 'canopy'),
+                          units = c("sq.m", "ha", "acres"), ...){
 
+  #++++++++++++++++++++++
+  # Be sure to drop dead, ex and TR status saplings
+  park <- match.arg(park, several.ok = TRUE,
+                    c("all", "APCO", "ASIS", "BOWA", "COLO", "FRSP", "GETT", "GEWA", "HOFU", "PETE",
+                      "RICH", "SAHI", "THST", "VAFO"))
+  stopifnot(class(from) == "numeric", from >= 2007)
+  stopifnot(class(to) == "numeric", to >= 2007)
+  stopifnot(class(QAQC) == 'logical')
+  stopifnot(panels %in% c(1, 2, 3, 4))
+  locType <- match.arg(locType)
+  eventType <- match.arg(eventType)
   speciesType <- match.arg(speciesType)
   canopyForm <- match.arg(canopyForm)
   units <- match.arg(units)
 
-  park.plots <- force(joinLocEvent(park = park, from = from, to = to, QAQC = QAQC, locType = locType,
-                                 rejected = F, panels = panels, output='verbose'))
+  # Prepare the seedling data
+    # Diff from NETN, have to count the number of quads sampled
+  seeds_raw <- joinQuadSeedlings(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
+                                  locType = locType, eventType = eventType, speciesType = speciesType,
+                                  canopyForm = canopyForm) %>%
+    select(-tot_seeds, -BrowsedCount, -IsCollected, -Pct_Cov, -Txt_Cov)
 
-  park.plots <- park.plots %>% select(Location_ID, Event_ID, Unit_Code, Plot_Name, Plot_Number, X_Coord, Y_Coord,
-                                      Panel, Year, Event_QAQC, cycle, Loc_Type)
+  # Add quad_num back to data before calculating averages
+  quad_num <- seeds_raw %>% filter(SQSeedlingCode %in% c("NP", "SS")) %>%  # Drops COLO-380-2018 and other NDs
+                            group_by(Plot_Name, StartYear, IsQAQC, EventID) %>%
+                            summarize(num_quads = length(unique(QuadratCode)),
+                                      .groups = 'drop')
 
-# Prepare the seedling data
+  # Prep for pivot and rbind with saps
+  seeds_raw2 <- seeds_raw %>% filter(!ScientificName %in% c("Not Sampled", "None present")) %>%
+    select(-SQSeedlingCode, -QuadratCode)
 
-  quad1 <- merge(park.plots, quadsamp[,1:14], by = 'Event_ID', all.x = TRUE)
-  quad1$NumQuads <- rowSums(quad1[,14:25])
+  not_sampled_sds <- seeds_raw %>% filter(SQSeedlingCode %in% c("ND", "NS")) %>% select(EventID)
 
-  seed <- merge(quad1[,c(1:12,26)], sdlg[,c(1:4,6:12)], by = "Event_ID", all.x = T)
-  seed[,17:22][is.na(seed[,17:22])] <- 0
-  seed$Cover <- as.numeric(seed$Cover)
-  seed$freq <- ifelse(!is.na(seed$Cover) & seed$Cover>0, 1, 0)
-
-
-  seed2 <- seed %>% group_by(Event_ID,TSN) %>%
-                    summarise(NumQuads = first(NumQuads),
-                              seed5.15m2 = sum(Seedlings_5_15cm)/NumQuads,
-                              seed15.30m2 = sum(Seedlings_15_30cm)/NumQuads,
-                              seed30.100m2 = sum(Seedlings_30_100cm)/NumQuads,
-                              seed100.150m2 = sum(Seedlings_100_150cm)/NumQuads,
-                              seed150pm2 = sum(Seedlings_Above_150cm)/NumQuads,
-                              avg.cover = sum(Cover)/NumQuads,
-                              avg.freq = sum(freq)/NumQuads)
-  #} # need to add a path for including 5-15 in summary below
-
-  seed3 <- seed2 %>% mutate(seed.stock = (1*seed15.30m2 + 2*seed30.100m2 + 20*seed100.150m2 + 50*seed150pm2),
-                            seed.dens.m2 = seed15.30m2 + seed30.100m2 + seed100.150m2 + seed150pm2)
+  seeds_long <- seeds_raw2 %>% pivot_longer(cols = c(sd_15_30cm, sd_30_100cm, sd_100_150cm, sd_p150cm),
+                                           names_to = "SizeClass",
+                                           values_to = "Count") %>%
+                               group_by(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
+                                        PlotCode, PlotID, EventID, IsQAQC, StartYear, cycle,
+                                        TSN, ScientificName, CanopyExclusion, Exotic, InvasiveMIDN, SizeClass) %>%
+                               summarize(Count = sum(Count, na.rm = T),
+                                         .groups = 'drop')
 
   # Prepare the sapling data
-  saps1 <- merge(micro,
-                 saps[,c("Microplot_Sapling_Data_ID", "Microplot_Characterization_Data_ID", "Tree_ID",
-                         "DBH", "Status_ID")],
-                 by = "Microplot_Characterization_Data_ID", all.y = TRUE, all.x = TRUE)
+  saps_raw <- joinMicroSaplings(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
+                                locType = locType, eventType = eventType, speciesType = speciesType,
+                                canopyForm = canopyForm, status = 'live') %>%
+    mutate(SizeClass = case_when(DBHcm <= 2.5 ~ "Sapling_SI",
+                                 !is.na(DBHcm)  ~ "Sapling",
+                                 is.na(DBHcm) & !is.na(Count) ~ "Sapling",
+                                 TRUE ~ NA_character_))
 
-  saps2 <- merge(saps1, trees[,c("Location_ID", "Tree_ID", "TSN", "Tree_Number_MIDN")],
-                 by = c("Tree_ID"), all.x = TRUE, all.y = FALSE)
+  # Add micronum back to data before calculating averages
+  micro_num <- saps_raw %>% filter(SQSaplingCode %in% c("NP", "SS")) %>%  # Drops COLO-380-2018 and other NDs
+               group_by(Plot_Name, StartYear, IsQAQC, EventID) %>%
+               summarize(num_micros = length(unique(MicroplotCode)),
+                         .groups = 'drop') # There are a couple of 2s b/c no spp. needs adding.
+                                          # Check that this is fixed in next mig.
 
-  saps3 <- merge(park.plots, saps2, by = c('Location_ID', 'Event_ID'), all.x = TRUE)
+  saps_raw2 <- saps_raw %>% filter(!ScientificName %in% c("Not Sampled", "None present")) %>%
+    select(-SQSaplingCode, -MicroplotCode)
 
-  saps4 <- merge(saps3, plants[ , c("TSN", "Latin_Name", "Common", 'Canopy_Exclusion','Exotic')],
-                 by = "TSN", all.x = TRUE)
+  not_sampled_saps <- saps_raw %>% filter(SQSaplingCode %in% c("ND", "NS")) %>% select(EventID)
 
-  saps4$DBH[is.na(saps4$DBH)] <- 0
+  sap_sum <- saps_raw2 %>% group_by(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
+                                   PlotCode, PlotID, EventID, IsQAQC, StartYear, cycle,
+                                   TSN, ScientificName, CanopyExclusion, Exotic, InvasiveMIDN, SizeClass)  %>%
+    summarize(Count = sum(Count), .groups = 'drop')
 
-  saps4 <- saps4 %>% mutate(sap = ifelse(DBH > 0 & DBH < 10, 1, 0),
-                            Status_ID = ifelse(is.na(Status_ID), 'nospp', paste(Status_ID)))
 
-  saps5 <- saps4 %>% group_by(Event_ID, TSN, Status_ID, Loc_Type) %>%
-                     summarise(Latin_Name = first(Latin_Name),
-                               Common = first(Common),
-                               Canopy_Exclusion = first(Canopy_Exclusion),
-                               Exotic = first(Exotic),
-                               sap.stems = sum(sap, na.rm=T),
-                               avg.sap.dbh = mean(DBH, na.rm=T)) %>%
-                     ungroup() %>%
-                     mutate(wgt.sap.stock = ifelse(Loc_Type != 'Deer', 50/((pi*3^2)*3), 50/100),
-                     wgt.sap.dens = ifelse(Loc_Type != 'Deer', (pi*3^2)*3, 100))
+  reg_long <- rbind(seeds_long, sap_sum)
 
-  alive <- c("AB", "AF", "al", "AL", "AM", "AS", "RB", "RF", "RL", "RS")
+  reg_wide <- reg_long %>% pivot_wider(names_from = "SizeClass",
+                                       values_from = "Count")
 
-  saps6 <- saps5 %>% filter(Status_ID %in% alive) %>%
-                     group_by(Event_ID, TSN, Latin_Name, Common, Exotic) %>%
-                     summarise(sap.dens.m2 = sum(sap.stems)/first(wgt.sap.dens),
-                               sap.stock = first(wgt.sap.stock)*sum(sap.stems)) %>%
-                     droplevels()
+  size_classes <- c("sd_15_30cm", "sd_30_100cm", "sd_100_150cm", "sd_p150cm", "Sapling", "Sapling_SI")
 
-  saps7 <- merge(park.plots, saps6, by = "Event_ID", all.x = TRUE) # left join sapling back to plot visit data to show all plots
-  saps7$sap.stock[is.na(saps7$sap.stock)] <- 0
-  saps7$sap.dens.m2[is.na(saps7$sap.dens.m2)] <- 0
+  reg_wide <- reg_long %>% pivot_wider(names_from = "SizeClass",
+                                       values_from = "Count",
+                                       values_fill = NA_real_) #%>% select(-MicroplotCode)
 
-# Combine seedling and sapling data
-  regen1 <- merge(park.plots, seed3, by = 'Event_ID', all.x = TRUE, all.y = FALSE)
-  regen2 <- merge(regen1, saps7[,c("Event_ID","TSN","sap.dens.m2","sap.stock")],
-                  by = c("Event_ID", "TSN"), all.x = TRUE, all.y = TRUE)
-  regen3 <- merge(regen2[,c("Event_ID", "TSN", "avg.cover", "avg.freq",
-                            "seed15.30m2", "seed30.100m2", "seed100.150m2", "seed150pm2",
-                            "seed.dens.m2", "sap.dens.m2", "seed.stock", "sap.stock")],
-                  plants[,c('TSN', 'Latin_Name', 'Common', 'Exotic', 'Canopy_Exclusion')],
-                  by = 'TSN', all.x = TRUE, all.y = FALSE)
+  # Fixes for size classes not represented in filtered regen
+  all_cols <- unique(c(names(reg_wide), size_classes))
+  missing_cols <- setdiff(all_cols, names(reg_wide))
+  reg_wide[missing_cols] <- NA_real_
 
-  regen4 <- if(canopyForm == 'canopy'){filter(regen3, Canopy_Exclusion == FALSE)
-     } else if(canopyForm == 'all'){(regen3)
-     }
+  # Helps to add all events back for MIDN
+  plot_events <- force(joinLocEvent(park = park, from = from , to = to, QAQC = QAQC,
+                                    panels = panels, locType = locType, eventType = eventType,
+                                    abandoned = FALSE, output = 'short')) %>%
+    select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
+           EventID, StartYear, StartDate, cycle, IsQAQC)
 
-  regen5 <- if (speciesType == 'native'){filter(regen4, Exotic == FALSE)
-     } else if (speciesType == 'exotic'){filter(regen4, Exotic == TRUE)
-     } else if (speciesType == 'native_noROBPSE'){
-         filter(regen4, Exotic == FALSE, Latin_Name !="Robinia pseudoacacia")
-     } else if (speciesType == 'all'){(regen4)
-     }
+  if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
 
-  regen5[,3:12][is.na(regen5[,3:12])] <- 0
+  reg_wide2 <- left_join(plot_events, reg_wide, by = intersect(names(plot_events), names(reg_wide)))
 
-  regen5 <- regen5 %>% mutate(stock = seed.stock + sap.stock) %>% select(-seed.stock, -sap.stock)
+  # Fill 0s for plots without issues using the not_sampled_evs
+  # Also safe because we counted the number of quadrats and microplots already. Some 0s
+  # might be here that shouldn't, but the summary metrics will be correct
+  not_sampled_evs <- unique(rbind(not_sampled_sds, not_sampled_saps))
 
-  regen6 <- if (units == 'sq.m'){
-    regen5 %>%
-        mutate(
-          seed15.30 = seed15.30m2,
-          seed30.100 = seed30.100m2,
-          seed100.150 = seed100.150m2,
-          seed150p = seed150pm2,
-          seed.den = seed.dens.m2,
-          sap.den = sap.dens.m2)
-    } else if (units == 'ha'){
-    regen5 %>%
-      mutate(
-        seed15.30 = seed15.30m2*10000,
-        seed30.100 = seed30.100m2*10000,
-        seed100.150 = seed100.150m2*10000,
-        seed150p = seed150pm2*10000,
-        seed.den = seed.dens.m2*10000,
-        sap.den = sap.dens.m2*10000)
-    } else if (units == 'acres'){
-    regen5 %>%
-      mutate(
-        seed15.30 = seed15.30m2*4046.856,
-        seed30.100 = seed30.100m2*4046.856,
-        seed100.150 = seed100.150m2*4046.856,
-        seed150p = seed150pm2*4046.856,
-        seed.den = seed.dens.m2*4046.856,
-        sap.den = sap.dens.m2*4046.856)
-    }
+  reg_wide2[, size_classes][is.na(reg_wide2[, size_classes])] <- 0
+  reg_wide2[, size_classes][reg_wide2$EventID %in% not_sampled_evs$EventID,] <- NA_real_
 
-  regen7 <- regen6 %>% select(Event_ID, TSN, Latin_Name, Common, Exotic, Canopy_Exclusion,
-                              seed15.30, seed30.100, seed100.150, seed150p,
-                              seed.den, sap.den, stock, avg.cover, avg.freq) %>% droplevels()
+  reg_wide2$ScientificName[(!reg_wide2$EventID %in% not_sampled_evs$EventID)
+                           & is.na(reg_wide2$ScientificName)] <- "None present"
+  reg_wide2$ScientificName[(reg_wide2$EventID %in% not_sampled_evs$EventID)
+                           & is.na(reg_wide2$ScientificName)] <- "Not Sampled"
 
-  regen8 <- merge(park.plots, regen7, by="Event_ID", all.x = TRUE, all.y = TRUE)
+  #table(complete.cases(reg_wide2[,18:23])) # 44 NAs for the issue plots. Most of these will be resolved in next migration
 
-  regen8[,18:26][is.na(regen8[,18:26])] <- 0
+  # Bring the number of quads and micros back
+  reg_nums <- full_join(reg_wide2, micro_num, by = intersect(names(reg_wide2), names(micro_num))) %>%
+              full_join(., quad_num, by = intersect(names(.), names(quad_num)))
 
-  return(data.frame(regen8))
+  #nrow(reg_wide2)
+  #nrow(reg_wide) # only 2 less- so few plots with 0
+  #length(unique(reg_wide2$EventID)) #1185
+  #table(complete.cases(reg_wide2[, 1:12])) # all T
+
+  # Summarise data at plot level and by square meter (different steps than NETN)
+  reg_sum <- reg_nums %>% group_by(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
+                                   PlotCode, PlotID, EventID, IsQAQC, StartYear, StartDate, cycle,
+                                   TSN, ScientificName, CanopyExclusion, Exotic, InvasiveMIDN) %>%
+                          summarize(num_quads = first(num_quads),
+                                    num_micros = first(num_micros),
+                                    seed_15_30cm = sum(sd_15_30cm)/num_quads, # leaving na.rm = F, so problem plots return NA
+                                    seed_30_100cm = sum(sd_30_100cm)/num_quads,
+                                    seed_100_150cm = sum(sd_100_150cm)/num_quads,
+                                    seed_p150cm = sum(sd_p150cm)/num_quads,
+                                    sap_stems = (sum(Sapling) + sum(Sapling_SI))/(num_micros*pi*9), # pi*9 is area microplot
+                                    sap_stems_SI = sum(Sapling_SI)/(num_micros*pi*9), # pi*9 is area microplot
+                                    .groups = 'drop')
+
+  # Calculate stocking index now that seedlings and saplings are stems/m2- don't need to divide anything
+  reg_stock <- reg_sum %>% mutate(stock = 1*seed_15_30cm + 2*seed_30_100cm +
+                                          20*seed_100_150cm + 50*seed_p150cm +
+                                          50*sap_stems_SI,
+                                  seed_den = seed_15_30cm + seed_30_100cm + seed_100_150cm +
+                                             seed_p150cm,
+                                  sap_den = sap_stems,
+                                  sap_den_SI = sap_stems_SI,
+                                  regen_den = (seed_den + sap_den)) %>%
+                           select(-sap_stems, -sap_stems_SI)
+
+
+  reg_units <- switch(units,
+                      "sq.m" = reg_stock,
+                      "ha" = reg_stock %>%
+                        mutate(seed_15_30cm = seed_15_30cm * 10000,
+                               seed_30_100cm = seed_30_100cm * 10000,
+                               seed_100_150cm = seed_100_150cm * 10000,
+                               seed_p150cm = seed_p150cm * 10000,
+                               seed_den = seed_den * 10000,
+                               sap_den = sap_den * 10000,
+                               sap_den_SI = sap_den_SI * 10000,
+                               regen_den = regen_den * 10000),
+                      'acres' = reg_stock %>%
+                        mutate(seed_15_30cm = seed_15_30cm * 4046.856,
+                               seed_30_100cm = seed_30_100cm * 4046.856,
+                               seed_100_150cm = seed_100_150cm * 4046.856,
+                               seed_p150cm = seed_p150cm * 4046.856,
+                               seed_den = seed_den * 4046.856,
+                               sap_den = sap_den * 4046.856,
+                               regen_den = regen_den * 4046.856)
+  )
+
+  cols_to_NA <- c("num_micros", "seed_15_30cm", "seed_30_100cm", "seed_100_150cm", "seed_p150cm",
+                  "stock", "seed_den", "sap_den", "sap_den_SI", "regen_den")
+
+  reg_units[reg_units$ScientificName == "Permanently Missing", cols_to_NA] <- NA
+
+  reg_final <- reg_units %>% arrange(Plot_Name, StartYear, IsQAQC, ScientificName)
+
+  return(data.frame(reg_final))
 } # end of function

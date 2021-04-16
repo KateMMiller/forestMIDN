@@ -1,7 +1,7 @@
 Package: forestMIDN
 Type: Package
 Title: Package for importing, joining and querying MIDN forest database tables
-Version: 0.1.8
+Version: 1.0
 Author: Kate Miller
 Maintainer: Kate Miller <kathryn_miller@nps.gov>
 Description: This package contains functions that import database tables from the MIDN forest backend using odbc (must use 32-bit R for import), that join tables together and that filter by park, year, location type and visit type.
@@ -13,31 +13,46 @@ Imports:
     magrittr,
     stringr,
     ggplot2,
+    purrr,
     tidyr
 Suggests: 
-    odbc,
+    RODBC,
     DBI,
     ggrepel,
     cowplot
 Collate: 
-    'joinLocEvent.R'
-    'joinTreeData.R'
-    'joinStandData.R'
-    'calcStrStage.R'
     'exportCSV.R'
     'importCSV.R'
     'importData.R'
+    'prepTaxa.R'
+    'joinLocEvent.R'
+    'joinAdditionalSpecies.R'
     'joinCWDData.R'
+    'joinMicroNotes.R'
+    'joinMicroSaplings.R'
     'joinMicroShrubData.R'
     'joinQuadData.R'
+    'joinQuadNotes.R'
+    'joinQuadSeedlings.R'
+    'joinQuadSpecies.R'
     'joinRegenData.R'
-    'makeSppList.R'
+    'joinSoilLabData.R'
+    'joinSoilSampleData.R'
+    'joinStandData.R'
+    'joinStandDisturbance.R'
+    'joinTreeData.R'
+    'joinTreeConditions.R'
+    'joinTreeFoliageCond.R'
+    'joinTreeNotes.R'
+    'joinTreeVineSpecies.R'
+    'joinVisitNotes.R'
+    'plotTreeMap.R'
     'sumQuadGuilds.R'
     'sumSapDBHDist.R'
+    'sumSpeciesList.R'
+    'sumStrStage.R'
     'sumTreeDBHDist.R'
     'theme_FVM.R'
-    'treeMapPrep.R'
-    'treeMap.R'
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1

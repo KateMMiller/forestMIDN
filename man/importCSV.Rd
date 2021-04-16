@@ -2,22 +2,34 @@
 % Please edit documentation in R/importCSV.R
 \name{importCSV}
 \alias{importCSV}
-\title{importCSV: Import NETN forest data that are formated as .csv files.}
+\title{importCSV: Import MIDN forest data that are formatted as .csv files.}
 \usage{
-importCSV(path = NA)
+importCSV(path = NA, new_env = TRUE, zip_name = NA)
 }
 \arguments{
 \item{path}{Quoted path of folder containing tables.}
+
+\item{new_env}{Logical. Specifies which environment to store views in. If \code{TRUE}(Default), stores
+views in VIEWS_MIDN environment. If \code{FALSE}, stores views in global environment}
+
+\item{zip_name}{Quoted string ending in .zip. If specified, function looks for the specified file name and
+imports .csvs from the zip file. If not specified, function looks for and imports individual csvs. Note that
+this takes slightly longer than loading individual .csvs, due to the unzipping process.}
 }
 \value{
-Assigns database tables to global environment
+MIDN database views in specified environment
 }
 \description{
-This function imports exported CSV tables from the MIDN Forest Database, and
-assigns the tables to the global environment with names that functions in this package
-depend on.
+This function imports all views in the ANALYSIS schema of the MIDN_Forest backend that have been
+previously exported as .csvs or a zip file using the exportCSV() function. Each view is added to a VIEWS_MIDN
+environment in your workspace, or to your global environment based on whether new_env = TRUE or FALSE.
 }
 \examples{
-importCSV("C:/Data/forest_csvs")
+# Import individual csvs into global environment
+importCSV(path = "C:/Forest_Health/exports/MIDN", new_env = FALSE)
+
+# Import zipped csvs into VIEWS_MIDN environment
+path <- "C:/Forest_Health/exports/MIDN"
+importCSV(path = path, zip_name = "MIDN_Forest_20210409.zip")
 
 }
