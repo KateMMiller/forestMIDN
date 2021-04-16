@@ -114,7 +114,7 @@ joinTreeConditions <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
 
   #
   tryCatch(vine_vw <- subset(get("COMN_TreesVine", envir = env),
-                      select = c(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC,
+                      select = c(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, ...,
                                  TreeLegacyID, TSN, ScientificName, TagCode, VinePositionCode, VinePositionLabel)),
 
            error = function(e){stop("COMN_TreesVine view not found. Please import view.")})

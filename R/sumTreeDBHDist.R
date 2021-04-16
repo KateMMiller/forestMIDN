@@ -111,6 +111,7 @@ sumTreeDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, l
   stopifnot(class(QAQC) == 'logical')
   stopifnot(panels %in% c(1, 2, 3, 4))
   speciesType <- match.arg(speciesType)
+  canopyPosition <- match.arg(canopyPosition)
   units <- match.arg(units)
 
   arglist <- list(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
@@ -140,7 +141,7 @@ sumTreeDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, l
   tree_check <- tree_df %>% filter(size_class == "unknown" & !is.na(TagCode))
 
   if(nrow(tree_check)>0){
-    warning(paste("The", nrow(tree_check), "records below are missing DBH measurements. They will be removed from summaries."),
+    warning(paste("The", nrow(tree_check), "records below are missing DBH measurements and will be removed from summaries."),
             "\n",
             paste(capture.output(data.frame(tree_check[, c("Plot_Name", "StartYear", "TagCode")])), collapse = "\n"))
   }
@@ -155,9 +156,9 @@ sumTreeDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, l
   # Summarize stems to size class and pivot wide
   tree_dist <- tree_df2 %>% group_by(Plot_Name, ParkUnit, PlotID, EventID, StartYear, IsQAQC,
                                      size_class, unit_conv) %>%
-    summarize(dens = sum(stem) * 10000/first(unit_conv),
-              BA = sum(BA_cm2)/first(unit_conv),
-              .groups = 'drop')
+                            summarize(dens = sum(stem) * 10000/first(unit_conv), #stems/ha
+                                      BA = sum(BA_cm2)/first(unit_conv), #m2/ha
+                                      .groups = 'drop')
 
   tree_dist_wide <- switch(units,
                            'density' = tree_dist %>% select(-BA) %>%
@@ -165,7 +166,7 @@ sumTreeDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, l
                                          values_from = dens,
                                          values_fill = 0,
                                          names_glue = "dens_{str_sub(size_class, 2)}"),
-                           'ba' = tree_dist %>% select(-dens) %>%
+                           'BA' = tree_dist %>% select(-dens) %>%
                              pivot_wider(names_from = size_class,
                                          values_from = BA,
                                          values_fill = 0,
@@ -201,7 +202,7 @@ sumTreeDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, l
            all_of(sizes))
 
 
-  return(tree_dist_final)
+  return(data.frame(tree_dist_final))
 
 } # end of function
 
