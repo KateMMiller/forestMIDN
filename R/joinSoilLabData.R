@@ -125,10 +125,9 @@ joinSoilLabData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALSE, 
 
   # Change this step after migration switches FF to O
   soilsamp_wide <- soilsamp_evs %>% select(-SoilLayerLabel) %>%
-    filter(SoilLayer %in% c("Litter", "Forest_Floor", "A_Horizon", "Total_Depth")) %>%
+    filter(SoilLayer %in% c("Litter", "O_Horizon", "A_Horizon", "Total_Depth")) %>%
     pivot_wider(names_from = SoilLayer,
                 values_from = Depth_cm) %>%
-    rename(O_Horizon = Forest_Floor) %>%
     mutate(O_Horizon = ifelse(is.na(O_Horizon), 0, O_Horizon),
            A_Horizon = ifelse(is.na(A_Horizon), 0, A_Horizon),
            Total_Depth = ifelse(is.na(Total_Depth) | Total_Depth == 0,
