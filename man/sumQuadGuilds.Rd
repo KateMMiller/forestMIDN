@@ -18,7 +18,7 @@ sumQuadGuilds(
 }
 \arguments{
 \item{park}{Combine data from all parks or one or more parks at a time. Valid inputs:
-\arguments{
+\describe{
 \item{"all"}{Includes all parks in the network}
 \item{"APCO"}{Appomattox Court House NHP only}
 \item{"ASIS"}{Assateague Island National Seashore}
