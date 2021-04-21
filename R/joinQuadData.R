@@ -110,7 +110,7 @@ joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pan
   # They quads in question have NS for their SQ, but also have some % cover values. Turning them to NA
   quadchar_evs$CoverClassCode[quadchar_evs$SQQuadCharCode == "NS"] <- NA
   quadchar_evs$CoverClassLabel[quadchar_evs$SQQuadCharCode == "NS"] <- NA
-  quadchar_evs$CoverClassCode[quadchar_evs$EventID == 194] <- NA # COLO-380-2018
+  quadchar_evs$CoverClassCode[quadchar_evs$EventID == 193] <- NA # COLO-380-2018
 
   # prep for reshaping to wide
   quadchar_evs2 <- quadchar_evs %>%
