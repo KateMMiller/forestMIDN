@@ -106,12 +106,6 @@ joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pan
 
   quadchar_evs <- filter(quadchar, EventID %in% pe_list)
 
-  # Hard code issues with quad sampling in RICH-073-2015 (EventID 1144) and RICH-063-2011 (EventID 592)
-  # They quads in question have NS for their SQ, but also have some % cover values. Turning them to NA
-  quadchar_evs$CoverClassCode[quadchar_evs$SQQuadCharCode == "NS"] <- NA
-  quadchar_evs$CoverClassLabel[quadchar_evs$SQQuadCharCode == "NS"] <- NA
-  quadchar_evs$CoverClassCode[quadchar_evs$EventID == 193] <- NA # COLO-380-2018
-
   # prep for reshaping to wide
   quadchar_evs2 <- quadchar_evs %>%
     mutate(Pct_Cov = as.numeric(case_when(CoverClassCode == "0" ~ 0,
@@ -139,6 +133,20 @@ joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pan
                                           quad_pct_freq = (sum(Pct_Cov > 0, na.rm = T)/num_quads)*100,
                                           .groups = 'drop') %>% ungroup()
 
+  # Prepare left join to help with NAs and NS/PM
+  quad_sq <- quadchar_evs2 %>% mutate(SQ = ifelse(SQQuadCharCode %in% c("NP", "SS"), 1, 0)) %>%
+    select(PlotID, EventID, SQ, QuadratCode) %>% unique() %>%
+    pivot_wider(names_from = QuadratCode,
+                values_from = SQ,
+                values_fill = 0,
+                names_prefix = "SQ_",
+    )
+
+  quad_sq$num_quad_sq <- rowSums(quad_sq[,c("SQ_A2", "SQ_A5", "SQ_A8", "SQ_AA",
+                                            "SQ_B2", "SQ_B5", "SQ_B8", "SQ_BB",
+                                            "SQ_C2", "SQ_C5", "SQ_C8", "SQ_CC")])
+
+  plot_quad_lj <- left_join(plot_events, quad_sq, by = c("PlotID", "EventID"))
 
   # make data wide on quad name
   quadchar_wide <- quadchar_evs2 %>%  select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear,
@@ -148,28 +156,12 @@ joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pan
                                                   values_fill = list(Pct_Cov = 0, Txt_Cov = "0%"))
   # note that values_fill only fills non-existent combinations with 0 or 0%. NAs already in data remain NA.
 
-  # RICH-073-2015 B8 is still an issue b/c didn't stub out like other NS quads. This may get resolved in
-  # next migration.
-  quadchar_wide$Pct_Cov_B5[quadchar_wide$EventID == 1144] <- NA
-  quadchar_wide$Pct_Cov_B8[quadchar_wide$EventID == 1144] <- NA
-  quadchar_wide$Txt_Cov_B8[quadchar_wide$EventID == 1144] <- "Permanently Missing"
-  quadchar_wide$Txt_Cov_B5[quadchar_wide$EventID == 1144] <- "Permanently Missing"
-
-  quadchar_wide$Pct_Cov_AA[quadchar_wide$EventID == 592] <- NA
-  quadchar_wide$Pct_Cov_B2[quadchar_wide$EventID == 592] <- NA
-  quadchar_wide$Pct_Cov_B5[quadchar_wide$EventID == 592] <- NA
-  quadchar_wide$Pct_Cov_B8[quadchar_wide$EventID == 592] <- NA
-  quadchar_wide$Txt_Cov_AA[quadchar_wide$EventID == 592] <- "Permanently Missing"
-  quadchar_wide$Txt_Cov_B2[quadchar_wide$EventID == 592] <- "Permanently Missing"
-  quadchar_wide$Txt_Cov_B5[quadchar_wide$EventID == 592] <- "Permanently Missing"
-  quadchar_wide$Txt_Cov_B8[quadchar_wide$EventID == 592] <- "Permanently Missing"
-
   quadchr_comb <- full_join(quad_sum, quadchar_wide,
                             by = intersect(names(quad_sum), names(quadchar_wide)))
 
-  quadchr_comb2 <- left_join(plot_events, quadchr_comb,
-                             by = intersect(names(plot_events), names(quadchr_comb))) %>%
-                   filter(!is.na(CharacterLabel)) # drops plots without SQs
+  quadchr_comb2 <- left_join(plot_quad_lj, quadchr_comb,
+                             by = intersect(names(plot_events), names(quadchr_comb))) #%>%
+                   #filter(!is.na(CharacterLabel)) # drops plots without SQs
 
   # select columns based on specified valueType
   req_cols <- c("Plot_Name", "Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode", "PanelCode",
@@ -185,9 +177,55 @@ joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pan
                 "Txt_Cov_C2", "Txt_Cov_C5", "Txt_Cov_C8", "Txt_Cov_CC")
 
   # Need to reset PMs to NA after pivot_wider
-  invisible(lapply(seq_along(pct_cols), function(x){
-    quadchr_comb2[,pct_cols[[x]]][quadchr_comb2[,txt_cols[[x]]] == "Permanently Missing"] <- NA
-  }))
+  # Convert NAs to 0 except quads with SQ NS to NA
+  quadchr_comb2[, pct_cols][is.na(quadchr_comb2[, pct_cols])] <- 0
+  quadchr_comb2[, txt_cols][is.na(quadchr_comb2[, txt_cols])] <- "0%"
+
+  # Don't have time to figure out the fancy way to do this right now
+  quadchr_comb2$Pct_Cov_A2[quadchr_comb2$SQ_A2 == 0] <- NA
+  quadchr_comb2$Txt_Cov_A2[quadchr_comb2$SQ_A2 == 0] <- "Not Sampled"
+  quadchr_comb2$Pct_Cov_A5[quadchr_comb2$SQ_A5 == 0] <- NA
+  quadchr_comb2$Txt_Cov_A5[quadchr_comb2$SQ_A5 == 0] <- "Not Sampled"
+  quadchr_comb2$Pct_Cov_A8[quadchr_comb2$SQ_A8 == 0] <- NA
+  quadchr_comb2$Txt_Cov_A8[quadchr_comb2$SQ_A8 == 0] <- "Not Sampled"
+  quadchr_comb2$Pct_Cov_AA[quadchr_comb2$SQ_AA == 0] <- NA
+  quadchr_comb2$Txt_Cov_AA[quadchr_comb2$SQ_AA == 0] <- "Not Sampled"
+
+  quadchr_comb2$Pct_Cov_B2[quadchr_comb2$SQ_B2 == 0] <- NA
+  quadchr_comb2$Txt_Cov_B2[quadchr_comb2$SQ_B2 == 0] <- "Not Sampled"
+  quadchr_comb2$Pct_Cov_B5[quadchr_comb2$SQ_B5 == 0] <- NA
+  quadchr_comb2$Txt_Cov_B5[quadchr_comb2$SQ_B5 == 0] <- "Not Sampled"
+  quadchr_comb2$Pct_Cov_B8[quadchr_comb2$SQ_B8 == 0] <- NA
+  quadchr_comb2$Txt_Cov_B8[quadchr_comb2$SQ_B8 == 0] <- "Not Sampled"
+  quadchr_comb2$Pct_Cov_BB[quadchr_comb2$SQ_BB == 0] <- NA
+  quadchr_comb2$Txt_Cov_BB[quadchr_comb2$SQ_BB == 0] <- "Not Sampled"
+
+  quadchr_comb2$Pct_Cov_C2[quadchr_comb2$SQ_C2 == 0] <- NA
+  quadchr_comb2$Txt_Cov_C2[quadchr_comb2$SQ_C2 == 0] <- "Not Sampled"
+  quadchr_comb2$Pct_Cov_C5[quadchr_comb2$SQ_C5 == 0] <- NA
+  quadchr_comb2$Txt_Cov_C5[quadchr_comb2$SQ_C5 == 0] <- "Not Sampled"
+  quadchr_comb2$Pct_Cov_C8[quadchr_comb2$SQ_C8 == 0] <- NA
+  quadchr_comb2$Txt_Cov_C8[quadchr_comb2$SQ_C8 == 0] <- "Not Sampled"
+  quadchr_comb2$Pct_Cov_CC[quadchr_comb2$SQ_CC == 0] <- NA
+  quadchr_comb2$Txt_Cov_CC[quadchr_comb2$SQ_CC == 0] <- "Not Sampled"
+
+  quadchr_comb2$ScientificName[quadchr_comb2$num_quads == 0] <- "Not Sampled"
+
+  #Also have to fix APCO-184-2009 A8 Herbs is PM & lichens early on, but will do it for all, in case new ones occur
+  quadchr_comb2$Pct_Cov_A2[quadchr_comb2$Txt_Cov_A2 %in% c("Permanently Missing", "Not Collected")] <- NA
+  quadchr_comb2$Pct_Cov_A5[quadchr_comb2$Txt_Cov_A5 %in% c("Permanently Missing", "Not Collected")] <- NA
+  quadchr_comb2$Pct_Cov_A8[quadchr_comb2$Txt_Cov_A8 %in% c("Permanently Missing", "Not Collected")] <- NA
+  quadchr_comb2$Pct_Cov_AA[quadchr_comb2$Txt_Cov_AA %in% c("Permanently Missing", "Not Collected")] <- NA
+
+  quadchr_comb2$Pct_Cov_B2[quadchr_comb2$Txt_Cov_B2 %in% c("Permanently Missing", "Not Collected")] <- NA
+  quadchr_comb2$Pct_Cov_B5[quadchr_comb2$Txt_Cov_B5 %in% c("Permanently Missing", "Not Collected")] <- NA
+  quadchr_comb2$Pct_Cov_B8[quadchr_comb2$Txt_Cov_B8 %in% c("Permanently Missing", "Not Collected")] <- NA
+  quadchr_comb2$Pct_Cov_BB[quadchr_comb2$Txt_Cov_BB %in% c("Permanently Missing", "Not Collected")] <- NA
+
+  quadchr_comb2$Pct_Cov_C2[quadchr_comb2$Txt_Cov_C2 %in% c("Permanently Missing", "Not Collected")] <- NA
+  quadchr_comb2$Pct_Cov_C5[quadchr_comb2$Txt_Cov_C5 %in% c("Permanently Missing", "Not Collected")] <- NA
+  quadchr_comb2$Pct_Cov_C8[quadchr_comb2$Txt_Cov_C8 %in% c("Permanently Missing", "Not Collected")] <- NA
+  quadchr_comb2$Pct_Cov_CC[quadchr_comb2$Txt_Cov_CC %in% c("Permanently Missing", "Not Collected")] <- NA
 
   quadchr_final <- switch(valueType,
                           "midpoint" = quadchr_comb2[, c(req_cols, pct_cols)],
