@@ -110,6 +110,11 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, 
                     ConfidenceClassCode, IsCollected, QuadSppNote),
            error = function(e){stop("MIDN_QuadSpecies view not found. Please import view.")})
 
+  #++++++++++++ Clean this up after migration fixes ++++++++++++
+  quadspp$SQQuadSppCode[quadspp$PlotCode == "161" &
+                              quadspp$StartYear == 2009 & quadspp$IsQAQC == FALSE] <- "NP"
+  #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
   taxa_wide <- force(prepTaxa())
 
   # subset with EventID from plot_events to make function faster
@@ -175,9 +180,6 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, 
     ungroup()
 
   # Setting up df for filling out left join after filter
-  # Hopefully this will be fixed in next migration.
-  quadspp_tax$SQQuadSppCode[quadspp_tax$PlotCode == "161" &
-                              quadspp_tax$StartYear == 2009 & quadspp_tax$IsQAQC == FALSE] <- "NP"
 
   quad_sq <- quadspp_tax %>% mutate(SQ = ifelse(SQQuadSppCode %in% c("NP", "SS"), 1, 0)) %>%
     select(PlotID, EventID, SQ, QuadratCode) %>% unique() %>%
