@@ -2,13 +2,12 @@ library(forestMIDN)
 library(tidyverse)
 
 #----- Testing the import/export functions
-#importData(instance = 'local', server = "localhost", new_env = T) # release 1.0.21 with IsGerminant added to NETNquadspp
-#importData(instance = 'server', server = "INP2300VTSQL16\\IRMADEV1", new_env = T) # release 1.0.22 w/ migration fixes
-
+#importData(instance = 'local', server = "localhost", new_env = T) # release 1.0.22 4/22
+#importData(instance = 'server', server = "INP2300VTSQL16\\IRMADEV1", new_env = T) #
 path = "C:/Forest_Health/exports/MIDN"
 
 #exportCSV(path, zip = TRUE)
-importCSV(path = path, zip_name = "MIDN_Forest_20210419.zip")# release 1.0.22 w/ migration fixes
+importCSV(path = path, zip_name = "MIDN_Forest_20210423.zip")# release 1.0.22 4/22
 
 # Function arguments
 park = 'all'
@@ -22,6 +21,9 @@ panels = 1:4
 arglist <- list(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
                 locType = locType, eventType = eventType)
 
+compev_arglist <- list(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
+                       locType = locType)
+
 # Checking data function
 check_data <- function(df, col1, col2){
   lapply(1:nrow(df), function(x) (
@@ -32,7 +34,7 @@ check_data <- function(df, col1, col2){
 
 # import old database for comparisons
 forestMIDNarch::importData(type = 'file',
-  path='D:/NETN/Monitoring_Projects/Forest_Health/Database/MIDN/2021_Forest_Database/MIDN_FVM_BE_MASTER_20210408_Migration.accdb')
+  path='D:/NETN/Monitoring_Projects/Forest_Health/Database/MIDN/2021_Forest_Database/MIDN_FVM_BE_MASTER_20210422_Migration.accdb')
 
 #forestMIDNarch::importData()
 
@@ -40,8 +42,7 @@ names(VIEWS_MIDN)
 names(VIEWS_MIDN$MIDN_QuadSpecies)
 
 #----- Testing joinLocEvent and migration -----
-arglist <- c()
-plotevs_old <- do.call(forestMIDNarch::joinLocEvent, c(arglist, output = 'verbose'))
+plotevs_old <- do.call(forestMIDNarch::joinLocEvent, c(arglist, output = 'verbose')) %>% mutate(Year = as.numeric(Year))
 plotevs_new <- do.call(joinLocEvent, arglist)
 names(plotevs_old)
 names(plotevs_new)
@@ -197,8 +198,8 @@ tree_height_comps <- merge(tree_ht_vw_sum,
          n_tree_diff = num_trees_new - num_trees_old)
 
 missing_tree_hts <- tree_height_comps %>% filter(n_tree_diff == -1)
-missing_tree_hts # 2 visits affected by duplicate stand heights not getting migrated
-#+++++ Only issues with tree height +++++
+missing_tree_hts # Problem resolved
+#+++++ No remaining issues +++++
 
 #----- CWD -----
 cwd_old <- do.call(forestMIDNarch::joinCWDData, arglist) %>% mutate(ScientificName = ifelse(Latin_Name == "No species recorded",
@@ -209,17 +210,22 @@ cwd_merge <- merge(cwd_new, cwd_old, by.x = c("Plot_Name", "StartYear", "IsQAQC"
                    by.y = c("Plot_Name", "Year", "Event_QAQC", "ScientificName", "Decay_Class_ID"),
                    all = TRUE)
 
-cwd_dif <- cwd_merge %>% mutate(cwd_dif = abs(CWD_Vol.x - CWD_Vol.y)) %>% filter(cwd_dif > 0.1 & IsQAQC == FALSE) %>%
+cwd_dif <- cwd_merge %>% mutate(cwd_dif = abs(CWD_Vol.x - CWD_Vol.y)) %>% filter(cwd_dif > 0.01 & IsQAQC == FALSE) %>%
   select(Plot_Name:ScientificName, DecayClassCode, CWD_Vol.x, CWD_Vol.y, cwd_dif)
-# Differences between old and new are all because of PMs added where missing in old, or b/c slopes were wrong for old CWD vol.
+# small differences due to rounding
 
 #----- Tree Data
 tree_old <- do.call(forestMIDNarch::joinTreeData, c(arglist, list(speciesType = 'all', status = 'all'))) %>%
   mutate(TagCode = as.numeric(Tree_Number_MIDN))
 tree_new <- do.call(joinTreeData, c(arglist, list(speciesType = 'all', status = 'all')))
 
+table(tree_new$HWACode, tree_new$ScientificName, useNA = 'always') # Only values for TSUCAN. Good!
 non_tsucan <- tree_new %>% filter(ScientificName != "Tsuga canadensis")
-table(non_tsucan$HWACode, non_tsucan$StartYear, useNA = 'always')
+table(non_tsucan$HWACode, non_tsucan$StartYear, useNA = 'always') # All NA. Good!
+
+table(tree_new$BBDCode, tree_new$ScientificName, useNA = 'always') # Only values for FAGGRA. Good!
+non_faggra <- tree_new %>% filter(ScientificName != "Fagus grandifolia")
+table(non_faggra$BBDCode, non_faggra$StartYear, useNA = 'always')# All NA. Good!
 
 tree_merge <- merge(tree_new, tree_old, by.x = c("Plot_Name", "StartYear", "IsQAQC", "TagCode"),
                     by.y = c("Plot_Name", "Year", "Event_QAQC", "TagCode"))
@@ -244,39 +250,49 @@ tree_dbh <- tree_merge %>% mutate(dbh_diff = abs(DBH - DBHcm)) %>%
   select(Plot_Name, StartYear, IsQAQC, TagCode, ScientificName, DBHcm, DBH, dbh_diff)
 # differences are all OK.
 
-status_check <- check_trees(tree_merge, "TreeStatusCode", "Status_ID")
-# none
+check_trees(tree_merge, "TreeStatusCode", "Status_ID")# none
 crown_check <- check_trees(tree_merge, "Crown_Class_ID", "CrownClassCode")
+table(crown_check$Status_ID, crown_check$Crown_Class_ID, useNA = 'always')
 table(tree_merge$CrownClassCode, tree_merge$Crown_Class_ID, useNA = 'always')
+# Differences are because dead and EX trees were correctly scrubbed of their crown class.
 
-# All trees migrated in with PM crown class codes
-decay_check <- check_trees(tree_merge, "Decay_Class_ID", "DecayClassCode")
+check_trees(tree_merge, "Decay_Class_ID", "DecayClassCode")
 # No issues. Decays that are diff are DF and AS, which shouldn't have a decay class
-
-check_trees(tree_merge, "HWACode", "HWA_Status")
-table(tree_merge$HWACode, tree_merge$HWA_Status, useNA = 'always')
-
-check_trees(tree_merge, "BBDCode", "BBD_Status")
-table(tree_merge$BBDCode, tree_merge$BBD_Status, useNA = 'always')
 
 check_trees(tree_merge, "IsDBHVerified", "DBH_Verified")
 table(tree_merge$IsDBHVerified, tree_merge$DBH_Verified, useNA = 'always')
 
 #check_trees(tree_merge, "Pct_Tot_Foliage_Cond", "Total_Foliage_Condition")
 table(tree_merge$Pct_Tot_Foliage_Cond, tree_merge$Total_Foliage_Condition, tree_merge$StartYear, useNA = 'always')
-# Pre 2011, 0s go to NA. 2011+ 0s go to 0. Not what we want
+# 2 records still with 0
 
+# Foliage still 0
+tree_merge %>% filter(Pct_Tot_Foliage_Cond == 0) %>% arrange(Plot_Name, StartYear) %>%
+  select(Plot_Name, StartYear, IsQAQC, TagCode, ScientificName, TreeStatusCode, CrownClassCode, Pct_Tot_Foliage_Cond)
+  # need to figure out what's going on.
+# +++ Tree data finished checking.
 
 #----- Tree Foliage Conditions -----
 fol_vw <- VIEWS_MIDN$COMN_TreesFoliageCond
+table(fol_vw$TotalFoliageConditionCode, fol_vw$StartYear, useNA = 'always')
+
 table(fol_vw$PercentLeafAreaLabel, fol_vw$StartYear) # 17 records with Not Applicable before 2016, which is wrong
-table(fol_vw$PercentLeafAreaLabel, fol_vw$FoliageConditionCode) # NA correctly applied to L, NO, S, W
-table(fol_vw$TotalFoliageConditionLabel, fol_vw$FoliageConditionCode, useNA = 'always')
-# <>NO conditions that have Not app. as TFC. These should actually be PM > 2007 and NC for 2007.
+table(fol_vw$PercentLeafAreaLabel, fol_vw$FoliageConditionCode) # NA correctly applied to L, NO, S, W, but 1 H and N w/ 0%
+
+table(fol_vw$TotalFoliageConditionLabel, fol_vw$FoliageConditionCode, useNA = 'always') # NO/NotApp correct
 table(fol_vw$PercentLeavesLabel, fol_vw$FoliageConditionCode, useNA = 'always')
 # 2 H and 2 N that are incorrectly NA- should be PM
-
 # pre 2011 0s are converting to NA correctly. 2011+ are incorrectly 0 for both percent columns.
+
+no_folcond_with_totfol_0p <- fol_vw %>% filter(FoliageConditionCode == "NO" & TotalFoliageConditionCode %in% c(1:4)) %>%
+  select(ParkUnit, PlotCode, StartYear, IsQAQC, TagCode, ScientificName, TreeStatusCode,
+         FoliageConditionCode, TotalFoliageConditionCode)
+
+table(fol_vw$PercentLeavesLabel, fol_vw$FoliageConditionCode, useNA = 'always')# No 0s!
+fol_vw %>% filter(PercentLeavesLabel == "0%" & FoliageConditionCode %in% c("L", "N")) %>% arrange(ParkUnit, PlotCode, StartYear, TagCode) %>%
+  select(ParkUnit, PlotCode, StartYear, IsQAQC, TagCode, ScientificName, TreeStatusCode,
+         PercentLeavesLabel, FoliageConditionCode, TotalFoliageConditionCode)
+
 
 compev_arglist <- list(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
                        locType = locType)
@@ -309,12 +325,12 @@ tree_evs_old <- left_join(plotevs_old, trees %>% select(Tree_ID:Tree_Notes),
                           by = intersect(names(plotevs_old), names(trees %>% select(Tree_ID:Tree_Notes)))) %>%
   left_join(., treedata %>% select(Tree_Data_ID:Notes),
             by = intersect(names(.), names(treedata %>% select(Tree_Data_ID:Notes)))) %>%
-  select(Plot_Name, Year, Event_QAQC, Event_ID, Tree_ID, Tree_Number_MIDN, Total_Foliage_Condition,
+  select(Plot_Name, Year, Event_QAQC, Event_ID, Tree_ID, Status_ID, Tree_Number_MIDN, Total_Foliage_Condition,
          Tree_Data_ID, Status_ID) %>% filter(Status_ID %in% c("1", "AB", "AF", "AL", "AM", "AS",
                                                               "RB", "RF", "RL", "RS"))
 
 fol_old <- left_join(tree_evs_old, fol_old1, by = "Tree_Data_ID") %>%
-  select(Plot_Name, Year, Event_QAQC, Tree_Number_MIDN, Cond, Pct_Leaves_Aff, Pct_Leaf_Area) %>%
+  select(Plot_Name, Year, Event_QAQC, Tree_Number_MIDN, Cond, Status_ID, Pct_Leaves_Aff, Pct_Leaf_Area) %>%
   arrange(Plot_Name, Year, Event_QAQC, Tree_Number_MIDN) %>%
   pivot_wider(names_from = Cond,
               values_from = c(Pct_Leaves_Aff, Pct_Leaf_Area),
@@ -325,31 +341,454 @@ fol_old <- left_join(tree_evs_old, fol_old1, by = "Tree_Data_ID") %>%
 nrow(fol_old) #23401
 nrow(fol_new) #23401
 
-fol_merge <- merge(fol_new, fol_old,
-                   by.x = c("Plot_Name", "StartYear", "IsQAQC", "TagCode"),
-                   by.y = c("Plot_Name", "Year", "Event_QAQC", "TagCode"),
-                   all = TRUE)
+fol_merge <- full_join(fol_new, fol_old,
+                       by = c("Plot_Name" = "Plot_Name", "StartYear" = "Year", "IsQAQC" = "Event_QAQC", "TagCode" = "TagCode"),
+                       suffix = c("_new", "_old"))
+
 
 check_conds <- function(df, col1, col2){
   lapply(1:nrow(df), function(x) (
     if(length(setdiff(union(df[x, col1], df[x, col2]), intersect(df[x, col1], df[x, col2]))) > 0){
-      df[x, c("Plot_Name", "StartYear", "TagCode", "IsQAQC", col1, col2)]}
+      df[x, c("Plot_Name", "StartYear", "TagCode", "Status_ID", "IsQAQC", col1, col2)]}
   )) %>% bind_rows()
 }
 
 names(fol_merge)
-lvs_C <- check_conds(fol_merge, "Pct_Leaves_Aff_C.x", "Pct_Leaves_Aff_C.y") # all diffs are NAs converted to 0s. I think they should still be NA.
-lvs_H <- check_conds(fol_merge, "Pct_Leaves_Aff_H.x", "Pct_Leaves_Aff_H.y") # all diffs are NAs converted to 0s. I think they should still be NA.
-lvs_L <- check_conds(fol_merge, "Pct_Leaves_Aff_L.x", "Pct_Leaves_Aff_L.y") # all diffs are NAs converted to 0s. I think they should still be NA.
-lvs_N <- check_conds(fol_merge, "Pct_Leaves_Aff_N.x", "Pct_Leaves_Aff_N.y") # all diffs are NAs converted to 0s. I think they should still be NA.
-lvs_S <- check_conds(fol_merge, "Pct_Leaves_Aff_S.x", "Pct_Leaves_Aff_S.y") # all diffs are NAs converted to 0s. I think they should still be NA.
-lvs_W <- check_conds(fol_merge, "Pct_Leaves_Aff_W.x", "Pct_Leaves_Aff_W.y") # all diffs are NAs converted to 0s. I think they should still be NA.
-lvs_O <- check_conds(fol_merge, "Pct_Leaves_Aff_O.x", "Pct_Leaves_Aff_O.y") # all diffs are NAs converted to 0s. I think they should still be NA.
+# 0s in _new because they were filled in function
+lvs_C <- check_conds(fol_merge, "Pct_Leaves_Aff_C_new", "Pct_Leaves_Aff_C_old") # all diffs are NAs converted to 0s. I think they should still be NA.
+lvs_H <- check_conds(fol_merge, "Pct_Leaves_Aff_H_new", "Pct_Leaves_Aff_H_old") # all diffs are NAs converted to 0s. I think they should still be NA.
+lvs_L <- check_conds(fol_merge, "Pct_Leaves_Aff_L_new", "Pct_Leaves_Aff_L_old") # all diffs are NAs converted to 0s. I think they should still be NA.
+lvs_N <- check_conds(fol_merge, "Pct_Leaves_Aff_N_new", "Pct_Leaves_Aff_N_old") # all diffs are NAs converted to 0s. I think they should still be NA.
+lvs_S <- check_conds(fol_merge, "Pct_Leaves_Aff_S_new", "Pct_Leaves_Aff_S_old") # all diffs are NAs converted to 0s. I think they should still be NA.
+lvs_W <- check_conds(fol_merge, "Pct_Leaves_Aff_W_new", "Pct_Leaves_Aff_W_old") # all diffs are NAs converted to 0s. I think they should still be NA.
+lvs_O <- check_conds(fol_merge, "Pct_Leaves_Aff_O_new", "Pct_Leaves_Aff_O_old") # all diffs are NAs converted to 0s. I think they should still be NA.
 
-la_C <- check_conds(fol_merge, "Pct_Leaf_Area_C.x", "Pct_Leaf_Area_C.y") # all diffs are NAs converted to 0s. I think they should still be NA.
-la_H <- check_conds(fol_merge, "Pct_Leaf_Area_H.x", "Pct_Leaf_Area_H.y") # all diffs are NAs converted to 0s. I think they should still be NA.
-la_N <- check_conds(fol_merge, "Pct_Leaf_Area_N.x", "Pct_Leaf_Area_N.y") # all diffs are NAs converted to 0s. I think they should still be NA.
+la_C <- check_conds(fol_merge, "Pct_Leaf_Area_C_new", "Pct_Leaf_Area_C_old") # all diffs are NAs converted to 0s. I think they should still be NA.
+la_H <- check_conds(fol_merge, "Pct_Leaf_Area_H_new", "Pct_Leaf_Area_H_old") # all diffs are NAs converted to 0s. I think they should still be NA.
+la_N <- check_conds(fol_merge, "Pct_Leaf_Area_N_new", "Pct_Leaf_Area_N_old") # all diffs are NAs converted to 0s. I think they should still be NA.
 
 # +++++ Still a lot of issues with foliage condition for Os getting converted to NA.
 
 #----- Tree Conditions
+# MIDN correct condition counts
+#    H	AD	BBD	CAVL CAVS	 CW	   DBT	EAB	EB	   G	HWA	ID	NO	  OTH	SPB	VIN	  VOB
+#13828	968	29	297	 279	2979	2271	9	  3123	172	3	  58	1257	21	8	  1453	189
+table(VIEWS_MIDN$COMN_TreesConditions$TreeConditionCode)
+
+#H AD   BBD  CAVL  CAVS    CW   DBT   EAB    EB     G     H   ID    NO   OTH   SPB  VINE
+#13801 970    29   297   279  2971  2257     9  3119   171    3    58  1257    21     8  1636
+table(VIEWS_NETN$COMN_TreesConditions$TreeConditionCode, VIEWS_NETN$COMN_TreesConditions$StartYear, useNA = 'always')
+
+con_vw <- VIEWS_MIDN$COMN_TreesConditions
+dead_trees_with_conds <- con_vw %>%
+  filter(TreeStatusCode %in% c("DB", "DL", "DM", "DS")) #%>%
+  #filter(!TreeConditionCode %in% c("NO", "CAVS", "CAVL")) #%>%
+  #filter(!is.na(TreeConditionCode)) #0
+
+table(dead_trees_with_conds$TreeConditionCode, dead_trees_with_conds$StartYear, useNA = 'always')
+# Still need NC for NAs <=2011 and PM for >2011 (1 record in 2012)
+
+cond_new <- do.call(joinTreeConditions, c(compev_arglist, list(status = 'active')))
+
+active <- c("1", "AB" ,"AF", "AL", "AS", "AM", "DB", "DL", "DM", "DS", "RB", "RF", "RL", "RS")
+
+tree_evs_old <- left_join(plotevs_old, trees %>% select(Tree_ID:Tree_Notes),
+                          by = intersect(names(plotevs_old), names(trees %>% select(Tree_ID:Tree_Notes)))) %>%
+  left_join(., treedata %>% select(Tree_Data_ID:Notes),
+            by = intersect(names(.), names(treedata %>% select(Tree_Data_ID:Notes)))) %>%
+  select(Plot_Name, Year, Event_QAQC, Event_ID, Tree_ID, Tree_Number_MIDN, Total_Foliage_Condition,
+         Tree_Data_ID, Status_ID) %>% filter(Status_ID %in% active)
+
+table(tree_evs_old$Status_ID)
+
+tlucond <- read.csv("D:/NETN/R_Dev/forestNETN/testing_scripts/tlu_Tree_Conditions.csv")
+spb <- data.frame(Tree_Condition_ID = 28, Tree_Condition_ORDER = 28, Code = "SPB", Description = "SPB", Type = "Alive")
+tlucond <- rbind(tlucond, spb)
+
+cond_old1 <- left_join(xrtreecond %>% select(Tree_Data_ID, Tree_Condition_ID),
+                       tlucond %>% select(Tree_Condition_ID, Code), by = c("Tree_Condition_ID")) %>%
+  right_join(tree_evs_old, ., by = intersect(names(tree_evs_old), names(.))) %>%
+  select(Plot_Name, Year, Event_QAQC, Tree_Number_MIDN, Status_ID, Code) %>%
+  filter(!is.na(Code)) %>% filter(!is.na(Plot_Name)) %>%
+  arrange(Plot_Name, Year, Tree_Number_MIDN) %>% # drop trees without conditions
+  mutate(pres = 1, TagCode = as.numeric(Tree_Number_MIDN)) %>% select(-Tree_Number_MIDN)
+
+cond_old <- cond_old1 %>% mutate(pres = 1) %>% unique() %>%
+  pivot_wider(names_from = Code, values_from = pres, values_fill = 0)
+
+names(cond_old)
+names(cond_new)
+cond_merge <- full_join(cond_new, cond_old, by = c("Plot_Name" = "Plot_Name",
+                                                   "StartYear" = "Year",
+                                                   "IsQAQC" = "Event_QAQC",
+                                                   "TagCode" = "TagCode"),
+                        suffix = c("_new", "_old"))
+
+
+check_conds <- function(df, col1, col2){
+  lapply(1:nrow(df), function(x) (
+    if(length(setdiff(union(df[x, col1], df[x, col2]), intersect(df[x, col1], df[x, col2]))) > 0){
+      df[x, c("Plot_Name", "StartYear", "TagCode", "TreeStatusCode", "IsQAQC", col1, col2)]}
+  )) %>% bind_rows()
+}
+
+cond_merge[,18:63][is.na(cond_merge[,18:63])] <- 0 # just so rowwise checking works. There were 0s in new and NAs in old
+names(cond_merge)
+check_conds(cond_merge, "H_new", "H_old") # 0
+check_conds(cond_merge, "NO_new", "NO_old") # 0
+check_conds(cond_merge, "AD_new", "AD_old") #0
+# no ALB, BC, BWA, DOG, GM, RPS, SB, SOD SPB, SW so no check for it
+check_conds(cond_merge, "BBD_new", "BBD_old") #0
+check_conds(cond_merge, "CAVL_new", "CAVL_old") #0
+check_conds(cond_merge, "CAVS_new", "CAVS_old") #0
+check_conds(cond_merge, "CW_new", "CW_old") # 0
+check_conds(cond_merge, "DBT_new", "DBT_old") #0
+check_conds(cond_merge, "EAB_new", "EAB_old") #0
+check_conds(cond_merge, "EB_new", "EB_old") #0
+check_conds(cond_merge, "G_new", "G_old") #0
+check_conds(cond_merge, "HWA_new", "HWA_old") #0
+check_conds(cond_merge, "ID_new", "ID_old") #0
+check_conds(cond_merge, "OTH_new", "OTH_old") #0
+check_conds(cond_merge, "SPB_new", "SPB_old") #0
+
+#++++++++ Remaining issue: NC and PM for dead trees are currently NA
+
+#------ Vines -----
+vines_new <- do.call(joinTreeVineSpecies, c(compev_arglist, speciesType = 'all')) %>%
+  select(Plot_Name, StartYear, IsQAQC, TagCode, VinePositionCode, VinePositionLabel, ScientificName, TSN)
+
+names(vines_new)
+View(VIEWS_MIDN$COMN_TreesVine)
+vines_old <- left_join(xrtreecond %>% select(Tree_Data_ID, Tree_Condition_ID, Species_ID),
+                       tlucond %>% select(Tree_Condition_ID, Code), by = c("Tree_Condition_ID")) %>%
+  right_join(tree_evs_old, ., by = intersect(names(tree_evs_old), names(.))) %>%
+  left_join(., plants %>% select(TSN, Latin_Name), by = c("Species_ID" = "TSN")) %>%
+  select(Plot_Name, Year, Event_QAQC, Tree_Number_MIDN, Status_ID, Code, Species_ID, Latin_Name) %>%
+  filter(!is.na(Code)) %>% filter(!is.na(Plot_Name)) %>% filter(Code %in% c("VIN", "VOB")) %>%
+  arrange(Plot_Name, Year, Tree_Number_MIDN) %>% # drop trees without conditions
+  mutate(TagCode = as.numeric(Tree_Number_MIDN)) %>% select(-Tree_Number_MIDN)
+
+nrow(vines_old) #1636
+nrow(vines_new) #1634 # Persicaria perfoliata is getting dropped b/c not a woody species
+
+vines_merge <- full_join(vines_new, vines_old, by = c("Plot_Name" = "Plot_Name",
+                                                      "StartYear" = "Year",
+                                                      "IsQAQC" = "Event_QAQC",
+                                                      "TagCode" = "TagCode",
+                                                      "TSN" = "Species_ID"),
+                         suffix = c("_new", "_old"))
+head(vines_merge)
+table(vines_merge$VinePositionCode, vines_merge$StartYear, useNA = 'always') # B only >2019
+table(vines_merge$Code, vines_merge$StartYear, useNA = 'always') # 2007 and 2019 are off by 1, with NAs
+  # Persicaria perfoliata, an herbaceous vine was recorded in old and not migrating to new database. Decided this is OK,
+  # b/c unlikely to make it into the crown.
+table(vines_merge$ScientificName, vines_merge$Latin_Name, useNA = 'always') # Looks good
+
+# check if trees with multiple vines are migrating
+mult_vines <- vines_new %>% group_by(Plot_Name, StartYear, IsQAQC, TagCode) %>% summarize(num_vines = n()) %>% filter(num_vines > 1)
+# Multiple vines are now migrating into the database, which is great. The view is actually duplicating them, but my function
+# uses unique() to fix it for now.
+#++++++ No issues remaining
+
+#----- Quadrat Character -----
+qchar_new <- joinQuadData(park = 'all', from = 2007, to = 2019, locType = 'all', eventType = 'all',
+                          valueType = 'all', QAQC = T)
+
+qchar_new %>% filter(is.na(CharacterLabel) | num_quads < 12) %>%
+  select(Plot_Name, StartYear, IsQAQC, CharacterLabel, num_quads) %>% arrange(Plot_Name, StartYear)
+# COLO-380;RICH-63/RICH-73 all showing up correctly
+
+plotevs_old <- forestMIDNarch::joinLocEvent(park = 'all', from = 2007, to = 2019, eventType = 'all',
+                                            locType = 'all', QAQC = T, rejected = FALSE)
+
+qchar_old <- merge(plotevs_old, quadchr, by = intersect(names(plotevs_old), names(quadchr)), all.x = T, all.y = F) %>%
+  select(Plot_Name,Year, Event_QAQC, Quadrat_ID, A2:CC)
+
+names(quadchr)
+
+quad_names = c('A2', 'A5', 'A8', 'AA', 'B2', 'B5', 'B8', 'BB', 'C2', 'C5', 'C8', 'CC')
+head(qchar_old)
+
+qchar_old[ , quad_names][qchar_old[ , quad_names] == 1] <- 0.1
+qchar_old[ , quad_names][qchar_old[ , quad_names] == 2] <- 1.5
+qchar_old[ , quad_names][qchar_old[ , quad_names] == 3] <- 3.5
+qchar_old[ , quad_names][qchar_old[ , quad_names] == 4] <- 7.5
+qchar_old[ , quad_names][qchar_old[ , quad_names] == 5] <- 17.5
+qchar_old[ , quad_names][qchar_old[ , quad_names] == 6] <- 37.5
+qchar_old[ , quad_names][qchar_old[ , quad_names] == 7] <- 62.5
+qchar_old[ , quad_names][qchar_old[ , quad_names] == 8] <- 85
+qchar_old[ , quad_names][qchar_old[ , quad_names] == 9] <- 97.5
+
+table(qchar_old$Quadrat_ID)
+table(qchar_new$CharacterLabel, useNA = 'always')
+
+qchar_old <- qchar_old %>% mutate(Cover_Type = case_when(Quadrat_ID == 2 ~ "Soil",
+                                                         Quadrat_ID == 3 ~ "Rock",
+                                                         Quadrat_ID == 4 ~ "Stem",
+                                                         Quadrat_ID == 5 ~ "Wood",
+                                                         Quadrat_ID == 6 ~ "Sphagnum",
+                                                         Quadrat_ID == 7 ~ "NonSphagnum",
+                                                         Quadrat_ID == 8 ~ "Lichens",
+                                                         Quadrat_ID == 9 ~ "Herbs")) %>% # 9 = Herbs MIDN
+  select(Plot_Name, Year, Event_QAQC, Cover_Type, A2, A5, A8, AA, B2, B5, B8, BB, C2, C5, C8, CC)
+
+incomplete_old <- qchar_old[which(!complete.cases(qchar_old)),]
+# Plots with at least one quad missing quadrat data:
+# SQs should be NS for: COLO-380-2018 All- needs fixing;
+# RICH-063-2011 AA, B2, B5, B8 (NS correct for data/quads, missing SQ for seedlings);
+# RICH-073-2015 B5 & B8 (NS correct for data/quads, missing SQ for seedlings);
+# PMs should replace blanks for: APCO-184-2009 A8 Herbs; FRSP-106-2008 A2 Herbs.
+
+table(qchar_old$Cover_Type, useNA = 'always') # Lichens are the only thing different b/c added later
+table(qchar_new$CharacterLabel, useNA = 'always') # Make sure Lichens are NC for early years. They're all NC.
+table(qchar_new$Txt_Cov_A2, qchar_new$CharacterLabel, qchar_new$StartYear, useNA = 'always') # No issues
+
+head(qchar_old)
+
+check_qchr <- function(df, col1, col2){
+  lapply(1:nrow(df), function(x) (
+    if(length(setdiff(union(df[x, col1], df[x, col2]), intersect(df[x, col1], df[x, col2]))) > 0){
+      df[x, c("Plot_Name", "StartYear", "IsQAQC", "CharacterLabel", col1, col2)]}
+  )) %>% bind_rows()
+}
+
+quadchr_merge <- merge(qchar_new, qchar_old,
+                       by.x = c("Plot_Name", "StartYear", "IsQAQC", "CharacterLabel"),
+                       by.y = c("Plot_Name", "Year", "Event_QAQC", "Cover_Type"),
+                       all.x = T, all.y = T)
+
+check_qchr(quadchr_merge, "Pct_Cov_A2", "A2") #0
+check_qchr(quadchr_merge, "Pct_Cov_A5", "A5") #0
+check_qchr(quadchr_merge, "Pct_Cov_A8", "A8") #0
+check_qchr(quadchr_merge, "Pct_Cov_AA", "AA") #0
+
+check_qchr(quadchr_merge, "Pct_Cov_B2", "B2") #0
+check_qchr(quadchr_merge, "Pct_Cov_B5", "B5") #0
+check_qchr(quadchr_merge, "Pct_Cov_B8", "B8") #0
+check_qchr(quadchr_merge, "Pct_Cov_BB", "BB") #0
+
+check_qchr(quadchr_merge, "Pct_Cov_C2", "C2") #0
+check_qchr(quadchr_merge, "Pct_Cov_C5", "C5") #0
+check_qchr(quadchr_merge, "Pct_Cov_C8", "C8") #0
+check_qchr(quadchr_merge, "Pct_Cov_CC", "CC") #0
+#+++++ No issues
+
+#----- Quadrat Species -----
+quadspp_old <- forestMIDNarch::joinQuadData(from = 2007, to = 2019, QAQC = T, eventType = "all", locType = "all") %>%
+               mutate(Year = as.numeric(Year))
+
+quadspp_new <- joinQuadSpecies(from = 2007, to = 2019,
+                               QAQC = T, eventType = 'all', locType = 'all', valueType = 'midpoint')
+nrow(quadspp_new)#10172
+nrow(quadspp_old) #10169
+#3 new quadspp rows.
+
+names(quadspp_new)
+names(quadspp_old)
+
+quadspp_merge <- full_join(quadspp_new,
+                           quadspp_old,
+                           by = c("Plot_Name" = "Plot_Name",
+                                  "StartYear" = "Year",
+                                  "IsQAQC" = "Event_QAQC",
+                                  "TSN" = "TSN")) %>%
+  select(Plot_Name, PlotID, EventID, StartYear, cycle.x, cycle.y, IsQAQC,
+         Confidence, TSN, ScientificName, Latin_Name,
+         num_quads, quad_avg_cov,
+         quad_pct_freq, avg.cover, avg.freq, Pct_Cov_A2: Pct_Cov_CC,
+         A2:CC)
+
+check_qspp <- function(df, col1, col2){
+  lapply(1:nrow(df), function(x) (
+    if(length(setdiff(union(df[x, col1], df[x, col2]), intersect(df[x, col1], df[x, col2]))) > 0){
+      df[x, c("PlotID", "EventID", "Plot_Name", "Plot_Name2", "StartYear", "IsQAQC", "ScientificName", "Latin_Name",
+               col1, col2)]}
+  )) %>% bind_rows()
+}
+
+# Check diff Pct cover
+quadspp_merge %>% mutate(cov_diff = quad_avg_cov - avg.cover) %>%
+  filter(cov_diff > 0.01) %>%
+  select(PlotID, EventID, Plot_Name, StartYear, IsQAQC, TSN, ScientificName, num_quads,
+         quad_avg_cov, avg.cover, quad_pct_freq, avg.freq, cov_diff) #0
+
+# Check % freq
+quadspp_merge %>% mutate(freq_diff = quad_pct_freq - 100*(avg.freq)) %>%
+  filter(freq_diff > 0.01) %>%
+  select(PlotID, EventID, Plot_Name, StartYear, IsQAQC, TSN, ScientificName, num_quads,
+         quad_avg_cov, avg.cover, quad_pct_freq, avg.freq, freq_diff) #0
+
+quadsamp$numQuads <- apply(quadsamp[,c(3:14)], 1, sum)
+quads1 <- merge(plotevs_old, quadsamp[, c("Event_ID", "numQuads")], all = TRUE)
+
+quadspp <- merge(quads[,c("Event_ID","TSN",
+                          "qA2_Cover_Class_ID", "qA5_Cover_Class_ID","qA8_Cover_Class_ID","qAA_Cover_Class_ID",
+                          "qB2_Cover_Class_ID", "qB5_Cover_Class_ID","qB8_Cover_Class_ID","qBB_Cover_Class_ID",
+                          "qC2_Cover_Class_ID", "qC5_Cover_Class_ID","qC8_Cover_Class_ID","qCC_Cover_Class_ID")],
+                 plants[,c("TSN","Latin_Name")],
+                 by = "TSN", all.x = T) %>% filter(Event_ID != "4AFBA34C-83F8-4F67-8B7C-8F6E096AB21D")
+
+new_quads <- c("Pct_Cov_A2", "Pct_Cov_A5", "Pct_Cov_A8", "Pct_Cov_AA",
+               "Pct_Cov_B2", "Pct_Cov_B5", "Pct_Cov_B8", "Pct_Cov_BB",
+               "Pct_Cov_C2", "Pct_Cov_C5", "Pct_Cov_C8", "Pct_Cov_CC"
+               )
+quads2 <- merge(quads1, quadspp, by = "Event_ID", all.x = T)
+names(quads2)
+quads2[,14:25][quads2[,14:25]==1]<-0.1
+quads2[,14:25][quads2[,14:25]==2]<-1.5
+quads2[,14:25][quads2[,14:25]==3]<-3.5
+quads2[,14:25][quads2[,14:25]==4]<-7.5
+quads2[,14:25][quads2[,14:25]==5]<-17.5
+quads2[,14:25][quads2[,14:25]==6]<-37.5
+quads2[,14:25][quads2[,14:25]==7]<-62.5
+quads2[,14:25][quads2[,14:25]==8]<-85
+quads2[,14:25][quads2[,14:25]==9]<-97.5
+old.names<-names(quads2[,14:25])
+old.names
+new.names<-c('A2','A5','A8','AA','B2','B5','B8','BB','C2','C5','C8','CC')
+quads2<-quads2 %>% rename_at(all_of(vars(old.names)),~new.names)
+quads2[,c(14:25)][is.na(quads2[,c(14:25)])]<-0
+quads2$Plot_Name2 <- quads2$Plot_Name
+quads2$Year <- as.numeric(quads2$Year)
+
+quadspp_merge <- full_join(quadspp_new,
+                           quads2 %>% select(Plot_Name, Plot_Name2, Year, Event_QAQC, numQuads,
+                                             TSN, Latin_Name, A2:CC),
+                           by = c("Plot_Name" = "Plot_Name",
+                                  "StartYear" = "Year",
+                                  "IsQAQC" = "Event_QAQC",
+                                  "TSN" = "TSN")) %>% filter(!is.na(Plot_Name)) # drops 1 mostly NA record came in from old
+head(quadspp_merge)
+
+check_qspp(quadspp_merge, "Pct_Cov_A2", "A2") # 5 records. 4 are NS and NP in new. VAFO-161 No spp rec is showing up.
+# It's not matching new record, because that's correctly None present (row 3 in output). Should be fixed in next migration
+check_qspp(quadspp_merge, "Pct_Cov_A5", "A5") # 5 records. same as above
+check_qspp(quadspp_merge, "Pct_Cov_A8", "A8") # 5 records. same as above
+check_qspp(quadspp_merge, "Pct_Cov_AA", "AA") # 11 records. same as above plus NS coming in correctly in new
+
+check_qspp(quadspp_merge, "Pct_Cov_B2", "B2") # 11 records. same as above plus NS coming in correctly in new
+check_qspp(quadspp_merge, "Pct_Cov_B5", "B5") # 16 records. same as above plus NS coming in correctly in new
+check_qspp(quadspp_merge, "Pct_Cov_B8", "B8") # 16 records. same as above plus NS coming in correctly in new
+check_qspp(quadspp_merge, "Pct_Cov_BB", "BB") # 55 records. same as above
+
+check_qspp(quadspp_merge, "Pct_Cov_C2", "C2") # 5 records. same as above
+check_qspp(quadspp_merge, "Pct_Cov_C5", "C5") # 5 records. same as above
+check_qspp(quadspp_merge, "Pct_Cov_C8", "C8") # 5 records. same as above
+check_qspp(quadspp_merge, "Pct_Cov_CC", "CC") # 5 records. same as above
+
+head(quadspp_merge)
+check_qspp(quadspp_merge, "ScientificName", "Latin_Name") # 5 weird UTF issues. all ok.
+#++++++ No species recorded are still in the xref and VAFO-161-2009 SQ should be NP not NS.
+
+#----- Quad seedlings
+# Catching no species recorded and incorrect NP SQ
+qseeds <- VIEWS_MIDN$MIDN_QuadSeedlings
+table(qseeds$SQSeedlingCode, qseeds$ScientificName)
+# There are 2987 "No species recorded" with NP
+table(qseeds$SQSeedlingCode)
+
+table(qseeds$SQSeedlingCode) # the numbers below are close to what it should be
+# with a few more NS b/c of COLO-380-2018
+#NS     NP       SS
+#65   2987  107948
+table(qseeds$ScientificName, qseeds$SQSeedlingCode, useNA = 'always')
+# Still have 2987 "No species recorded" coming in. These shouldn't be migrating.
+# It at least matches the number of NP in the higher level table.
+
+seeds_new <- joinQuadSeedlings(locType = 'all', eventType = 'all', QAQC = T, valueType = 'all', canopyForm = 'all')
+table(seeds_new$ScientificName, seeds_new$SQSeedlingCode, useNA = 'always')
+
+reg_new <- joinRegenData(eventType = 'all', locType = 'all', QAQC = T, canopyForm = 'all', speciesType = 'all')
+reg_old <- forestMIDNarch::joinRegenData(eventType = 'all', locType = 'all', QAQC = T,
+                                         from = 2007, to = 2019, canopyForm = 'all')
+
+reg_old$Latin_Name[reg_old$Latin_Name == "No species recorded"] <- "None present"
+reg_old2 <- reg_old %>% filter(!Latin_Name %in% c("None present", "no species recorded"))
+
+reg_merge <- merge(reg_new, reg_old2, by.x = c("Plot_Name", "StartYear", "IsQAQC", "ScientificName"),
+                   by.y = c("Plot_Name", "Year", "Event_QAQC", "Latin_Name"),
+                   all.x=T, all.y=T) %>% filter(ScientificName != "None present")
+merge_nas <- reg_merge[is.na(reg_merge$Network),] # no As
+
+check_reg <- function(df, col1, col2){
+  lapply(1:nrow(df), function(x) (
+    if(length(setdiff(union(df[x, col1], df[x, col2]), intersect(df[x, col1], df[x, col2]))) > 0){
+      df[x, c("Plot_Name", "StartYear", "IsQAQC", "ScientificName", col1, col2)]}
+  )) %>% bind_rows()
+}
+#+++++++++ ENDED HERE +++++++++++++
+# There are a couple of issues with my code and legacy data that need fixing
+# The not sampled events for seeds and saps which should only turn 1 or 2 things off are turning all size classes off
+# need to look into how I'm doing that in the joinRegenData() function. the seedling and saplings are okay I think.
+#++++++++++++++++++++++++++++++++++
+
+head(reg_merge)
+# Issues below (n=36) are all due to diff/better error handling in new function
+check_reg(reg_merge, "seed_15_30cm", "seed15.30") # 14 records that should mostly be fixed by migration
+check_reg(reg_merge, "seed_30_100cm", "seed30.100") # 13 records that should mostly be fixed by migration
+check_reg(reg_merge, "seed_100_150cm", "seed100.150") # 13 records that should mostly be fixed by migration
+check_reg(reg_merge, "seed_p150cm", "seed150p")# 13 records that should mostly be fixed by migration
+check_reg(reg_merge, "sap_den", "sap.den") #47 records that differ. Most should be fixed by migration
+
+#----- Microplot Shrubs -----
+shrubs_vw <- get("COMN_MicroplotShrubs", envir = env) %>%
+  select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, SQShrubCode,
+         MicroplotCode, TSN, ScientificName, CoverClassCode, CoverClassLabel)
+table(shrubs_vw$SQShrubCode, shrubs_vw$StartYear) # 9 NS PETE-185;VAFO-9999;COLO-380 OK
+table(shrubs_vw$CoverClassCode, shrubs_vw$StartYear)
+# 2007-8 are all NC, 2009-2019 are comb of NC and other stuff. All looks good.
+
+shrub_old <- forestMIDNarch::joinMicroShrubData(from = 2007, to = 2019, locType = 'all', eventType = 'all', QAQC = T) %>%
+               mutate(Year = as.numeric(Year))
+
+shrub_old$Latin_Name[shrub_old$Latin_Name == "No species recorded"] <- "None present"
+shrub_new <- joinMicroShrubData(from = 2007, to = 2019, locType = 'all', eventType = 'all', QAQC = T)
+
+
+shrub_merge <- full_join(shrub_new, shrub_old, by = c("Plot_Name" = "Plot_Name",
+                                                      "StartYear" = "Year",
+                                                      "IsQAQC" = "Event_QAQC",
+                                                      "ScientificName" = "Latin_Name") )
+
+table(complete.cases(shrub_merge$Event_ID)) # 266 FALSE
+na_evs <- shrub_merge %>% filter(is.na(Event_ID)) # These are all "None present" OK
+
+check_shrbs <- function(df, col1, col2){
+  lapply(1:nrow(df), function(x) (
+    if(length(setdiff(union(df[x, col1], df[x, col2]), intersect(df[x, col1], df[x, col2]))) > 0){
+      df[x, c("PlotID", "EventID", "Plot_Name", "StartYear", "IsQAQC",
+              "ScientificName", col1, col2)]}
+  )) %>% bind_rows()
+}
+
+names(shrub_merge)
+table(shrub_merge$Pct_Cov_UR, shrub_merge$StartYear, useNA = 'always')
+
+shrub_merge %>% select(Plot_Name, StartYear, IsQAQC, ScientificName, shrub_avg_cov, cover) %>%
+  mutate(cov_diff = abs(shrub_avg_cov - cover)) %>% filter(cov_diff > 0.1)
+# GETT-252-2010 is different b/c combination of PM and pct_cover. Nothing to change
+
+#----- Microplot Saplings ------
+saps_vw <- get("MIDN_MicroplotSaplings", envir = VIEWS_MIDN) %>%
+  select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, StartDate, IsQAQC, SQSaplingCode,
+         MicroplotCode, TSN, ScientificName, DBHcm)
+
+table(saps_vw$SQSaplingCode)
+#  NP   NS   SS
+# 684  12  14600
+
+table(saps_vw$SQSaplingCode, saps_vw$StartYear)
+    # 12 NS: 2 NS are COLO-380-2018, but UR SQ is SS instead of NS. Change after final migration.
+    # GETT-209-2015 QAQC UL and VAFO-0404-2015-QAQC UR should be NP, not NS. Change after final migration.
+    # No species recorded, and are migrating as NS. The SQs for these should be changed to NP. Change after final migration.
+    # PETE-185 3 2013 and 1 2009, and 4 VAFO 99999 NS are fine.
+table(saps_vw$SQSaplingCode, saps_vw$MicroplotCode) # B 5; UL 4; UR 3. Eventually should have the same # for all micros
+
+saps_new <- joinMicroSaplings(locType = 'all', QAQC = T, eventType = 'all', canopyForm = 'all', speciesType = 'all')
+length(unique(saps_new$EventID)) #1182
+table(complete.cases(saps_new$ScientificName)) # all T
+table(saps_new$ScientificName)
+table(saps_new$SQSaplingCode) # only 4 NS, 684 NP and 14234 SS. No ND. Good.
+
+#++++++++ Catch no species recorded in all new tabs TSN: -9999999951
+
