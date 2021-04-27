@@ -90,10 +90,11 @@ joinTreeVineSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
   env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
 
   # Prepare the vine data
-  tryCatch(vine_vw <- subset(get("COMN_TreesVine", envir = env),
-                      select = c(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC,
-                                 TreeLegacyID, TagCode, TreeTSN, TreeScientificName, TSN,
-                                 ScientificName, VinePositionCode, VinePositionLabel)),
+  tryCatch(vine_vw <- get("COMN_TreesVine", envir = env) %>%
+                      select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC,
+                             TreeLegacyID, TagCode, TreeTSN, TreeScientificName, TSN,
+                             ScientificName, VinePositionCode, VinePositionLabel) %>%
+                      unique(),
 
            error = function(e){stop("COMN_TreesVine view not found. Please import view.")})
 

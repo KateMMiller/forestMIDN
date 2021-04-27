@@ -226,8 +226,8 @@ joinStandData <- function(park = 'all', QAQC = FALSE, locType = c('VS', 'all'), 
              crown) %>%
     summarize(avg_ht = mean(Height, na.rm = TRUE), .groups = 'drop') %>%
     pivot_wider(names_from = crown, values_from = avg_ht,
-                names_prefix = "Avg_height_") %>%
-    select(PlotID:StartYear, Avg_height_Codom, Avg_height_Inter)
+                names_prefix = "Avg_Height_") %>%
+    select(PlotID:StartYear, Avg_Height_Codom, Avg_Height_Inter)
 
   # slopes- need to pull in slopes for QAQC, like for CWD
   slopes$Plot_Name <- paste(slopes$ParkUnit,
@@ -276,7 +276,7 @@ joinStandData <- function(park = 'all', QAQC = FALSE, locType = c('VS', 'all'), 
                            Stand_Structure, Pct_Crown_Closure, Deer_Browse_Index, Microtopography,
                            Water_on_Plot, PlotSlope, Pct_Understory_Low, Pct_Understory_Mid, Pct_Understory_High,
                            Pct_Bare_Soil, Pct_Bryophyte, Pct_Lichen, Pct_Rock, Pct_Trampled, Pct_Water,
-                           Avg_height_Codom, Avg_height_Inter)
+                           Avg_Height_Codom, Avg_Height_Inter)
   } else if(output == 'verbose'){stand_merge}
 
   return(data.frame(stand_final))

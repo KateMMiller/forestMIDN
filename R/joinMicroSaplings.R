@@ -147,20 +147,25 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
   sap_tax$Count <- ifelse(sap_tax$SQSaplingCode == "NP", 0,
                           ifelse(sap_tax$SQSaplingCode == "SS", 1,
                                  NA_real_))
-  sap_tax$ScientificName[is.na(sap_tax$ScientificName) & !is.na(sap_tax$Count)] <- "None present"
 
   sap_tax$ScientificName[sap_tax$SQSaplingCode == "NP"] <- "None present"
-  sap_tax$Count[sap_tax$SQSaplingCode == "NP"] <- 0
 
-  sap_tax$CanopyExclusion[sap_tax$ScientificName == "None present"] <- FALSE
-  sap_tax$Exotic[sap_tax$ScientificName == "None present"] <- FALSE
-  sap_tax$InvasiveMIDN[sap_tax$ScientificName == "None present"] <- FALSE
+  # Clean up T/F filter columns
+  # sap_tax$CanopyExclusion[sap_tax$ScientificName == "None present"] <- FALSE
+  # sap_tax$Exotic[sap_tax$ScientificName == "None present"] <- FALSE
+  # sap_tax$InvasiveNETN[sap_tax$ScientificName == "None present"] <- FALSE
+#
+#   sap_tax$CanopyExclusion[is.na(sap_tax$CanopyExclusion)] <- FALSE # so next filtering steps don't drop PMs
+#   sap_tax$Exotic[is.na(sap_tax$Exotic)] <- ifelse(speciesType %in% c("exotic", "invasive"), TRUE,
+#                                                   ifelse(speciesType == "native", FALSE, NA))
+#   sap_tax$InvasiveMIDN[is.na(sap_tax$InvasiveMIDN)] <- ifelse(speciesType == 'invasive', TRUE, FALSE)
 
   # Create the left data.frame to join back to after filtering species types
   sap_left <- sap_tax %>% select(Plot_Name:MicroplotCode) %>% unique() #%>%
   # group_by(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode,
   #          PlotID, EventID, StartYear, cycle, IsQAQC) %>%
-  # mutate(numquads = length(MicroplotCode)) # All plots have expected # micros
+  # mutate(nummicros = length(MicroplotCode)) # All plots have expected # micros
+  # table(sap_left$nummicros) # all 3
 
   # Drop unwanted status
   alive <- c("AB", "AF", "AL" ,"AM" ,"AS", "RB", "RF", "RL", "RS")
@@ -172,12 +177,6 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
                      'active' = sap_tax %>% filter(SaplingStatusCode %in% active),
                      'live' = sap_tax %>% filter(SaplingStatusCode %in% alive),
                      'dead' = sap_tax %>% filter(SaplingStatusCode %in% dead))
-
-  # sap_stat$ScientificName[is.na(sap_stat$ScientificName) &
-  #                          (sap_stat$SQSeedlingCode == "SS")] = "Permanently Missing" # don't need this
-  sap_stat$CanopyExclusion[is.na(sap_stat$CanopyExclusion)] <- FALSE # so next filtering steps don't drop PMs
-  sap_stat$Exotic[is.na(sap_stat$Exotic)] <- ifelse(speciesType == "native", FALSE, TRUE)
-  sap_stat$InvasiveMIDN[is.na(sap_stat$InvasiveMIDN)] <- ifelse(speciesType == 'invasive', TRUE, FALSE)
 
   sap_can <- if(canopyForm == "canopy"){filter(sap_stat, CanopyExclusion == FALSE)
   } else {sap_stat}

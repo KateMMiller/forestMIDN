@@ -141,8 +141,8 @@ joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, loc
 
   tryCatch(foliage_vw <- get("COMN_TreesFoliageCond", envir = env) %>%
                          select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC,
-                                TreeLegacyID, TagCode, #TotalFoliageConditionCode, TotalFoliageConditionLabel))),
-                                TotalFoliageCondition.Code, TotalFoliageCondition.Label) %>% unique(),
+                                TreeLegacyID, TagCode, TotalFoliageConditionCode, TotalFoliageConditionLabel) %>%
+                         unique(),
            error = function(e){stop("COMN_TreeFoliageCond view not found. Please import view.")})
 
   taxa_wide <- prepTaxa()
@@ -191,15 +191,15 @@ joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, loc
   tree_taxa$DecayClassCode <- suppressWarnings(as.numeric(tree_taxa$DecayClassCode))
 
   tree_taxa <- tree_taxa %>% mutate(Pct_Tot_Foliage_Cond = as.numeric(
-    case_when(TotalFoliageCondition.Code == "0" ~ 0,
-              TotalFoliageCondition.Code == "1" ~ 5.5,
-              TotalFoliageCondition.Code == "2" ~ 30,
-              TotalFoliageCondition.Code == "3" ~ 70,
-              TotalFoliageCondition.Code == "4" ~ 95,
-              TotalFoliageCondition.Code == "NC" ~ NA_real_,
+    case_when(TotalFoliageConditionCode == "0" ~ 0,
+              TotalFoliageConditionCode == "1" ~ 5.5,
+              TotalFoliageConditionCode == "2" ~ 30,
+              TotalFoliageConditionCode == "3" ~ 70,
+              TotalFoliageConditionCode == "4" ~ 95,
+              TotalFoliageConditionCode == "NC" ~ NA_real_,
               TRUE ~ NA_real_)),
-    Txt_Tot_Foliage_Cond = TotalFoliageCondition.Label) %>%
-    select(-TotalFoliageCondition.Code, -TotalFoliageCondition.Label) # fix . after next release
+    Txt_Tot_Foliage_Cond = TotalFoliageConditionLabel) %>%
+    select(-TotalFoliageConditionCode, -TotalFoliageConditionLabel) # fix . after next release
 
   tree_nat <- switch(speciesType,
                      'all' = tree_taxa,

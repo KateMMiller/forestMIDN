@@ -128,14 +128,14 @@ joinSoilSampleData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALS
   soilsamp_evs$SoilLayer = gsub("Unconsolidated_Litter", "Litter", soilsamp_evs$SoilLayer)
 
   soilsamp_wide <- soilsamp_evs %>% select(-SoilLayerLabel, -SQSoilCode) %>%
-    filter(SoilLayer %in% c("Litter", "Forest_Floor", "A_Horizon", "Total_Depth")) %>%
+    filter(SoilLayer %in% c("Litter", "O_Horizon", "A_Horizon", "Total_Depth")) %>%
     pivot_wider(names_from = SoilLayer,
                 values_from = Depth_cm,
                 values_fill = 0) %>%
     group_by(PlotID, EventID, ParkUnit, PlotCode, StartYear,
              IsQAQC) %>%
     summarize(Litter_cm = mean(Litter, na.rm = T),
-              O_Horizon_cm = mean(Forest_Floor, na.rm = T),
+              O_Horizon_cm = mean(O_Horizon, na.rm = T),
               A_Horizon_cm = mean(A_Horizon, na.rm = T),
               Total_Depth_cm = mean(Total_Depth, na.rm = T),
               num_samps = length(!is.na(Total_Depth)),

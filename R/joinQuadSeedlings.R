@@ -166,19 +166,13 @@ joinQuadSeedlings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
   seed_wide$sd_30_100cm[(!is.na(seed_wide$ScientificName)) & is.na(seed_wide$sd_30_100cm)] <- 0
   seed_wide$sd_100_150cm[(!is.na(seed_wide$ScientificName)) & is.na(seed_wide$sd_100_150cm)] <- 0
   seed_wide$sd_p150cm[(!is.na(seed_wide$ScientificName)) & is.na(seed_wide$sd_p150cm)] <- 0
+  seed_wide$ScientificName[seed_wide$SQSeedlingCode == "NS"] <- "Not Sampled"
 
   sd_cols <- c("sd_15_30cm", "sd_30_100cm", "sd_100_150cm", "sd_p150cm")
   seed_wide$tot_seeds = ifelse(!(seed_wide$SQSeedlingCode %in% c("ND", "NS")) &
                                  !is.na(seed_wide$ScientificName),
                                rowSums(seed_wide[, sd_cols], na.rm = T),
                                NA)
-
-  seed_wide$CanopyExclusion[seed_wide$ScientificName == "None present"] <- FALSE
-  seed_wide$Exotic[seed_wide$ScientificName == "None present"] <- FALSE
-  seed_wide$InvasiveMIDN[seed_wide$ScientificName == "None present"] <- FALSE
-  seed_wide$CanopyExclusion[is.na(seed_wide$CanopyExclusion)] <- FALSE # so next filtering steps don't drop PMs
-  seed_wide$Exotic[is.na(seed_wide$Exotic)] <- ifelse(speciesType == "native", FALSE, TRUE)
-  seed_wide$InvasiveMIDN[is.na(seed_wide$InvasiveMIDN)] <- ifelse(speciesType == 'invasive', TRUE, FALSE)
 
   seed_can <- if(canopyForm == "canopy"){filter(seed_wide, CanopyExclusion == FALSE)
   } else {seed_wide}
@@ -204,9 +198,10 @@ joinQuadSeedlings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
   seed_comb$ScientificName[(is.na(seed_comb$ScientificName)) &
                              (seed_comb$SQSeedlingCode %in% c("ND", "NS"))] <- "Not Sampled"
 
-  # table(complete.cases(seed_comb[,22:30])) 37 rows with missing values. Should be less after next migration
+  # table(complete.cases(seed_comb[,25:29])) 21 rows with missing values.
+  # Should be ~*3less after next migration handles NS vs NP
 
-  # Final clean up wiht cover classes
+  # Final clean up with cover classes
   seed_comb$CovClass_num <- suppressWarnings(as.numeric(seed_comb$CoverClassCode))
   seed_comb$Pct_Cov <- as.numeric(NA)
   seed_comb$Pct_Cov[seed_comb$CovClass_num == 0] <- 0
@@ -230,8 +225,19 @@ joinQuadSeedlings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
   seed_comb$sd_100_150cm[(seed_comb$ScientificName == "None present") & is.na(seed_comb$sd_100_150cm)] <- 0
   seed_comb$sd_p150cm[(seed_comb$ScientificName == "None present") & is.na(seed_comb$sd_p150cm)] <- 0
   seed_comb$tot_seeds[(seed_comb$ScientificName == "None present") & is.na(seed_comb$tot_seeds)] <- 0
+
   seed_comb$Pct_Cov[(seed_comb$ScientificName == "None present") & is.na(seed_comb$Pct_Cov)] <- 0
   seed_comb$Txt_Cov[(seed_comb$ScientificName == "None present") & is.na(seed_comb$Txt_Cov)] <- "0%"
+
+  # Clean up filtered columns and NS
+  seed_comb$sd_15_30cm[(seed_comb$SQSeedlingCode == "NS")] <- NA_real_
+  seed_comb$sd_30_100cm[(seed_comb$SQSeedlingCode == "NS")] <- NA_real_
+  seed_comb$sd_100_150cm[(seed_comb$SQSeedlingCode == "NS")] <- NA_real_
+  seed_comb$sd_p150cm[(seed_comb$SQSeedlingCode == "NS")] <- NA_real_
+  seed_comb$tot_seeds[(seed_comb$SQSeedlingCode == "NS")] <- NA_real_
+  seed_comb$CanopyExclusion[seed_comb$SQSeedlingCode %in% c("NS", "NP")] <- NA
+  seed_comb$Exotic[seed_comb$SQSeedlingCode %in% c("NS", "NP")] <- NA
+  seed_comb$InvasiveMIDN[seed_comb$SQSeedlingCode %in% c("NS", "NP")] <- NA
 
   seed_comb2 <- seed_comb %>% select(-CovClass_num, -CoverClassCode, -CoverClassLabel) %>%
     arrange(Plot_Name, StartYear, IsQAQC, QuadratCode, ScientificName)
