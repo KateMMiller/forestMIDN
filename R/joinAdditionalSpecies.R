@@ -142,8 +142,8 @@ joinAdditionalSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = F
 
   addspp_final <- addspp_comb %>% select(Plot_Name, Network, ParkUnit, ParkSubUnit,
                                          PlotTypeCode, PanelCode, PlotCode, PlotID,
-                                         EventID, IsQAQC, StartYear, StartDate, cycle, TSN,
-                                         ScientificName, addspp_present, Exotic, InvasiveMIDN,
+                                         EventID, IsQAQC, StartYear, StartDate, cycle, SQAddSppCode,
+                                         TSN, ScientificName, addspp_present, Exotic, InvasiveMIDN,
                                          Confidence, IsCollected, Note, SQAddSppNotes)
   return(data.frame(addspp_final))
 } # end of function
