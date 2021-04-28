@@ -111,9 +111,9 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, 
            error = function(e){stop("MIDN_QuadSpecies view not found. Please import view.")})
 
   #++++++++++++ Clean this up after migration fixes ++++++++++++
-  quadspp$SQQuadSppCode[quadspp$PlotCode == "161" &
-                              quadspp$StartYear == 2009 & quadspp$IsQAQC == FALSE] <- "NP"
-  #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  # quadspp$SQQuadSppCode[quadspp$PlotCode == "161" &
+  #                             quadspp$StartYear == 2009 & quadspp$IsQAQC == FALSE] <- "NP"
+  # #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   taxa_wide <- force(prepTaxa())
 
@@ -224,7 +224,8 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, 
                                                   Graminoid, FernAlly),
                              by = c("TSN"))
 
-  quadspp_comb3$ScientificName[is.na(quadspp_comb3$ScientificName)] <- "None present"
+  quadspp_comb3$ScientificName[is.na(quadspp_comb3$ScientificName) &
+                                 !(quadspp_comb3$SQQuadSppCode == "NS")] <- "None present"
 
   na_cols <- c("FilterMIDN", "Exotic", "InvasiveMIDN", "quad_avg_cov", "quad_pct_freq",
                "Tree", "TreeShrub", "Shrub", "Vine", "Herbaceous",
@@ -235,7 +236,7 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, 
   # select columns based on specified valueType
   req_cols <- c("Plot_Name", "Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode", "PanelCode",
                 "PlotCode", "PlotID", "EventID", "IsQAQC", "StartYear", "StartDate", "cycle",
-                "TSN", "ScientificName", "Confidence", "num_quads",
+                "SQQuadSppCode", "TSN", "ScientificName", "Confidence", "num_quads",
                 "quad_avg_cov", "quad_pct_freq")
 
   pct_cols <- c("Pct_Cov_A2", "Pct_Cov_A5", "Pct_Cov_A8", "Pct_Cov_AA",
@@ -286,7 +287,7 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, 
   # select columns based on specified valueType
   req_cols <- c("Plot_Name", "Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode", "PanelCode",
                 "PlotCode", "PlotID", "EventID", "IsQAQC", "StartYear", "StartDate", "cycle",
-                "TSN", "ScientificName", "Confidence", "num_quads",
+                "SQQuadSppCode", "TSN", "ScientificName", "Confidence", "num_quads",
                 "quad_avg_cov", "quad_pct_freq")
 
   pct_cols <- c("Pct_Cov_A2", "Pct_Cov_A5", "Pct_Cov_A8", "Pct_Cov_AA",
