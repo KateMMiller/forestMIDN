@@ -125,9 +125,6 @@ joinLocEvent<-function(park = "all", from = 2007, to = 2021, QAQC = FALSE, aband
                     "EventID", "EventLegacyID", "StartDate", "IsQAQC", "StartYear",
                     "PlotNotes", "Directions", "EventNotes", "StandNotes")]} else {plot_events}
 
-  # microbenchmark::microbenchmarl(plot_events$Plot_Name <- paste(plot_events$ParkUnit,
-  #                                sprintf("%03d", plot_events$Plot.Code), sep = "-"), #sprintf was 2x slower
-
 
   plot_events1 <- if(locType == 'VS'){filter(plot_events, PlotTypeCode == "VS")
   } else if (locType=='all') {(plot_events)}
