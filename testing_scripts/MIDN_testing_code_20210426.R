@@ -34,7 +34,7 @@ check_data <- function(df, col1, col2){
 
 # import old database for comparisons
 forestMIDNarch::importData(type = 'file',
-  path='D:/NETN/Monitoring_Projects/Forest_Health/Database/MIDN/2021_Forest_Database/MIDN_FVM_BE_MASTER_20210422_Migration.accdb')
+  path='D:/NETN/Monitoring_Projects/Forest_Health/Database/MIDN/2021_Forest_Database/MIDN_FVM_BE_MASTER_20210429_Migration.accdb')
 
 #forestMIDNarch::importData()
 
@@ -270,8 +270,6 @@ table(tree_merge$IsDBHVerified, tree_merge$DBH_Verified, useNA = 'always')
 #check_trees(tree_merge, "Pct_Tot_Foliage_Cond", "Total_Foliage_Condition")
 table(tree_merge$Pct_Tot_Foliage_Cond, tree_merge$Total_Foliage_Condition, tree_merge$StartYear, useNA = 'always')
 table(tree_merge$Pct_Tot_Foliage_Cond, useNA = 'always')
-
-# 4/22: 2 records still with 0
 # 4/27: No trees with 0
 
 # Check for Foliage still 0:
@@ -684,6 +682,8 @@ old.names
 new.names<-c('A2','A5','A8','AA','B2','B5','B8','BB','C2','C5','C8','CC')
 quads2<-quads2 %>% rename_at(all_of(vars(old.names)),~new.names)
 quads2[,c(14:25)][is.na(quads2[,c(14:25)])]<-0
+table(complete.cases(quads2[,14:25]))
+str(quads2)
 quads2$Plot_Name2 <- quads2$Plot_Name
 quads2$Year <- as.numeric(quads2$Year)
 quads2 <- quads2 %>% mutate(Latin_Name2 = ifelse(Latin_Name == "No species recorded", "None present", Latin_Name))
@@ -713,13 +713,16 @@ check_qspp(quadspp_merge, "Pct_Cov_CC", "CC") # 4 records. All but VAFO-161 b/c 
 
 check_qspp(quadspp_merge, "ScientificName", "Latin_Name") # 6. All no species vs none present. no concerns
 
-quadspp <- get("MIDN_QuadSpecies", envir = env) %>%
+quadspp <- get("MIDN_QuadSpecies", envir = VIEWS_MIDN) %>%
   select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, SQQuadSppCode,
          QuadratCode, TSN, ScientificName, CoverClassCode, CoverClassLabel,
          ConfidenceClassCode, IsCollected, QuadSppNote)
 
+vafo.161.2009 <- quadspp %>% filter(PlotCode == 161 & StartYear == 2009)
+vafo.161.2009
+
 table(quadspp$SQQuadSppCode)
-sort(unique(quadspp$ScientificName)) # No species recorded no on list anymore!
+sort(unique(quadspp$ScientificName)) # No species recorded not on list anymore!
 #++++++ VAFO-161-2009 SQ should be NP not NS.
 
 #----- Quad seedlings
