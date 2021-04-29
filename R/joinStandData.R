@@ -142,8 +142,8 @@ joinStandData <- function(park = 'all', QAQC = FALSE, locType = c('VS', 'all'), 
                                                                   TRUE ~ NA_real_),
                                     Microtopography = ifelse(MicrotopographyCode == "PM", NA, MicrotopographyCode)) %>%
     select(PlotID:StartYear, Plot_Name, Stand_Structure, Stand_Structure_Code,
-           Pct_Crown_Closure, CrownClosureLabel, Deer_Browse_Index, DeerBrowseLabel, Microtopography,
-          WaterPlotCode, WaterPlotLabel, WeatherLabel, PhotoNotes)
+           Pct_Crown_Closure, CrownClosureCode, CrownClosureLabel, Deer_Browse_Index, DeerBrowseLabel, Microtopography,
+           WaterPlotCode, WaterPlotLabel, WeatherLabel, PhotoNotes)
 
   old_scol <- c("CrownClosureLabel", "DeerBrowseLabel", "WaterPlotCode", "WaterPlotLabel", "WeatherLabel")
   new_scol <- c("Txt_Crown_Closure", "Deer_Browse_Label", "Water_on_Plot_Code", "Water_on_Plot", "Weather_Photo")
