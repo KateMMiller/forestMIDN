@@ -169,7 +169,7 @@ joinTreeFoliageCond <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
                                 Pct_Leaf_Area_C, Pct_Leaf_Area_H, Pct_Leaf_Area_N),
                            ~ifelse(!is.na(Pct_Tot_Foliage_Cond) & is.na(.x), 0, .x)) %>%
       select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-             PlotCode, PlotID, EventID, IsQAQC, StartYear, TSN, ScientificName, TagCode,
+             PlotCode, PlotID, EventID, IsQAQC, StartYear, StartDate, TSN, ScientificName, TagCode,
              Pct_Tot_Foliage_Cond, Txt_Tot_Foliage_Cond,
              Pct_Leaves_Aff_C, Pct_Leaves_Aff_H, Pct_Leaves_Aff_L,
              Pct_Leaves_Aff_N, Pct_Leaves_Aff_S, Pct_Leaves_Aff_W, Pct_Leaves_Aff_O,
@@ -180,7 +180,7 @@ joinTreeFoliageCond <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
                                 Txt_Leaf_Area_C, Txt_Leaf_Area_H, Txt_Leaf_Area_N),
                            ~ifelse(!is.na(Pct_Tot_Foliage_Cond) & is.na(.x), paste("0%"), .x)) %>%
       select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-             PlotCode, PlotID, EventID, IsQAQC, StartYear, TSN, ScientificName, TagCode,
+             PlotCode, PlotID, EventID, IsQAQC, StartYear, StartDate, TSN, ScientificName, TagCode,
              Pct_Tot_Foliage_Cond, Txt_Tot_Foliage_Cond,
              Txt_Leaves_Aff_C, Txt_Leaves_Aff_H, Txt_Leaves_Aff_L, Txt_Leaves_Aff_N,
              Txt_Leaves_Aff_S, Txt_Leaves_Aff_W, Txt_Leaves_Aff_O,
