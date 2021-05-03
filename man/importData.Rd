@@ -7,6 +7,7 @@
 importData(
   instance = c("local", "server"),
   server = "localhost",
+  name = "MIDN_Forest",
   new_env = TRUE
 )
 }
@@ -20,6 +21,8 @@ connection speeds are likely to be much slower than the local instance. You must
 \item{server}{Quoted name of the server to connect to. Valid inputs are your computer name or
 "localhost" (default) for the local instance, or the server address (currently "INP2300VTSQL16\\IRMADEV1")
 to connect to the main database.}
+
+\item{name}{Character. Specifies the name of the database. Default is "MIDN_Forest"}
 
 \item{new_env}{Logical. Specifies which environment to store views in. If \code{TRUE}(Default), stores
 views in VIEWS_MIDN environment. If \code{FALSE}, stores views in global environment}
