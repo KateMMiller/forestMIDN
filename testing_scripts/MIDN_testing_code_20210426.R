@@ -3,11 +3,11 @@ library(tidyverse)
 
 #----- Testing the import/export functions
 #importData(instance = 'local', server = "localhost", new_env = T) # release 1.0.22 4/22
-#importData(instance = 'server', server = "INP2300VTSQL16\\IRMADEV1", new_env = T) #
+importData(instance = 'server', server = "INP2300VTSQL16\\IRMADEV1", name = "MIDN_Forest_Migration", new_env = T) #
 path = "C:/Forest_Health/exports/MIDN"
 #exportCSV(path, zip = TRUE)
 
-importCSV(path = path, zip_name = "MIDN_Forest_20210427.zip")# release 1.0.22 4/26
+importCSV(path = path, zip_name = "MIDN_Forest_20210503.zip")# release 1.0.22 4/26
 
 # Function arguments
 park = 'all'
@@ -211,7 +211,8 @@ cwd_merge <- merge(cwd_new, cwd_old, by.x = c("Plot_Name", "StartYear", "IsQAQC"
                    by.y = c("Plot_Name", "Year", "Event_QAQC", "ScientificName", "Decay_Class_ID"),
                    all = TRUE)
 
-cwd_dif <- cwd_merge %>% mutate(cwd_dif = abs(CWD_Vol.x - CWD_Vol.y)) %>% filter(cwd_dif > 0.01 & IsQAQC == FALSE) %>%
+#cwd_dif <-
+  cwd_merge %>% mutate(cwd_dif = abs(CWD_Vol.x - CWD_Vol.y)) %>% filter(cwd_dif > 0.01 & IsQAQC == FALSE) %>%
   select(Plot_Name:ScientificName, DecayClassCode, CWD_Vol.x, CWD_Vol.y, cwd_dif)
 # 20 small differences due to rounding
 
@@ -280,7 +281,17 @@ tree_merge %>% filter(Pct_Tot_Foliage_Cond == 0) %>% arrange(Plot_Name, StartYea
 
 #----- Tree Foliage Conditions -----
 fol_vw <- VIEWS_MIDN$COMN_TreesFoliageCond
+
+live <- c("1", "AB", "AF", "AL", "AM", "AS", "RB", "RF", "RL", "RS")
+dead <- c("2", "DB", "DL", "DM", "DS")
+fol_vw$status_simp <- ifelse(fol_vw$TreeStatusCode %in% live, "live",
+                             ifelse(fol_vw$TreeStatusCode %in% dead, "dead",
+                                    "inactive"))
+
+table(fol_vw$status_simp, fol_vw$FoliageConditionCode, useNA = "always")
+
 table(fol_vw$TotalFoliageConditionCode, fol_vw$StartYear, useNA = 'always') # 2007 is NC correctly
+table(fol_vw$TotalFoliageConditionLabel, fol_vw$StartYear, useNA = 'always')
 
 table(fol_vw$PercentLeafAreaLabel, fol_vw$StartYear) # All 2007-2015 NC, correct.
 table(fol_vw$PercentLeafAreaLabel, fol_vw$FoliageConditionCode) # NA correctly applied to L, NO, S, W
@@ -302,6 +313,7 @@ fol_vw %>% filter(FoliageConditionCode == "NO" & TotalFoliageConditionCode %in% 
          FoliageConditionCode, TotalFoliageConditionCode)
 # 1 record: THST-132-2008 Tag 13374 has TotalFoliageConditionCode > 0 and FoliageConditionCodes missing which
 # incorrectly migrated as NO. If Stephen doesn't fix this in the next migration, I'll fix this after the final mig.
+# 5/3 fixed
 
 table(fol_vw$PercentLeavesLabel, fol_vw$FoliageConditionCode, useNA = 'always')# No 0s!
 fol_vw %>% filter(PercentLeavesLabel == "0%" & FoliageConditionCode %in% c("L", "N")) %>% arrange(ParkUnit, PlotCode, StartYear, TagCode) %>%
@@ -388,16 +400,29 @@ la_N <- check_conds(fol_merge, "Pct_Leaf_Area_N_new", "Pct_Leaf_Area_N_old") # a
 
 # +++++ Only remaining issue: 1 Foliage condition being converted to NO that should be PM.
                              # THST-132-2008 Tag 13374
+# 5/3 THST-132 issue resolved.
 
 #----- Tree Conditions
 # MIDN odl db condition counts
 #    H	AD	BBD	CAVL CAVS	 CW	   DBT	EAB	EB	   G	HWA	ID	NO	  OTH	SPB	VIN	  VOB
 #13828	968	29	297	 279	2979	2271	9	  3123	172	3	  58	1257	21	8	  1453	189
 table(VIEWS_MIDN$COMN_TreesConditions$TreeConditionCode)
-
+# 23418 PM
 #    H AD   BBD  CAVL  CAVS    CW   DBT   EAB    EB     G     HWA  ID    NO   OTH   SPB  VINE
 #13801 970    29   297   279  2971  2257     9  3119   171    3    58  1257    21     8  1636
 table(VIEWS_MIDN$COMN_TreesConditions$TreeConditionCode, VIEWS_MIDN$COMN_TreesConditions$StartYear, useNA = 'always')
+con_vw_simp <- con_vw %>% select(ParkUnit, PlotCode, StartYear, IsQAQC, TagCode, TreeConditionCode) %>%
+               mutate(pres = 1) %>% filter(TreeConditionCode != "VINE")
+
+con_dup <- con_vw_simp[which(duplicated(con_vw_simp)),]
+con_vw_simp <- con_vw_simp[-45773,] # dup causing issues and not important to understand problem
+
+con_wide <- con_vw_simp %>% pivot_wider(names_from = TreeConditionCode,
+                                         values_from = pres) %>%
+  filter(StartYear > 2007)
+
+table(complete.cases(con_wide$PM)) # 23418 PMs. Not sure why 502 are not PM
+# Don't have time to troubleshoot why this is happening.
 
 con_vw <- VIEWS_MIDN$COMN_TreesConditions
 live <- c("1", "AB", "AF", "AL", "AM", "AS", "RB", "RF", "RL", "RS")
@@ -406,7 +431,7 @@ con_vw$status_simp <- ifelse(con_vw$TreeStatusCode %in% live, "live",
                              ifelse(con_vw$TreeStatusCode %in% dead, "dead",
                                     "inactive"))
 table(con_vw$status_simp, con_vw$TreeConditionCode, con_vw$StartYear, useNA = "always")
-# Still missing NC and PMs for dead and PMs for live (see values in <NA> column)
+# Still missing NC for dead in 2011, and now have too many PMs for live
 
 dead_trees_with_conds <- con_vw %>%
   filter(TreeStatusCode %in% c("DB", "DL", "DM", "DS")) #%>%
@@ -460,6 +485,7 @@ check_conds <- function(df, col1, col2){
   )) %>% bind_rows()
 }
 
+names(cond_merge)
 cond_merge[,18:63][is.na(cond_merge[,18:63])] <- 0 # just so rowwise checking works. There were 0s in new and NAs in old
 names(cond_merge)
 check_conds(cond_merge, "H_new", "H_old") # 0
@@ -479,8 +505,7 @@ check_conds(cond_merge, "ID_new", "ID_old") #0
 check_conds(cond_merge, "OTH_new", "OTH_old") #0
 check_conds(cond_merge, "SPB_new", "SPB_old") #0
 
-#++++++++ Remaining issue: NC and PM for dead trees are currently NA.
-#++++++ Missing conditions for live trees are NA instead of PM.
+#++++++++ Remaining issue: NC for 2011 and PM for trees with existing tree conditions
 
 #------ Vines -----
 vines_new <- do.call(joinTreeVineSpecies, c(compev_arglist, speciesType = 'all')) %>%
@@ -696,30 +721,30 @@ quadspp_merge <- full_join(quadspp_new,
                                   "IsQAQC" = "Event_QAQC",
                                   "ScientificName" = "Latin_Name2")) %>% filter(!is.na(Plot_Name)) # drops 1 mostly NA record came in from old
 
-check_qspp(quadspp_merge, "Pct_Cov_A2", "A2") # 4 records. 3 b/c better SQ handling. VAFO-161 NP is still NS.
-check_qspp(quadspp_merge, "Pct_Cov_A5", "A5") #  4 records. 3 b/c better SQ handling. VAFO-161 NP is still NS.
-check_qspp(quadspp_merge, "Pct_Cov_A8", "A8") #  4 records. 3 b/c better SQ handling. VAFO-161 NP is still NS.
-check_qspp(quadspp_merge, "Pct_Cov_AA", "AA") # 11 records. All but VAFO-161 b/c better SQ handling
+check_qspp(quadspp_merge, "Pct_Cov_A2", "A2") # 3 records. 3 b/c better SQ handling. #VAFO-161 NP is fixed
+check_qspp(quadspp_merge, "Pct_Cov_A5", "A5") #  3 records. 3 b/c better SQ handling. VAFO-161 NP is fixed
+check_qspp(quadspp_merge, "Pct_Cov_A8", "A8") #  4 records. 3 b/c better SQ handling. VAFO-161 NP is fixed
+check_qspp(quadspp_merge, "Pct_Cov_AA", "AA") # 9 records. All b/c better SQ handling
 
-check_qspp(quadspp_merge, "Pct_Cov_B2", "B2") # 11 records. All but VAFO-161 b/c better SQ handling
-check_qspp(quadspp_merge, "Pct_Cov_B5", "B5") # 15 records. All but VAFO-161 b/c better SQ handling
-check_qspp(quadspp_merge, "Pct_Cov_B8", "B8") # 15 records. All but VAFO-161 b/c better SQ handling
-check_qspp(quadspp_merge, "Pct_Cov_BB", "BB") # 4 records. All but VAFO-161 b/c better SQ handling
+check_qspp(quadspp_merge, "Pct_Cov_B2", "B2") # 9 records. All b/c better SQ handling
+check_qspp(quadspp_merge, "Pct_Cov_B5", "B5") # 14 records. All b/c better SQ handling
+check_qspp(quadspp_merge, "Pct_Cov_B8", "B8") # 14 records. All b/c better SQ handling
+check_qspp(quadspp_merge, "Pct_Cov_BB", "BB") # 3 records. All b/c better SQ handling
 
-check_qspp(quadspp_merge, "Pct_Cov_C2", "C2") # 4 records. All but VAFO-161 b/c better SQ handling
-check_qspp(quadspp_merge, "Pct_Cov_C5", "C5") # 4 records. All but VAFO-161 b/c better SQ handling
-check_qspp(quadspp_merge, "Pct_Cov_C8", "C8") # 4 records. All but VAFO-161 b/c better SQ handling
-check_qspp(quadspp_merge, "Pct_Cov_CC", "CC") # 4 records. All but VAFO-161 b/c better SQ handling
+check_qspp(quadspp_merge, "Pct_Cov_C2", "C2") # 3 records. All b/c better SQ handling
+check_qspp(quadspp_merge, "Pct_Cov_C5", "C5") # 3 records. All b/c better SQ handling
+check_qspp(quadspp_merge, "Pct_Cov_C8", "C8") # 3 records. All b/c better SQ handling
+check_qspp(quadspp_merge, "Pct_Cov_CC", "CC") # 3 records. All b/c better SQ handling
 
-check_qspp(quadspp_merge, "ScientificName", "Latin_Name") # 6. All no species vs none present. no concerns
+check_qspp(quadspp_merge, "ScientificName", "Latin_Name") # 5. All no species vs none present. no concerns
 
 quadspp <- get("MIDN_QuadSpecies", envir = VIEWS_MIDN) %>%
   select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, SQQuadSppCode,
          QuadratCode, TSN, ScientificName, CoverClassCode, CoverClassLabel,
          ConfidenceClassCode, IsCollected, QuadSppNote)
 
-vafo.161.2009 <- quadspp %>% filter(PlotCode == 161 & StartYear == 2009)
-vafo.161.2009
+quadspp %>% filter(PlotCode == 161 & StartYear == 2009)
+#vafo.161.2009 is fixed!
 
 table(quadspp$SQQuadSppCode)
 sort(unique(quadspp$ScientificName)) # No species recorded not on list anymore!
@@ -730,6 +755,7 @@ sort(unique(quadspp$ScientificName)) # No species recorded not on list anymore!
 qseeds <- VIEWS_MIDN$MIDN_QuadSeedlings
 table(qseeds$SQSeedlingCode, qseeds$ScientificName)
 # There are still 2990 "No species recorded" with NP (3 more than 4/22)
+# 5/3 resolved
 table(qseeds$SQSeedlingCode) #2990 matches number of "No species recorded"
 
 table(qseeds$SQSeedlingCode) # the numbers below are close to what it should be
@@ -757,6 +783,7 @@ table(seeds_vw$SQSeedlingCode, seeds_vw$StartYear)
 # VAFO-036-2011 B8 is now NS;
 # GETT-258-2010 AA is now NS;
 # FRSP-276-2010 CC is now NS;
+# No issues
 
 seed_new <- joinQuadSeedlings(from = 2007, to = 2019, eventType = 'all', locType = 'all', QAQC = TRUE)
 #seed_inv <- joinQuadSeedlings(speciesType = 'invasive')
@@ -764,6 +791,7 @@ table(seed_new$SQSeedlingCode, seed_new$StartYear)
 table(seeds_vw$ScientificName) # 2990 No species recorded still
 table(seeds_vw$SQSeedlingCode)# 2990 matches number of visits that have NP SQ.
 #+++++ Issues remaining: No species recorded needs to be dropped.
+# 5/3 "No species recorded" is gone. No issues remaining
 
 #----- Regen Data -----
 reg_new <- joinRegenData(eventType = 'all', locType = 'all', QAQC = T, canopyForm = 'all', speciesType = 'all')
@@ -785,13 +813,6 @@ check_reg <- function(df, col1, col2){
       df[x, c("Plot_Name", "StartYear", "IsQAQC", "ScientificName", col1, col2)]}
   )) %>% bind_rows()
 }
-#++++++++++++++++++++++++++
-# There are a couple of issues with my code and legacy data that need fixing
-# The not sampled events for seeds and saps which should only turn 1 or 2 things off are turning all size classes off
-# need to look into how I'm doing that in the joinRegenData() function. the seedling and saplings are okay I think.
-#
-# 4/26: Issues resolved with SQ cleanup in functions.
-#++++++++++++++++++++++++++
 
 head(reg_merge)
 # Issues below (n=36) are all due to diff/better error handling in new function
@@ -801,10 +822,10 @@ check_reg(reg_merge, "seed_100_150cm", "seed100.150") # 2. APCO-007-2007; APCO-0
 check_reg(reg_merge, "seed_p150cm", "seed150p")# 2. APCO-007-2007; APCO-009-2007; Filled 0 for new. OK
 check_reg(reg_merge, "sap_den", "sap.den") # 11. Diff b/c new function includes saps with PM DBH. Old didn't. OK.
 
-#+++++ Still have 2990 "No species recorded" coming in. Otherwise issues resolved
+#+++++ 5/3 no issues remain
 
 #----- Microplot Shrubs -----
-shrubs_vw <- get("COMN_MicroplotShrubs", envir = env) %>%
+shrubs_vw <- get("COMN_MicroplotShrubs", envir = VIEWS_MIDN) %>%
   select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, SQShrubCode,
          MicroplotCode, TSN, ScientificName, CoverClassCode, CoverClassLabel)
 table(shrubs_vw$SQShrubCode, shrubs_vw$StartYear) # 9 NS PETE-185;VAFO-9999;COLO-380 OK
@@ -854,7 +875,7 @@ sort(unique(saps_vw$ScientificName))  # "No species recorded" not included. Good
 
 table(saps_vw$SQSaplingCode)
 #  NP   NS   SS
-# 684  12  14600
+# 684  13  14599
 
 sap_NS <- write.csv(saps_vw %>% filter(SQSaplingCode == "NS"), "./testing_scripts/Sapling_NS.csv")
 table(saps_vw$SQSaplingCode, saps_vw$StartYear)
@@ -900,11 +921,11 @@ names(reg_merge)
 table(reg_new$ScientificName)
 table(reg_old$Latin_Name2)
 
-stock_check <- check_reg(reg_merge_ss, "stock_new", "stock_old") # Different b/c change in stocking. Not sure what's going on with NP.
+stock_check <- check_reg(reg_merge_ss, "stock_new", "stock_old") # Different b/c change in stocking.
 check_reg(reg_merge_ss, "seed_15_30cm", "seed15.30") # differences are when there are < 12 quads and better SQ handling
 check_reg(reg_merge_ss, "seed_30_100cm", "seed30.100") # differences are when there are < 12 quads and better SQ handling
 check_reg(reg_merge_ss, "seed_100_150cm", "seed100.150") # differences are when there are < 12 quads and better SQ handling
-s150p <- check_reg(reg_merge_ss, "seed_p150cm", "seed150p") # differences are when there are < 12 quads and better SQ handling
+check_reg(reg_merge_ss, "seed_p150cm", "seed150p") # differences are when there are < 12 quads and better SQ handling
 check_reg(reg_merge_ss, "seed_den", "seed.den") # differences are when there are <12 quads and better SQ handling
 check_reg(reg_merge_ss, "sap_den", "sap.den") # differences b/c SQs not correct for several plots and better SQ handling
 #++++++ No new issues not already reported for seedlings and saplings.
@@ -917,8 +938,9 @@ addspp_vw <- addspp_vw %>%
          TSN, ScientificName, ConfidenceClassCode, IsCollected, Note, SQAddSppNotes)
 table(addspp_vw$SQAddSppCode)
 # NP    NS    SS
-# 69    147 4214
-table(addspp_vw$StartYear, addspp_vw$SQAddSppCode) # Cleaned up pre-migration database so all 2008 SQs should migrate as NS.
+# 69   147 4214
+# 69   159  4201
+table(addspp_vw$StartYear, addspp_vw$SQAddSppCode) # Cleaned up pre-migration database so all 2008 SQs correctly migrate as NS
 
 # addspp08 <- addspp_vw %>% filter(StartYear == 2008 & SQAddSppCode != "NS")
 # write.csv(addspp08, "./testing_scripts/addspp_2008_delete.csv")
@@ -948,10 +970,11 @@ check_spp <- function(df, col1, col2){
 check_spp(addspp_merge, "ScientificName", "Latin_Name2")
 #    Plot_Name StartYear IsQAQC ScientificName                Latin_Name2
 # 1  GEWA-320      2015      0   None present                       <NA> # NULL in old DB. Migrating as SS. Change to NP post migration.
-# 2  RICH-226      2009      0           <NA> Polystichum acrostichoides
+# 2  RICH-226      2009      0           <NA> Polystichum acrostichoides # Species is back!
 
 #+++++ We can fix the issues after the final migration, rather than have Stephen fix with code.
-#+++++ Need to make sure 2008 migrates in as NS for all visits in next migration.
+#+++++ 2007 & 2008 correctly migrate as NS and No species recorded are now gone.
+# No issues remain
 
 #----- Soil data
 
@@ -973,7 +996,7 @@ names(soil_old2)
 soil_old2[,c(9:11)][is.na(soil_old2[,c(9:11)])]<-0
 
 # Check views
-soilsamp_vw <- get("COMN_SoilSample", envir = env) %>%
+soilsamp_vw <- get("COMN_SoilSample", envir = VIEWS_MIDN) %>%
   select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC,
          SQSoilCode, SampleSequenceCode, SoilLayerLabel,
          Depth_cm, Note) %>%
@@ -983,7 +1006,7 @@ soilsamp_vw <- get("COMN_SoilSample", envir = env) %>%
 table(soilsamp_vw$SQSoilCode) # All SS. Good.
 length(unique(soilsamp_vw$EventID)) # 328
 
-soillab_vw <- get("COMN_SoilLab", envir = env) %>%
+soillab_vw <- get("COMN_SoilLab", envir = VIEWS_MIDN) %>%
   select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC,
          LabLayer, LabDateSoilCollected, UMOSample:ECEC, LabNotes, EventID, PlotID) %>%
   filter(StartYear > 2006 #& StartYear < 2020
@@ -1037,6 +1060,9 @@ head(soillab_old2)
 #++++++++ No lab-related issues to report (though didn't check as thoroughly)
 
 # Done with 4/26 migration check.
+# Done with 4/29 migration check. Biggest
+
+taxa_wide <- prepTaxa()
 
 #-------------------------------------
 # Testing summary functions with latest updates
