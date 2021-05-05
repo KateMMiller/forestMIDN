@@ -76,7 +76,7 @@ importData <- function(instance = c("local", "server"), server = "localhost", na
   # Import views using their names and show progress bar
   view_import <- lapply(seq_along(view_list), function(x){
     setTxtProgressBar(pb, x)
-    RODBC::sqlQuery(con, paste0("SELECT * FROM ", "[MIDN_Forest].[ANALYSIS].[", view_list[x], "]"))
+    RODBC::sqlQuery(con, paste0("SELECT * FROM ", "[", name, "].[ANALYSIS].[", view_list[x], "]"))
   })
 
   close(pb)
