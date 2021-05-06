@@ -164,7 +164,7 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, 
                                                             TRUE ~ NA_real_),
                                         Txt_Cov = case_when(SQQuadSppCode == "NS" ~ "Not Sampled",
                                                             SQQuadSppCode == "SS" &
-                                                              CoverClassLabel == "-<1%" ~ "1%",
+                                                              CoverClassLabel == "-<1%" ~ "<1%",
                                                             SQQuadSppCode == "SS" &
                                                               CoverClassLabel != "-<1%" ~ CoverClassLabel))
 
