@@ -103,10 +103,16 @@ joinSoilSampleData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALS
                                           values_fill = 0)  %>%
     mutate(Lab_QC = TRUE)
 
+  all_cols <- c("Plot_Name", "PlotID", "EventID", "StartYear", "IsQAQC", "num_samps",
+                "horizon_depth_A", "horizon_depth_O", "Field_misID_A", "Field_misID_O", "Lab_QC")
+
+  missing_cols <- setdiff(all_cols, names(soillab_wide))
+  soillab_wide[missing_cols] <- 0
+
   names(soillab_wide)[names(soillab_wide) == "horizon_depth_O"] <- "O_Horizon_cm"
   names(soillab_wide)[names(soillab_wide) == "horizon_depth_A"] <- "A_Horizon_cm"
-  soillab_wide$Total_Depth_cm = soillab_wide$O_Horizon_cm + soillab_wide$A_Horizon_cm
 
+  soillab_wide$Total_Depth_cm = rowSums(soillab_wide[,c("O_Horizon_cm", "A_Horizon_cm")])
   soillab_wide <- soillab_wide %>% select(Plot_Name, PlotID, EventID, StartYear, IsQAQC,
                                           num_samps, O_Horizon_cm, A_Horizon_cm, Total_Depth_cm, Lab_QC,
                                           Field_misID_O, Field_misID_A)
