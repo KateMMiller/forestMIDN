@@ -4,7 +4,7 @@ Title: Package for importing, joining and querying MIDN forest database tables
 Version: 1.0
 Author: Kate Miller
 Maintainer: Kate Miller <kathryn_miller@nps.gov>
-Description: This package contains functions that import database tables from the MIDN forest backend using odbc (must use 32-bit R for import), that join tables together and that filter by park, year, location type and visit type.
+Description: This package contains functions that import database views from the MIDN forest backend and or exported CSVs from the backend and provides functions to query and summarize MIDN forest data.
 License: Public Domain
 Depends:
     R(>= 4.0)
