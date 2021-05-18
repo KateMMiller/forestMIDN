@@ -86,20 +86,20 @@ joinSoilLabData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALSE, 
 
   # Prepare the soil data
   tryCatch(soilhd_vw <- get("COMN_SoilHeader", envir = env) %>%
-             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC,
-                    SampleTypeLabel, PositionCode, HorizonCode, # HorizonCode,
+             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, StartDate, IsQAQC,
+                    SampleTypeLabel, PositionCode, HorizonCode,
                     SoilEventNote, IsArchived),
            error = function(e){stop("COMN_SoilHeader view not found. Please import view.")})
 
   tryCatch(soillab_vw <- get("COMN_SoilLab", envir = env) %>%
-             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC,
+             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, StartDate, IsQAQC,
                     LabLayer, LabDateSoilCollected, UMOSample:ECEC, LabNotes, EventID, PlotID) %>%
              filter(!is.na(UMOSample)) %>% # drops soils not sampled
              filter(LabLayer %in% c("10 cm", "10cm - NonVS", "A", "A - NonVS", "O", "O/A")),
            error = function(e){stop("COMN_SoilLab view not found. Please import view.")})
 
   tryCatch(soilsamp_vw <- get("COMN_SoilSample", envir = env) %>%
-             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC,
+             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, StartDate, IsQAQC,
                     SQSoilCode, SampleSequenceCode, SoilLayerLabel,
                     Depth_cm, Note),
            error = function(e){stop("COMN_SoilSample view not found. Please import view.")})
@@ -123,23 +123,30 @@ joinSoilLabData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALSE, 
   soillab_evs <- filter(soillab_vw, EventID %in% pe_list)
   soilhd_evs <- filter(soilhd_samp, EventID %in% pe_list)
 
-  # Change this step after migration switches FF to O
-  soilsamp_wide <- soilsamp_evs %>% select(-SoilLayerLabel) %>%
+  if(nrow(soillab_evs) == 0){stop("There are no soil lab records to compile for the year specified.")}
+
+  # Reshape soil sample data to wide
+  soilsamp_wide1 <- soilsamp_evs %>% select(-SoilLayerLabel) %>%
     filter(SoilLayer %in% c("Litter", "O_Horizon", "A_Horizon", "Total_Depth")) %>%
     pivot_wider(names_from = SoilLayer,
-                values_from = Depth_cm) %>%
-    mutate(O_Horizon = ifelse(is.na(O_Horizon), 0, O_Horizon),
-           A_Horizon = ifelse(is.na(A_Horizon), 0, A_Horizon),
-           Total_Depth = ifelse(is.na(Total_Depth) | Total_Depth == 0,
-                                O_Horizon + A_Horizon,
-                                Total_Depth))
-  # Only interested in merging records of sampled soil- results in 2721 rows (8 less than orig. database)
-  # actually 2455 rows after deleting excluded layers
+                values_from = Depth_cm)
+
+  # In case soil horizon is missing from selected events
+  all_soil_cols <- c("Team", "Sample", "Litter", "O_Horizon", "A_Horizon", "Total_Depth")
+  missing_soil_cols <- setdiff(all_soil_cols, names(soilsamp_wide1))
+  soilsamp_wide1[missing_soil_cols] <- 0
+
+  soilsamp_wide <- soilsamp_wide1 %>% mutate(O_Horizon = ifelse(is.na(O_Horizon), 0, O_Horizon),
+                                             A_Horizon = ifelse(is.na(A_Horizon), 0, A_Horizon),
+                                             Total_Depth = ifelse(is.na(Total_Depth) | Total_Depth == 0,
+                                                                  O_Horizon + A_Horizon, Total_Depth))
+
+  # Only interested in merging records of sampled soil
   soil_merge <- left_join(soilsamp_wide, soilhd_evs,
                           by = c("PlotID", "EventID", "ParkUnit", "ParkSubUnit",
                                  "PlotCode", "StartYear", "IsQAQC")) %>%
-    select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear,
-           IsQAQC, SampleSequenceCode, Litter, O_Horizon, A_Horizon, Total_Depth)
+                select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear,
+                       IsQAQC, SampleSequenceCode, Litter, O_Horizon, A_Horizon, Total_Depth)
 
   # Summarize depth of each layer. Need to drop some columns that will get added back later.
   # Also need to drop samples that have 0s.
