@@ -301,11 +301,17 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, 
   taxa_cols <- c("FilterMIDN", "Exotic", "InvasiveMIDN", "Tree", "TreeShrub", "Shrub", "Vine",
                  "Herbaceous", "Graminoid", "FernAlly")
 
+  quadspp_comb4 <- quadspp_comb3 %>% filter(quadspp_comb3$ScientificName != "None present" &
+                                              rowSums(quadspp_comb3[,c("Pct_Cov_A2", "Pct_Cov_A5", "Pct_Cov_A8", "Pct_Cov_AA",
+                                                                       "Pct_Cov_B2", "Pct_Cov_B5", "Pct_Cov_B8", "Pct_Cov_BB",
+                                                                       "Pct_Cov_C2", "Pct_Cov_C5", "Pct_Cov_C8", "Pct_Cov_CC")],
+                                                      na.rm = T) > 0)
+
   quadspp_final <- switch(valueType,
-                          "midpoint" = quadspp_comb3[, c(req_cols, pct_cols, taxa_cols, "QuadSppNote")],
-                          "classes" = quadspp_comb3[, c(req_cols, txt_cols, taxa_cols, "QuadSppNote")],
-                          "all" = quadspp_comb3[, c(req_cols, pct_cols, txt_cols, taxa_cols, "QuadSppNote")],
-                          "averages" = quadspp_comb3[, c(req_cols, taxa_cols)])
+                          "midpoint" = quadspp_comb4[, c(req_cols, pct_cols, taxa_cols, "QuadSppNote")],
+                          "classes" = quadspp_comb4[, c(req_cols, txt_cols, taxa_cols, "QuadSppNote")],
+                          "all" = quadspp_comb4[, c(req_cols, pct_cols, txt_cols, taxa_cols, "QuadSppNote")],
+                          "averages" = quadspp_comb4[, c(req_cols, taxa_cols)])
 
   return(data.frame(quadspp_final))
 } # end of function
