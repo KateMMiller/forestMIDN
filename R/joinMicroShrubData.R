@@ -3,7 +3,7 @@
 #'
 #' @title joinMicroShrubData: compiles shrub data collected in microplots
 #'
-#' @importFrom dplyr between case_when filter group_by left_join mutate select summarize
+#' @importFrom dplyr between case_when filter group_by left_join mutate n select summarize
 #' @importFrom magrittr %>%
 #' @importFrom tidyr pivot_wider
 #'
