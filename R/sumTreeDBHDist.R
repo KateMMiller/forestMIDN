@@ -117,7 +117,7 @@ sumTreeDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, l
   arglist <- list(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
                   locType = locType, eventType = eventType)
 
-  plot_events <- do.call(joinLocEvent, arglist) %>% select(Plot_Name, ParkUnit, PlotID, EventID, StartYear, IsQAQC, cycle)
+  plot_events <- do.call(joinLocEvent, arglist) %>% select(Plot_Name, ParkUnit, ParkSubUnit, PlotID, EventID, StartYear, IsQAQC, cycle)
 
   tree_df <- do.call(joinTreeData, c(arglist, list(status = status, speciesType = speciesType, dist_m = dist_m,
                                                    canopyPosition = canopyPosition))) %>%
@@ -198,7 +198,7 @@ sumTreeDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, l
   tree_dist_wide[missing_sizes] <- 0
 
   tree_dist_final <- left_join(plot_events, tree_dist_wide, by = intersect(names(plot_events), names(tree_dist_wide))) %>%
-    select(Plot_Name, ParkUnit, PlotID, EventID, StartYear, IsQAQC, cycle,
+    select(Plot_Name, ParkUnit, ParkSubUnit, PlotID, EventID, StartYear, IsQAQC, cycle,
            all_of(sizes))
 
 
