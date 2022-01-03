@@ -225,7 +225,7 @@ joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, loc
   # Plots will have a record, but species, condition, DBH info will be NA.
 
   tree_final <- if(output == 'short'){
-    tree_merge[, c("Plot_Name", "Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode", "PanelCode", "PlotCode",
+    tree_merge[, c("Plot_Name", "Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode", "PanelCode", "cycle", "PlotCode",
                    "PlotID", "EventID", "IsQAQC", "StartYear", "StartDate", "TSN", "ScientificName",
                    "TagCode", "Fork", "Azimuth", "Distance", "DBHcm", "IsDBHVerified", "TreeStatusCode",
                    "CrownClassCode", "DecayClassCode", "Pct_Tot_Foliage_Cond",
