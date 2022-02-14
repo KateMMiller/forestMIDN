@@ -67,6 +67,7 @@
 #' summarized for all species, native only, exotic only, or invasive only.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #'
 #' # compile invasive quad data for all parks and most recent survey. Keep ferns in with herbs
@@ -74,6 +75,7 @@
 #'
 #' # compile native quad data for more recent survey in BOWA, with ferns and forbs split in separate guilds
 #' BOWA_guilds <- sumQuadGuilds(speciesType = 'native', from = 2015, to = 2018, splitHerb = TRUE)
+#' }
 #'
 #' @export
 #'

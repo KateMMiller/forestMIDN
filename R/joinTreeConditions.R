@@ -72,6 +72,7 @@
 #' missing for that visit.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # compile tree condition data for live trees in all parks in cycle 3, excluding QAQC visits
 #' trcond_c3 <- joinTreeConditions(from = 2014, to = 2017, status = 'live', QAQC = FALSE)
@@ -79,7 +80,7 @@
 #' # compile tree condition for GETT in 2019, including QAQC visits for active trees
 #' GETT_trees <- joinTreeConditions(park = "GETT", from = 2019, to = 2019, status = 'active',
 #'                                  QAQC = TRUE)
-#'
+#' }
 #' @export
 #'
 #------------------------

@@ -73,8 +73,10 @@
 #' @return returns a dataframe with one row for each plot and either density, BA or both in 1cm size classes.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' sap_diam_dist <- sumSapDBHDist(park = 'RICH', speciesType = 'native', from = 2015, to = 2018, units = 'BA')
+#'}
 #'
 #' @export
 #'

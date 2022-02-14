@@ -5,7 +5,7 @@ Version: 1.0
 Author: Kate Miller
 Maintainer: Kate Miller <kathryn_miller@nps.gov>
 Description: This package contains functions that import database views from the MIDN forest backend and or exported CSVs from the backend and provides functions to query and summarize MIDN forest data.
-License: Public Domain
+License: MIT + file LICENSE
 Depends:
     R(>= 4.0)
 Imports: 

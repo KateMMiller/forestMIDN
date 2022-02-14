@@ -57,6 +57,7 @@
 #' without a vine condition are not returned.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # compile vine data for all parks in cycle 3, excluding QAQC visits
 #' vines_c3 <- joinTreeVineSpecies(from = 2015, to = 2018, QAQC = FALSE)
@@ -67,6 +68,7 @@
 #' # compile vine data for GETT in 2019, including QAQC visits
 #' GETT_vines <- joinTreeVineSpecies(park = "GETT", from = 2019, to = 2019,
 #'                                  QAQC = TRUE)
+#' }
 #' @export
 #'
 #------------------------

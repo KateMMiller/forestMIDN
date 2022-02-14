@@ -6,7 +6,7 @@
 #' @importFrom magrittr %>%
 #' @importFrom stringr str_pad
 #'
-#' @description his function combines and calculates CWD volume for each plot. Must run importData() first. Function
+#' @description This function combines and calculates CWD volume for each plot. Must run importData() first. Function
 #' only works for complete visits.
 #'
 #' @param park Combine data from all parks or one or more parks at a time. Valid inputs:
@@ -54,6 +54,7 @@
 #' @return returns a dataframe with CWD volume for each plot, species, decay class combination
 #'
 #' @examples
+#' \dontrun{
 #' importData() #imports data
 #'
 #' # Compile CWD data for FRSP for 4-year interval in ft^3/acre
@@ -61,6 +62,7 @@
 #'
 #' # Compile CWD data for all parks and years in m^3/ha (default)
 #' cwd_data <- joinCWDData()
+#' }
 #'
 #' @export
 #'

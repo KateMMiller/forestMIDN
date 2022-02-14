@@ -71,12 +71,14 @@
 #' @return Returns a dataframe with a row for each species/visit combination for quadrat data
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # compile quadrat data for invasive species in VAFO for all years
 #' VAFO_quads <- joinQuadSpecies(park = 'VAFO', speciesType = 'invasive')
 #'
 #' # compile native species only for all parks in cycle 3
 #' native_quads <- joinQuadSpecies(speciesType = 'native', from = 2015, to = 2018)
+#' }
 #'
 #' @export
 #'

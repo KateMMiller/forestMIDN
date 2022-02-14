@@ -95,6 +95,7 @@
 #' is North (360 degrees) on flat lands, and upslope on slopes.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #'
 #' # make map for single plot
@@ -102,6 +103,7 @@
 #'
 #' # save pdfs of maps for panel 3
 #' plotTreeMap(from = 2016, to = 2019, panels = 3, output_to = "file", path = "C:/Temp")
+#' }
 #'
 #' @export
 #'

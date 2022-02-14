@@ -47,10 +47,11 @@
 #' @return Returns a dataframe with all microplot-related notes. Only returns records with notes.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # compile microplot notes for invasive species in GETT for 2018
 #' GETT_quads <- joinMicroNotes(park = 'GETT', from = 2018, to = 2018)
-#'
+#' }
 #'
 #' @export
 #'

@@ -10,9 +10,11 @@
 #' @return Returns a dataframe with cover class midpoints for each quadrat and includes guild for each species.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # reshape the plant taxa lookup to wide
 #' taxa_wide <- prepTaxa()
+#' }
 #'
 #' @export
 #'

@@ -85,6 +85,7 @@
 #' @return returns a dataframe with seedling and sapling densities, stocking index.
 #'
 #' @examples
+#' \dontrun{
 #' importCSV('./forest_csvs/')
 #' # Compile seedling and sapling data for all parks and all species in most recent cycle,
 #' # and only include seedlings >=15cm tall (default).
@@ -95,6 +96,7 @@
 #'
 #' # Compile seedling and sapling densities as stems/ha for all parks in most recent survey
 #' regen_data <- joinRegenData(units = 'ha', from = 2015, to = 2018)
+#' }
 #'
 #' @export
 #'

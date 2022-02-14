@@ -84,6 +84,7 @@
 #' associated data (eg TagCode, DBH), will be NA for those plot/events. ScientificName will be "None present".
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # compile tree data in all parks for live trees only in cycle 3, excluding QAQC visits
 #' live_trees <- joinTreeData(status = 'live', from = 2015, to = 2018)
@@ -99,6 +100,7 @@
 #'
 #' # compile all visits in GETT for 2019, including QAQC visits
 #' GETT_trees <- joinTreeData(park = "GETT", from = 2019, to = 2019, QAQC = TRUE)
+#' }
 #'
 #' @export
 #'

@@ -56,12 +56,16 @@
 #' between cover class ranges (e.g., 62.5 is the midpoint for 50-75%). Field names starting with "Txt" define the cover classes.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # import 4 years of BOWA stand data
 #' stand_df <- joinStandData(park = 'BOWA', from = 2015, to = 2019)
 #'
 #' # import all visits, including QAQC, from 2019 in FRSP. Only return important data fields.
 #' frsp_stand <- joinStandData(park = FRSP, from = 2019, to = 2019, QAQC = TRUE, output = 'short')
+#' }
+#'
+#'
 #' @export
 #'
 #------------------------

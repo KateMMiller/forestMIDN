@@ -47,10 +47,11 @@
 #' @return Returns a dataframe with all tree-related notes. Only returns records with notes.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # compile quadrat data for invasive species in THST for 2018
 #' THST_tree_notes <- joinTreeNotes(park = 'THST', from = 2018, to = 2018)
-#'
+#' }
 #'
 #' @export
 #'

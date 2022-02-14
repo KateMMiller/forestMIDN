@@ -56,12 +56,14 @@
 #' Note that horizons that were combined after lab QC may be > 10 cm deep.
 #'
 #' @examples
+#' \dontrun{
 #' importData() #imports using default odbc
 #'# join only A horizon data for most FRSP
 #' soil_FRSP_A <- joinSoilLabData(park = 'FRSP', from = 2010, to = 2013, layers = 'A')
 #'
 #'# join all park data from all layers and all years
 #' soil_df_all <- joinSoilLabData(layers = 'all')
+#' }
 #'
 #' @export
 #'

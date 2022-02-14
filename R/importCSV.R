@@ -16,13 +16,14 @@
 #' @return MIDN database views in specified environment
 #'
 #' @examples
+#' \dontrun{
 #' # Import individual csvs into global environment
 #' importCSV(path = "C:/Forest_Health/exports/MIDN", new_env = FALSE)
 #'
 #' # Import zipped csvs into VIEWS_MIDN environment
 #' path <- "C:/Forest_Health/exports/MIDN"
 #' importCSV(path = path, zip_name = "MIDN_Forest_20210409.zip")
-#'
+#' }
 #' @export
 
 importCSV<- function(path = NA, new_env = TRUE, zip_name = NA){
@@ -37,7 +38,7 @@ importCSV<- function(path = NA, new_env = TRUE, zip_name = NA){
   options(scipen = 100) # For TSNs
 
   view_list <- c("COMN_AdditionalSpecies", "COMN_CWD", "COMN_EventObservers", "COMN_Events",
-                 "COMN_MicroplotShrubs", "COMN_Plots", "COMN_QuadCharacter",
+                 "COMN_MicroplotShrubs", "COMN_Plots", "COMN_QuadCharacter", "COMN_QuadNotes",
                  "COMN_SoilHeader", "COMN_SoilSample", "COMN_SoilLab",
                  "COMN_StandDisturbances", "COMN_StandForestFloor", "COMN_StandPlantCoverStrata",
                  "COMN_StandSlopes", "COMN_StandTreeHeights", "COMN_Taxa", "COMN_TreesByEvent",

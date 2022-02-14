@@ -20,6 +20,7 @@
 #' @param name Character. Specifies the name of the database. Default is "MIDN_Forest"
 #'
 #' @examples
+#' \dontrun{
 #' # Import using default settings of local instance, server = 'localhost' and add VIEWS_MIDN environment
 #' importData()
 #'
@@ -28,6 +29,7 @@
 #'
 #' # Import from main database on server
 #' importData(server = "INP2300VTSQL16\\IRMADEV1", instance = "server", new_env = TRUE)
+#' }
 #'
 #' @return MIDN database views in specified environment
 #'
@@ -67,8 +69,8 @@ importData <- function(instance = c("local", "server"), server = "localhost", na
   )
 
   # Fetch names of views
-  view_list1 <- as.vector(RODBC::sqlTables(con, schema = "Analysis")$TABLE_NAME)
-  view_list <- view_list1[!view_list1 %in% "COMN_QuadNotes"]
+  view_list <- as.vector(RODBC::sqlTables(con, schema = "Analysis")$TABLE_NAME)
+  #view_list <- view_list1[!view_list1 %in% "COMN_QuadNotes"]
 
   # Setup progress bar
   pb <- txtProgressBar(min = 0, max = length(view_list), style = 3)

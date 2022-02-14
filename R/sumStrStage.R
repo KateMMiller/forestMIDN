@@ -56,9 +56,10 @@
 #' @return returns a dataframe with structural stage and metrics used to assign stages to plots.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' stage_df <- sumStrStage(park = 'FRSP', from = 2015, to = 2018)
-#'
+#' }
 #'
 #' @export
 #'

@@ -55,12 +55,14 @@
 #' @return Returns a dataframe with cover class midpoints for each quadrat and includes guild for each species.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # compile quadrat data cover class midpoints invasive species in VAFO for all years
 #' VAFO_quads <- joinQuadData(park = 'VAFO', valueType = 'midpoint')
 #'
 #' # compile quadrat data for cycle 3
 #' native_quads <- joinQuadData( from = 2015, to = 2018)
+#' }
 #'
 #' @export
 #'

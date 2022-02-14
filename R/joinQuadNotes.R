@@ -52,10 +52,11 @@
 #' it means the species with the note was also collected.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # compile quadrat data for invasive species in THST for 2019
 #' THST_quads <- joinQuadNotes(park = 'THST', from = 2019, to = 2019)
-#'
+#' }
 #'
 #' @export
 #'

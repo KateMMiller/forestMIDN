@@ -75,12 +75,14 @@
 #' @return returns a dataframe with shrub data collected in microplots
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # native shrubs in MORR all years
 #' native_shrubs <- joinMicroShrubData(park ='MORR', speciesType = 'native')
 #'
 #' # all parks with exotic shrubs in most recent survey
 #' exotic_shrubs <- joinMicroShrubData(from = 2015, to = 2018, speciesType = 'exotic')
+#' }
 #'
 #' @export
 #'

@@ -65,12 +65,14 @@
 #' @return Returns a dataframe with a row for each species recorded during the timed search per visit.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # compile invasive species found in plot search in VAFO for all years
-#' SARA_quads <- joinAdditionalSpecies.R(park = 'VAFO', speciesType = 'invasive')
+#' SARA_quads <- joinAdditionalSpecies(park = 'VAFO', speciesType = 'invasive')
 #'
 #' # compile all species, including QAQC visits for parks in cycle 3
 #' native_quads <- joinQuadSpecies(from = 2015, to = 2018, QAQC = TRUE)
+#' }
 #'
 #' @export
 #'
@@ -96,7 +98,7 @@ joinAdditionalSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = F
   env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
 
   # Prepare the quadrat data
-  tryCatch(addspp_vw <- get("COMN_AdditionalSpecies", envir = VIEWS_MIDN) %>%
+  tryCatch(addspp_vw <- get("COMN_AdditionalSpecies", envir = env) %>%
              select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC,
                     SQAddSppCode, SQAddSppNotes, TSN, ScientificName, ConfidenceClassCode,
                     IsCollected, Note),

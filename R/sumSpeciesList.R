@@ -67,6 +67,7 @@
 #' @return Returns a dataframe with species list for each plot.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #'
 #' # Compile number of invasive species found per plot in most recent survey for all parks
@@ -77,7 +78,7 @@
 #' # Compile species list for FRSP in 2019
 #' FRSP_spp <- sumSppList(park = 'FRSP', from = 2019, speciesType = 'all')
 #'
-#'
+#' }
 #'
 #' @export
 #'

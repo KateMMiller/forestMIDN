@@ -54,9 +54,11 @@
 #' are averaged across samples of the same horizon type.
 #'
 #' @examples
+#' \dontrun{
 #' importData() #default imports
 #'# join horizon depth data for GETT
 #' soil_GETT_O <- joinSoilSampleData(park = 'GETT', from = 2010, to = 2013)
+#' }
 #'
 #' @export
 #'

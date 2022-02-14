@@ -86,9 +86,11 @@
 #' @return returns a dataframe with one row for each plot and density, BA, or both by 10 cm size class.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' tree_diam_dist <-sumTreeDBHDist(park = 'MORR', speciesType = 'native', from = 2016, to = 2019, units = 'BA')
 #' head(tree_diam_dist)
+#'}
 #'
 #' @export
 #'

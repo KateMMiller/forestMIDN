@@ -55,12 +55,15 @@
 #' @return returns a dataframe with recorded disturbances
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # import 4 years of HOFU stand disturbances
 #' stand_df <- joinStandDisturbance(park = 'HOFU', from = 2015, to = 2019)
 #'
 #' # import all visits, including QAQC, from 2019 in FRSP. Only return important data fields.
 #' frsp_stand <- joinStandDisturbance(park = FRSP, from = 2019, to = 2019, QAQC = TRUE)
+#' }
+#'
 #' @export
 #'
 #------------------------

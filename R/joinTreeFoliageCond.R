@@ -63,6 +63,7 @@
 #' @return returns a wide dataframe with one row for each tree visit and foliage conditions as columns.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # compile numeric tree foliage condition data in all parks in cycle 3, excluding QAQC visits
 #' fol_c3 <- joinTreeFoliageCond(from = 2015, to = 2018, valueType = 'midpoint', QAQC = FALSE)
@@ -70,6 +71,7 @@
 #' # compile foliage condition cover classes for GETT in 2019, including QAQC visits
 #' GETT_trees <- joinTreeFoliageCond(park = "GETT", from = 2019, to = 2019, QAQC = TRUE,
 #'                                   valueType = 'classes')
+#' }
 #'
 #' @export
 #'
