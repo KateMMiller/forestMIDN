@@ -37,14 +37,13 @@ importCSV<- function(path = NA, new_env = TRUE, zip_name = NA){
 
   options(scipen = 100) # For TSNs
 
-  view_list <- c("COMN_AdditionalSpecies", "COMN_CWD", "COMN_EventObservers", "COMN_Events",
-                 "COMN_MicroplotShrubs", "COMN_Plots", "COMN_QuadCharacter", "COMN_QuadNotes",
-                 "COMN_SoilHeader", "COMN_SoilSample", "COMN_SoilLab",
-                 "COMN_StandDisturbances", "COMN_StandForestFloor", "COMN_StandPlantCoverStrata",
-                 "COMN_StandSlopes", "COMN_StandTreeHeights", "COMN_Taxa", "COMN_TreesByEvent",
-                 "COMN_TreesConditions", "COMN_TreesFoliageCond", "COMN_TreesVine",
-                 "MIDN_MicroplotSaplings", "MIDN_QuadSeedlings",
-                 "MIDN_QuadSpecies", "MIDN_StandInfoPhotos")
+  view_list <- c("AdditionalSpecies_MIDN", "CWD_MIDN", "EventObservers_MIDN", "Events_MIDN",
+                 "MicroplotSaplings_MIDN", "MicroplotShrubs_MIDN", "Plots_MIDN",
+                 "QuadCharacter_MIDN", "QuadNotes_MIDN", "QuadSeedlings_MIDN", "QuadSpecies_MIDN",
+                 "SoilHeader_MIDN", "SoilLab_MIDN", "SoilSample_MIDN", "StandDisturbances_MIDN",
+                 "StandForestFloor_MIDN", "StandInfoPhotos_MIDN", "StandPlantCoverStrata_MIDN",
+                 "StandSlopes_MIDN", "StandTreeHeights_MIDN", "Taxa_MIDN", "TreesByEvent_MIDN",
+                 "TreesConditions_MIDN", "TreesFoliageCond_MIDN", "TreesVine_MIDN")
 
   # Make sure zip file exists and all the views are included
   if(!is.na(zip_name)){

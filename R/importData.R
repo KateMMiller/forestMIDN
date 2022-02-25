@@ -53,7 +53,7 @@ importData <- function(instance = c("local", "server"), server = "localhost", na
     stop("Package 'DBI' needed for this function to work. Please install it.", call. = FALSE)
   }
 
-  if(!requireNamespace("dbplyr", quietly = TRUE)){
+  if(!requireNamespace("dplyr", quietly = TRUE)){
     stop("Package 'dbplyr' needed for this function to work. Please install it.", call. = FALSE)
   }
 
@@ -84,15 +84,15 @@ importData <- function(instance = c("local", "server"), server = "localhost", na
   )
 
   # Fetch names of views
-  view_list <- DBI::dbListTables(con, schema = "ANALYSIS")
+  view_list_db <- DBI::dbListTables(con, schema = "ANALYSIS")
 
   # Setup progress bar
-  pb <- txtProgressBar(min = 0, max = length(view_list), style = 3)
+  pb <- txtProgressBar(min = 0, max = length(view_list_db), style = 3)
 
   # Import views using their names and show progress bar
-  view_import <- lapply(seq_along(view_list), function(x){
+  view_import <- lapply(seq_along(view_list_db), function(x){
     setTxtProgressBar(pb, x)
-    view <- view_list[x]
+    view <- view_list_db[x]
     tab <- tbl(con, dbplyr::in_schema("ANALYSIS", view)) %>% collect() %>%
       as.data.frame()
     return(tab)
@@ -100,6 +100,13 @@ importData <- function(instance = c("local", "server"), server = "localhost", na
 
   close(pb)
   DBI::dbDisconnect(con)
+
+  # Rename to all NETN at the end
+  view_list <- lapply(seq_along(view_list_db), function(x){
+    paste0(substr(view_list_db[[x]], 1,
+                  nchar(view_list_db[[x]]) - 5),
+           "_MIDN")
+  })
 
   view_import <- setNames(view_import, view_list)
 

@@ -18,9 +18,8 @@ importData(
 \item{"server"}{Connects to main backend on server. Note that you must have permission to access the server, and
 connection speeds are likely to be much slower than the local instance. You must also be connected to VPN or NPS network.}}}
 
-\item{server}{Quoted name of the server to connect to. Valid inputs are your computer name or
-"localhost" (default) for the local instance, or the server address (currently "INP2300VTSQL16\\IRMADEV1")
-to connect to the main database.}
+\item{server}{Quoted name of the server to connect to, if instance = "server". Valid input is the server
+address to connect to the main database. If connecting to the local instance, leave blank.}
 
 \item{name}{Character. Specifies the name of the database. Default is "MIDN_Forest"}
 
@@ -33,9 +32,11 @@ MIDN database views in specified environment
 \description{
 This function imports all views in the ANALYSIS schema of the MIDN_Forest backend. Each view
 is added to a VIEWS_MIDN environment in your workspace, or to your global environment based on whether
-new_env = TRUE or FALSE.
+new_env = TRUE or FALSE. You must have the latest ODBC SQL driver installed for this function to
+work. It can be downloaded from: https://go.microsoft.com/fwlink/?linkid=2168524
 }
 \examples{
+\dontrun{
 # Import using default settings of local instance, server = 'localhost' and add VIEWS_MIDN environment
 importData()
 
@@ -43,6 +44,7 @@ importData()
 importData(server = "INPNETN-######", new_env = TRUE)
 
 # Import from main database on server
-importData(server = "INP2300VTSQL16\\\\IRMADEV1", instance = "server", new_env = TRUE)
+importData(server = "INP###########\\\\########", instance = "server", new_env = TRUE)
+}
 
 }
