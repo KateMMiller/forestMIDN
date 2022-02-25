@@ -85,11 +85,13 @@ Protocol Changes and Deviations document located in the Long-Term Forest Monitor
    https://irma.nps.gov/Datastore/Reference/Profile/2189101.
 }
 \examples{
+\dontrun{
 importData()
 # compile quadrat data for invasive species in VAFO for all years
 VAFO_quads <- joinQuadSpecies(park = 'VAFO', speciesType = 'invasive')
 
 # compile native species only for all parks in cycle 3
 native_quads <- joinQuadSpecies(speciesType = 'native', from = 2015, to = 2018)
+}
 
 }

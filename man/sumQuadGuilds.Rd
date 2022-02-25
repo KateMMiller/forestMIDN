@@ -81,6 +81,7 @@ Protocol IRMA Project:
    https://irma.nps.gov/Datastore/Reference/Profile/2189101.
 }
 \examples{
+\dontrun{
 importData()
 
 # compile invasive quad data for all parks and most recent survey. Keep ferns in with herbs
@@ -88,5 +89,6 @@ inv_guilds <- sumQuadGuilds(speciesType = 'invasive', from = 2015, to = 2018, sp
 
 # compile native quad data for more recent survey in BOWA, with ferns and forbs split in separate guilds
 BOWA_guilds <- sumQuadGuilds(speciesType = 'native', from = 2015, to = 2018, splitHerb = TRUE)
+}
 
 }

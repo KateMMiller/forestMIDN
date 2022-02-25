@@ -74,6 +74,7 @@ This function summarizes all species data collected in a plot visit, including l
 microplots, quadrats, and additional species lists.
 }
 \examples{
+\dontrun{
 importData()
 
 # Compile number of invasive species found per plot in most recent survey for all parks
@@ -84,6 +85,6 @@ num_inv_per_plot <- inv_spp \%>\% group_by(Plot_Name) \%>\% summarize(numspp = s
 # Compile species list for FRSP in 2019
 FRSP_spp <- sumSppList(park = 'FRSP', from = 2019, speciesType = 'all')
 
-
+}
 
 }

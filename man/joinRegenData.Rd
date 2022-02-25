@@ -98,6 +98,7 @@ rare, but mostly occur in data <2011. Note that the stocking index only includes
 but the sapling density returned is all saplings > 1cm and <10cm DBH. Must run importData first.
 }
 \examples{
+\dontrun{
 importCSV('./forest_csvs/')
 # Compile seedling and sapling data for all parks and all species in most recent cycle,
 # and only include seedlings >=15cm tall (default).
@@ -108,5 +109,6 @@ VAFO_regen <- joinRegenData(park = 'VAFO', speciesType = 'native')
 
 # Compile seedling and sapling densities as stems/ha for all parks in most recent survey
 regen_data <- joinRegenData(units = 'ha', from = 2015, to = 2018)
+}
 
 }

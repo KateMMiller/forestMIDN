@@ -66,9 +66,10 @@ This function combines qudrat-level notes from Quadrat Data, Quadrat Species, an
 Quadrat Seedling tabs and species level notes in the Quadrat Species and Seedlings Tabs.
 }
 \examples{
+\dontrun{
 importData()
 # compile quadrat data for invasive species in THST for 2019
 THST_quads <- joinQuadNotes(park = 'THST', from = 2019, to = 2019)
-
+}
 
 }

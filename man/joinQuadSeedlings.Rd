@@ -93,11 +93,13 @@ for the MIDN forest protocol located in the Long-Term Forest Monitoring Protocol
    https://irma.nps.gov/Datastore/Reference/Profile/2189101.
 }
 \examples{
+\dontrun{
 importData()
 # compile seedling data for invasive species in VAFO for all years
 VAFO_quads <- joinQuadSeedlings(park = 'VAFO', speciesType = 'invasive')
 
 # compile native seedlings only for all parks in cycle 3
 native_quads <- joinQuadSeedlings(speciesType = 'native', from = 2015, to = 2018)
+}
 
 }

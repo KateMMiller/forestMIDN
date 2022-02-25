@@ -68,8 +68,9 @@ in the field are automatically assigned those classes in the calculation.
 Must run importData first.
 }
 \examples{
+\dontrun{
 importData()
 stage_df <- sumStrStage(park = 'FRSP', from = 2015, to = 2018)
-
+}
 
 }

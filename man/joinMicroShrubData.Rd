@@ -88,11 +88,13 @@ Protocol Changes and Deviations document located in the Long-Term Forest Monitor
    https://irma.nps.gov/Datastore/Reference/Profile/2189101.
 }
 \examples{
+\dontrun{
 importData()
 # native shrubs in MORR all years
 native_shrubs <- joinMicroShrubData(park ='MORR', speciesType = 'native')
 
 # all parks with exotic shrubs in most recent survey
 exotic_shrubs <- joinMicroShrubData(from = 2015, to = 2018, speciesType = 'exotic')
+}
 
 }

@@ -70,11 +70,13 @@ so that each quadrat has a column. Notes fields are not compiled in this functio
 use the joinQuadNotes() function.
 }
 \examples{
+\dontrun{
 importData()
 # compile quadrat data cover class midpoints invasive species in VAFO for all years
 VAFO_quads <- joinQuadData(park = 'VAFO', valueType = 'midpoint')
 
 # compile quadrat data for cycle 3
 native_quads <- joinQuadData( from = 2015, to = 2018)
+}
 
 }

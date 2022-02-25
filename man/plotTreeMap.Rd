@@ -113,6 +113,7 @@ this function is best used on 1 to 4 year periods. Note that QA/QC events are no
 trees are plotted with 10 cm DBH assigned, as these don't get a DBH measurement when excluded.
 }
 \examples{
+\dontrun{
 importData()
 
 # make map for single plot
@@ -120,5 +121,6 @@ plotTreeMap(park = "FRSP", from = 2016, to = 2019, plotName = "FRSP-001")
 
 # save pdfs of maps for panel 3
 plotTreeMap(from = 2016, to = 2019, panels = 3, output_to = "file", path = "C:/Temp")
+}
 
 }

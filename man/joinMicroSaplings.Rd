@@ -97,11 +97,13 @@ record has a blank ScientificName and associated data, it means it's a missing v
 in data <2011.
 }
 \examples{
+\dontrun{
 importData()
 # compile sapling data for invasive species in VAFO for all years
 VAFO_quads <- joinQuadSaplings(park = 'VAFO', speciesType = 'invasive')
 
 # compile native saplings only for all parks in cycle 3
 native_quads <- joinQuadSaplings(speciesType = 'native', from = 2015, to = 2018)
+}
 
 }

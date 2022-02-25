@@ -69,8 +69,10 @@ help interpret the note.
 This function combines all notes collected for a given plot and/or visit
 }
 \examples{
+\dontrun{
 importData()
 # compile visit-level notes for plots sampled in GEWA in 2019
 GEWA_notes <- joinVisitNotes(park = 'GEWA', from = 2019, to = 2019, noteType = 'visit')
+}
 
 }

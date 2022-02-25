@@ -14,8 +14,10 @@ This function reshapes the plant taxa lookup table to match the tlu_Plants table
 to make filtering and summarizing easier. Function is mostly internal and used for quadrat species, seedling and sapling summaries.
 }
 \examples{
+\dontrun{
 importData()
 # reshape the plant taxa lookup to wide
 taxa_wide <- prepTaxa()
+}
 
 }
