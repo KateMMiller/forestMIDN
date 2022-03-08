@@ -73,7 +73,7 @@ Returns a dataframe with a row for each species recorded during the timed search
 This function compiles the additional species collected during a timed 15-minute plot search. This is
 primarily an internal function used for QAQC and to generate the species lists for makeSppList(). Note that the timed
 search wasn't implemented until 2009, and only included species on the MIDN indicator list, which has also had additions
-over time. Starting in 2019, all woody species were included in the timed search.For more information about how the
+over time. Sampleing in 2019, all woody species were included in the timed search.For more information about how the
 indicator list and protocol had changed ovre time, refer to the Summary of Major Protocol Changes document
 for the MIDN forest protocol located in the Long-Term Forest Monitoring Protocol IRMA Project:
    https://irma.nps.gov/Datastore/Reference/Profile/2189101.

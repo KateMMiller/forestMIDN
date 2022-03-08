@@ -74,17 +74,17 @@ joinMicroNotes <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, p
 
   env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
 
-  tryCatch(saps_vw <- get("MIDN_MicroplotSaplings", envir = env) %>%
+  tryCatch(saps_vw <- get("MicroplotSaplings_MIDN", envir = env) %>%
              select(PlotID, EventID, MicroplotCode, TagCode, SQSaplingNotes, SaplingNote),
-           error = function(e){stop("MIDN_MicroplotSaplings view not found. Please import view.")})
+           error = function(e){stop("MicroplotSaplings_MIDN view not found. Please import view.")})
 
-  tryCatch(shrubs_vw <- get("COMN_MicroplotShrubs", envir = env) %>%
+  tryCatch(shrubs_vw <- get("MicroplotShrubs_MIDN", envir = env) %>%
              select(PlotID, EventID, MicroplotCode, SQShrubNotes, ShrubNote),
-           error = function(e){stop("COMN_MicroplotShrubs view not found. Please import view.")})
+           error = function(e){stop("MicroplotShrubs_MIDN view not found. Please import view.")})
 
   plot_events <- joinLocEvent(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
                               locType = locType, eventType = eventType, output = 'verbose') %>%
-    select(Plot_Name, PlotID, EventID, StartYear, IsQAQC)
+    select(Plot_Name, PlotID, EventID, SampleYear, IsQAQC)
 
   if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
 
@@ -110,8 +110,8 @@ joinMicroNotes <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, p
 
   micro_evs <- inner_join(plot_events, micro_comb,
                           by = intersect(names(plot_events), names(micro_comb))) %>%
-    select(Plot_Name, PlotID, EventID, StartYear, IsQAQC, Note_Type, Sample_Info, Notes) %>%
-    arrange(Plot_Name, StartYear, IsQAQC, Note_Type, Sample_Info)
+    select(Plot_Name, PlotID, EventID, SampleYear, IsQAQC, Note_Type, Sample_Info, Notes) %>%
+    arrange(Plot_Name, SampleYear, IsQAQC, Note_Type, Sample_Info)
 
   return(micro_evs)
 }

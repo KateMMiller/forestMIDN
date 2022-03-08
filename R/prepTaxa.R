@@ -23,11 +23,11 @@ prepTaxa <- function(){
 
   env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
 
-  tryCatch(taxa <- get("COMN_Taxa", envir = env) %>%
+  tryCatch(taxa <- get("Taxa_MIDN", envir = env) %>%
              select(TaxonID, TSN, ScientificName, CommonName, Order, Family,
                     Genus, Species, SubSpecies, IsExotic, InvasiveNETN, IsCanopyExclusion, IsFernAlly,
                     TaxonGroupLabel, DeerIndicatorTree, DeerIndicatorHerb, FilterMIDN),
-           error = function(e){stop("COMN_Taxa view not found. Please import view.")})
+           error = function(e){stop("Taxa_MIDN view not found. Please import view.")})
 
   # Clean up taxa table so easier to work with
   names(taxa)[names(taxa) == "IsFernAlly"] <- "FernAlly"
