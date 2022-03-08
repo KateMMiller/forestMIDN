@@ -44,6 +44,8 @@
 #' \item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
 #' associated with that event (eg COLO-380.2018). This feature is currently hard-coded in the function.}}
 #'
+#' @param ... Other arguments passed to function.
+#'
 #' @return Returns a dataframe with all microplot-related notes. Only returns records with notes.
 #'
 #' @examples
@@ -83,7 +85,7 @@ joinMicroNotes <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, p
            error = function(e){stop("MicroplotShrubs_MIDN view not found. Please import view.")})
 
   plot_events <- joinLocEvent(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
-                              locType = locType, eventType = eventType, output = 'verbose') %>%
+                              locType = locType, eventType = eventType, output = 'verbose', ...) %>%
     select(Plot_Name, PlotID, EventID, SampleYear, IsQAQC)
 
   if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}

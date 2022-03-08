@@ -51,6 +51,8 @@
 #' \item{"acres"}{Returns CWD volume as cubic ft/acre}
 #'}
 #'
+#' @param ... Other arguments passed to function.
+#'
 #' @return returns a dataframe with CWD volume for each plot, species, decay class combination
 #'
 #' @examples
@@ -173,7 +175,7 @@ joinCWDData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE,
 
   plot_events <- force(joinLocEvent(park = park, from = from , to = to, QAQC = QAQC,
                                     panels = panels, locType = locType, eventType = "complete",
-                                    abandoned = FALSE, output = 'short')) %>%
+                                    abandoned = FALSE, output = 'short', ...)) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
            EventID, SampleYear, SampleDate, cycle, IsQAQC)
 

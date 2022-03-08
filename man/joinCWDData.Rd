@@ -59,6 +59,8 @@ inputs are "short" and "verbose".}
 \item{"ha"}{Default. Returns CWD volume as cubic m/hectare}
 \item{"acres"}{Returns CWD volume as cubic ft/acre}
 }}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 returns a dataframe with CWD volume for each plot, species, decay class combination

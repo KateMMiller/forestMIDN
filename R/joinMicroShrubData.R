@@ -72,6 +72,8 @@
 #' \item{"averages"}{Returns only the plot-level average cover and percent frequency per species.}
 #' }
 #'
+#' @param ... Other arguments passed to function.
+#'
 #' @return returns a dataframe with shrub data collected in microplots
 #'
 #' @examples
@@ -122,7 +124,7 @@ joinMicroShrubData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
   # subset with EventID from plot_events to make function faster
   plot_events <- force(joinLocEvent(park = park, from = from , to = to, QAQC = QAQC,
                                     panels = panels, locType = locType, eventType = eventType,
-                                    abandoned = FALSE, output = 'short')) %>%
+                                    abandoned = FALSE, output = 'short', ...)) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
            EventID, SampleYear, SampleDate, cycle, IsQAQC)
 

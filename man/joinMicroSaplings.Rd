@@ -79,6 +79,8 @@ associated with that event (eg COLO-380-2018). This feature is currently hard-co
 \item{"canopy"}{Returns canopy-forming species only.}
 }}
 
+\item{...}{Other arguments passed to function.}
+
 \item{valueType}{Allows you to return cover class midpoints (numeric) or cover class ranges (text)
 \describe{
 \item{"all"}{Default. Returns columns for midpoint and cover classes for each quad}

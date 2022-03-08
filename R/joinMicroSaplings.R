@@ -79,6 +79,8 @@
 #' \item{"averages"}{Returns only the plot-level average cover and percent frequency.}
 #' }
 #'
+#' @param ... Other arguments passed to function.
+#'
 #' @return Returns a dataframe with a row for each species/visit combination for quadrat data
 #'
 #' @examples
@@ -130,7 +132,7 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
   # subset with EventID from plot_events to make function faster
   plot_events <- force(joinLocEvent(park = park, from = from , to = to, QAQC = QAQC,
                                     panels = panels, locType = locType, eventType = eventType,
-                                    abandoned = FALSE, output = 'short')) %>%
+                                    abandoned = FALSE, output = 'short', ...)) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
            EventID, SampleYear, SampleDate, cycle, IsQAQC)
 
