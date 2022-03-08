@@ -1,7 +1,7 @@
 Package: forestMIDN
 Type: Package
 Title: Package for importing, joining and querying MIDN forest database tables
-Version: 1.0
+Version: 1.01
 Author: Kate Miller
 Maintainer: Kate Miller <kathryn_miller@nps.gov>
 Description: This package contains functions that import database views from the MIDN forest backend and or exported CSVs from the backend and provides functions to query and summarize MIDN forest data.
@@ -10,16 +10,19 @@ Depends:
     R(>= 4.0)
 Imports: 
     dplyr,
-    magrittr,
-    stringr,
     ggplot2,
+    magrittr,
     purrr,
-    tidyr
+    stringr,
+    tidyr,
+    tidyselect
 Suggests: 
-    RODBC,
+    cowplot,
     DBI,
+    dbplyr,
     ggrepel,
-    cowplot
+    odbc,
+    zip
 Collate: 
     'exportCSV.R'
     'importCSV.R'
