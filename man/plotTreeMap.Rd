@@ -96,6 +96,8 @@ the plot name.}
 \item{"view"}{Default. Plot in current R session. Note that this may be slow if multiple plots are included in the function arguments.}
 }}
 
+\item{...}{Other arguments passed to function.}
+
 \item{output}{Allows you to return all columns or just the most important columns for analysis. Valid
 inputs are "short" and "verbose".}
 }
