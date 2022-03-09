@@ -128,12 +128,12 @@ sumSapDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, lo
   if(nrow(sap_check)>0){
     warning(paste("The", nrow(sap_check), "records below are missing DBH measurements and will be removed from summaries."),
             "\n",
-            paste(capture.output(data.frame(sap_check[, c("Plot_Name", "StartYear", "TagCode")])), collapse = "\n"))
+            paste(capture.output(data.frame(sap_check[, c("Plot_Name", "SampleYear", "TagCode")])), collapse = "\n"))
   }
 
-  #sap_evs2 <- sap_evs %>% arrange(Plot_Name, StartYear, IsQAQC, size_class) %>% filter(!size_class %in% "unknown")
+  #sap_evs2 <- sap_evs %>% arrange(Plot_Name, SampleYear, IsQAQC, size_class) %>% filter(!size_class %in% "unknown")
 
-  sap_dist <- sap_evs %>% group_by(Plot_Name, ParkUnit, PlotID, EventID, StartYear, IsQAQC,
+  sap_dist <- sap_evs %>% group_by(Plot_Name, ParkUnit, PlotID, EventID, SampleYear, IsQAQC,
                                    size_class) %>%
                           summarize(dens = ((sum(stem))*10000)/((pi*3^2)*3), #stems/ha
                                     BA = sum(BA_cm2)/((pi*3^2)*3), #m2/ha
@@ -173,14 +173,13 @@ sumSapDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, lo
                             "BA_9_9.9")
                  )
 
-
   missing_sizes <- setdiff(sizes, names(sap_dist_wide))
 
   sap_dist_wide[missing_sizes] <- 0
 
   sap_dist_final <- left_join(plot_events, sap_dist_wide,
                               by = intersect(names(plot_events), names(sap_dist_wide))) %>%
-    select(Plot_Name, ParkUnit, PlotID, EventID, StartYear, IsQAQC, cycle,
+    select(Plot_Name, ParkUnit, ParkSubUnit, PlotID, EventID, SampleYear, IsQAQC, cycle,
            all_of(sizes))
 
 
