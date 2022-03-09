@@ -87,24 +87,32 @@ joinSoilLabData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALSE, 
   env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
 
   # Prepare the soil data
-  tryCatch(soilhd_vw <- get("COMN_SoilHeader", envir = env) %>%
-             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, StartDate, IsQAQC,
-                    SampleTypeLabel, PositionCode, HorizonCode,
-                    SoilEventNote, IsArchived),
-           error = function(e){stop("COMN_SoilHeader view not found. Please import view.")})
+  tryCatch(soilhd_vw <- get("SoilHeader_MIDN", envir = env) %>%
+             select(Plot_Name, PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode,
+                    SampleYear, SampleDate, IsQAQC, SampleTypeCode, PositionCode, HorizonCode,
+                    SoilEventNote, IsArchived) %>%
+             filter(SampleYear > 2006
+             ),
+           error = function(e){stop("SoilHeader_MIDN view not found. Please import view.")})
 
-  tryCatch(soillab_vw <- get("COMN_SoilLab", envir = env) %>%
-             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, StartDate, IsQAQC,
-                    LabLayer, LabDateSoilCollected, UMOSample:ECEC, LabNotes, EventID, PlotID) %>%
+  tryCatch(soillab_vw <- get("SoilLab_MIDN", envir = env) %>%
+             select(Plot_Name, PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear,
+                    SampleDate, IsQAQC, LabLayer, LabDateSoilCollected, UMOSample:ECEC, LabNotes,
+                    EventID, PlotID) %>%
              filter(!is.na(UMOSample)) %>% # drops soils not sampled
-             filter(LabLayer %in% c("10 cm", "10cm - NonVS", "A", "A - NonVS", "O", "O/A")),
-           error = function(e){stop("COMN_SoilLab view not found. Please import view.")})
+             filter(LabLayer %in% c("10 cm", "10cm - NonVS", "A", "A - NonVS", "O", "O/A")) %>%
+             filter(SampleYear > 2006
+             ),
+           error = function(e){stop("SoilLab_MIDN view not found. Please import view.")})
 
-  tryCatch(soilsamp_vw <- get("COMN_SoilSample", envir = env) %>%
-             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, StartDate, IsQAQC,
-                    SQSoilCode, SampleSequenceCode, SoilLayerLabel,
-                    Depth_cm, Note),
-           error = function(e){stop("COMN_SoilSample view not found. Please import view.")})
+  tryCatch(soilsamp_vw <- get("SoilSample_MIDN", envir = env) %>%
+             select(Plot_Name, PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear,
+                    SampleDate, IsQAQC, SQSoilCode, SampleSequenceCode, SoilLayerLabel,
+                    Depth_cm, Note) %>%
+             filter(SampleYear > 2006
+             ),
+           error = function(e){stop("SoilSample_MIDN view not found. Please import view.")})
+
 
   # Prepare to pivot the soilsamp_vw layers wide (clean up after next migration)
   soilhd_samp <- soilhd_vw[!grepl("[^[++]]", soilhd_vw$SoilEventNote),]
@@ -116,7 +124,7 @@ joinSoilLabData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALSE, 
                                     panels = panels, locType = locType, eventType = "complete",
                                     abandoned = FALSE, output = 'short')) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
-           EventID, StartDate, StartYear, cycle, IsQAQC)
+           EventID, SampleDate, SampleYear, cycle, IsQAQC)
 
   if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
 
@@ -146,14 +154,14 @@ joinSoilLabData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALSE, 
   # Only interested in merging records of sampled soil
   soil_merge <- left_join(soilsamp_wide, soilhd_evs,
                           by = c("PlotID", "EventID", "ParkUnit", "ParkSubUnit",
-                                 "PlotCode", "StartYear", "IsQAQC")) %>%
-                select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear,
+                                 "PlotCode", "SampleYear", "IsQAQC")) %>%
+                select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear,
                        IsQAQC, SampleSequenceCode, Litter, O_Horizon, A_Horizon, Total_Depth)
 
   # Summarize depth of each layer. Need to drop some columns that will get added back later.
   # Also need to drop samples that have 0s.
   soil_samp_sum <- soil_merge %>% filter(Litter + O_Horizon + A_Horizon + Total_Depth > 0) %>%
-    group_by(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC) %>%
+    group_by(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear, IsQAQC) %>%
     summarize(num_samps = length(!is.na(SampleSequenceCode)),
               Litter_sum = as.numeric(sum(Litter)),
               O_Hor_sum = as.numeric(sum(O_Horizon)),
@@ -175,7 +183,7 @@ joinSoilLabData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALSE, 
   colnames(soillab2) <- gsub("Analysis", "", colnames(soillab2))
 
   # Identify layers that have 2 O or A horizons after Horizon_QC
-  soil_check <- soillab2 %>% group_by(PlotID, EventID, ParkUnit, PlotCode, StartYear, IsQAQC, Horizon_QC) %>%
+  soil_check <- soillab2 %>% group_by(PlotID, EventID, ParkUnit, PlotCode, SampleYear, IsQAQC, Horizon_QC) %>%
     summarize(hor_samps = n(), .groups = 'keep')
 
   soillab3 <- left_join(soillab2, soil_check, by = intersect(names(soillab2), names(soil_check)))
@@ -234,7 +242,7 @@ joinSoilLabData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALSE, 
            lastID = Horizon_QC,
            Field_misID = ifelse(LabLayer != Horizon_QC, 1, 0),
            Weighted = 0) %>%
-    select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear,
+    select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear,
            IsQAQC, Horizon_QC, Field_misID, firstID, lastID, Sample_Depth,
            num_samps, soilpH, pctLOI, pctTN, pctTC, Ca, K, Mg, P, Al,
            Fe, Mn, Na, Zn, acidity, ECEC, Ca_Al, C_N, Ca_meq, K_meq, Mg_meq, Na_meq,
@@ -246,7 +254,7 @@ joinSoilLabData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALSE, 
   # non NA value). If no NAs, then calculates weighted average of chemistry based on depth collected
 
   soil_dups <- suppressWarnings(soil_merge2 %>% filter(hor_samps == 2) %>%
-    group_by(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC,
+    group_by(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear, IsQAQC,
              Horizon_QC) %>%
     summarize(
       across(c(soilpH, pctLOI, pctTN, pctTC, Ca, K, Mg, P, Al, Fe, Mn, Na, Zn,
@@ -271,7 +279,7 @@ joinSoilLabData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALSE, 
   # Combine the corrected and QCed soil lab data
   soil_comb <- rbind(soil_sing, soil_dups) %>%
     mutate(horizon_depth = Sample_Depth / num_samps) %>%
-    select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear,
+    select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear,
            IsQAQC, Horizon_QC, Field_misID, horizon_depth, Weighted,
            num_samps, soilpH, pctLOI, pctTN, pctTC, Ca, K, Mg, P, Al,
            Fe, Mn, Na, Zn, acidity, ECEC,
