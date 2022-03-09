@@ -264,9 +264,9 @@ joinRegenData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pa
                                     .groups = 'drop')
 
   # Calculate stocking index now that seedlings and saplings are stems/m2- don't need to divide anything
-  reg_stock <- reg_sum %>% mutate(stock = 1*seed_15_30cm + 2*seed_30_100cm +
-                                          20*seed_100_150cm + 50*seed_p150cm +
-                                          50*sap_stems_SI,
+  reg_stock <- reg_sum %>% mutate(stock = 1 * seed_15_30cm + 2 * seed_30_100cm +
+                                          20 * seed_100_150cm + 50 * seed_p150cm +
+                                          50 * sap_stems_SI,
                                   seed_den = seed_15_30cm + seed_30_100cm + seed_100_150cm +
                                              seed_p150cm,
                                   sap_den = sap_stems,
