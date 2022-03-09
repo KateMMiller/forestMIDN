@@ -77,6 +77,8 @@ associated with that event (eg ACAD-029.2010). This feature is currently hard-co
 \item{"midpoint"}{Default. Returns numeric cover class midpoints, with Pct prefix.}
 \item{"classes"}{Returns the text cover class definitions, with Txt prefix.}
 }}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 Returns a dataframe with a row for each species/visit combination for quadrat data

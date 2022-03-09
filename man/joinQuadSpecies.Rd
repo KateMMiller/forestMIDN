@@ -71,6 +71,8 @@ associated with that event (eg ACAD-029.2010). This feature is currently hard-co
 \item{"classes"}{Returns the text cover class definitions, with Txt prefix.}
 \item{"averages"}{Returns only the plot-level average cover and percent frequency.}
 }}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 Returns a dataframe with a row for each species/visit combination for quadrat data
