@@ -9,7 +9,7 @@
 #' Average cover is corrected for number of quadrats sampled. Guilds are tree, shrub, forb, fern, and graminoid. If herbaceous guild
 #' is split, then cover of ferns does not overlap with cover of herbaceous. If herbaceous guild is not split, then cover of herbaceous
 #' guild includes fern and other herbaceous (but not graminoid) species cover. Only works for complete events, but does include plots
-#' where a few quadrats were not sampled. Note that this function does not account for changes in the indicator list over time. Starting
+#' where a few quadrats were not sampled. Note that this function does not account for changes in the indicator list over time. Sampleing
 #' in 2019, all woody species were sampled in quadrats, and will show a large increase in tree and shrub cover as a result. Seedling cover
 #' recorded in the quadrat seedlings tab are not summarized here. For more information on how the indicator list has changed over time in
 #' MIDN, refer to Table S17.4 in the Summary of Major Protocol Changes and Deviations document located in the Long-Term Forest Monitoring
@@ -62,6 +62,8 @@
 #' @param splitHerb TRUE/FALSE. If TRUE (Default), splits the herbaceous group into forb and fern. If FALSE,
 #' then resulting data frame will be summarized for tree, shrub, herbaceous, and graminoid guilds.
 #'
+#' @param ... Other arguments passed to function.
+#'
 #' @return Returns a data frame with average quadrat cover, percent quadrat frequency and quadrat
 #' frequency count for tree, shrub/vine, herbaceous, and graminoid for each plot visit. Data are either
 #' summarized for all species, native only, exotic only, or invasive only.
@@ -100,7 +102,7 @@ sumQuadGuilds <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pa
   # Prepare the quadrat data
   quad_evs <- suppressWarnings(joinQuadSpecies(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
                                                locType = locType, eventType = 'complete', speciesType = speciesType,
-                                               valueType = 'midpoint')) %>%
+                                               valueType = 'midpoint', ...)) %>%
     filter(!TSN %in% -9999999950) # Drops "Unknown species" which can't be fit into a group
 
 
@@ -123,7 +125,7 @@ sumQuadGuilds <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pa
                                           TRUE ~ "Unk"))
   }
 
-  quad_sum <- quad_evs2 %>% group_by(Plot_Name, ParkUnit, PlotID, EventID, IsQAQC, StartYear, StartDate, cycle, group) %>%
+  quad_sum <- quad_evs2 %>% group_by(Plot_Name, ParkUnit, PlotID, EventID, IsQAQC, SampleYear, SampleDate, cycle, group) %>%
     summarize(pct_A2 = sum(Pct_Cov_A2, na.rm = T),
               pct_A5 = sum(Pct_Cov_A5, na.rm = T),
               pct_A8 = sum(Pct_Cov_A8, na.rm = T),

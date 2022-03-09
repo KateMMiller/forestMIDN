@@ -65,6 +65,8 @@ associated with that event (eg COLO-380-2018). This feature is currently hard-co
 \item{"exotic"}{Returns exotic species only}
 \item{"invasive"}{Returns species on the Indicator Invasive List}
 }}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 Returns a dataframe with species list for each plot.

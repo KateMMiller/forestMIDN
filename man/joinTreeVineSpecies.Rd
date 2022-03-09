@@ -62,6 +62,8 @@ If more than one panel is selected, specify by c(1, 3), for example.}
 \item{dist_m}{Filter trees by a distance that is less than or equal to the specified distance in meters
 of the tree to the center of the plot. If no distance is specified, then all trees will be selected. For
 example, to select an area of trees that is 100 square meters in area, use a distance of 5.64m.}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 returns a data frame for every tree visit with at least one vine condition recorded. Trees

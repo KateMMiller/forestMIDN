@@ -162,7 +162,7 @@ joinLocEvent<-function(park = "all", from = 2007, to = 2021, QAQC = FALSE, aband
   ncbnc4 <- (2020:2023)
   ncbn <- c("GEWA", "SAHI", "THST")
   midn <- c("APCO", "BOWA", "FRSP", "GETT", "HOFU", "PETE", "RICH", "VAFO")
-  asisc1 <- c(2019:2022)
+  asisc1 <- c(2019:2024)
 
   plot_events7$cycle <- NA
   plot_events7$cycle[plot_events7$ParkUnit == "COLO" & plot_events7$SampleYear %in% coloc1] <- 1

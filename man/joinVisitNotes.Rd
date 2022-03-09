@@ -59,6 +59,8 @@ associated with that event (eg COLO-380.2018). This feature is currently hard-co
 \item{"visit"}{Default. Only return notes recorded at the visit level.}
 \item{"all"}{Return visit and plot-level notes.}
 }}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 Returns a dataframe with all notes related to a plot and visit. Only returns records with notes. The Note_Info

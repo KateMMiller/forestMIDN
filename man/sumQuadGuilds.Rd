@@ -62,6 +62,8 @@ include all plots, such as deer exclosures.
 
 \item{splitHerb}{TRUE/FALSE. If TRUE (Default), splits the herbaceous group into forb and fern. If FALSE,
 then resulting data frame will be summarized for tree, shrub, herbaceous, and graminoid guilds.}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 Returns a data frame with average quadrat cover, percent quadrat frequency and quadrat
@@ -73,7 +75,7 @@ This function summarizes output from joinQuadData and calculates average cover a
 Average cover is corrected for number of quadrats sampled. Guilds are tree, shrub, forb, fern, and graminoid. If herbaceous guild
 is split, then cover of ferns does not overlap with cover of herbaceous. If herbaceous guild is not split, then cover of herbaceous
 guild includes fern and other herbaceous (but not graminoid) species cover. Only works for complete events, but does include plots
-where a few quadrats were not sampled. Note that this function does not account for changes in the indicator list over time. Starting
+where a few quadrats were not sampled. Note that this function does not account for changes in the indicator list over time. Sampleing
 in 2019, all woody species were sampled in quadrats, and will show a large increase in tree and shrub cover as a result. Seedling cover
 recorded in the quadrat seedlings tab are not summarized here. For more information on how the indicator list has changed over time in
 MIDN, refer to Table S17.4 in the Summary of Major Protocol Changes and Deviations document located in the Long-Term Forest Monitoring
