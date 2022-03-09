@@ -73,10 +73,12 @@ associated with that event (eg COLO-380-2018). This feature is currently hard-co
 
 \item{units}{Calculates seedling and sapling densities based on different units.
 \describe{
-\item{"sq.m"}{Default. Returns seedling and sapling densities per square meter.}
-\item{"ha"}{Returns seedling and sapling densities per hectare}
-\item{"acres"}{Returns densities per acre}
+\item{"sq.m"}{Default. Returns seedling and sapling densities and stocking index per square meter.}
+\item{"ha"}{Returns seedling and sapling densities per hectare and stocking index on McWilliams 100pt scale.}
+\item{"acres"}{Returns seedling and sapling densities per acre. Stocking index is same as sq.m.}
 }}
+
+\item{...}{Other arguments passed to function.}
 
 \item{valueType}{Allows you to return cover class midpoints (numeric) or cover class ranges (text)
 \describe{
