@@ -11,8 +11,7 @@ joinSoilLabData(
   QAQC = FALSE,
   panels = 1:4,
   locType = c("VS", "all"),
-  layer = c("all", "O", "A"),
-  ...
+  layer = c("all", "O", "A")
 )
 }
 \arguments{

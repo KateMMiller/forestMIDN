@@ -13,8 +13,7 @@ joinTreeFoliageCond(
   panels = 1:4,
   speciesType = c("all", "native", "exotic"),
   dist_m = NA,
-  valueType = c("midpoint", "classes"),
-  ...
+  valueType = c("midpoint", "classes")
 )
 }
 \arguments{

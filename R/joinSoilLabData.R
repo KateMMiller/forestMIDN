@@ -71,7 +71,7 @@
 # Join soil lab data
 #------------------------
 joinSoilLabData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALSE, panels = 1:4,
-                            locType = c('VS', 'all'), layer = c("all", "O", "A"), ...){
+                            locType = c('VS', 'all'), layer = c("all", "O", "A")){
 
   # Match args and class
   park <- match.arg(park, several.ok = TRUE,

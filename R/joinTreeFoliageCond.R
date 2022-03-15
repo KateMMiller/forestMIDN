@@ -81,7 +81,7 @@
 joinTreeFoliageCond <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE,
                                 locType = c('VS', 'all'), panels = 1:4,
                                 speciesType = c('all', 'native','exotic'), dist_m = NA,
-                                valueType = c("midpoint", "classes"), ...){
+                                valueType = c("midpoint", "classes")){
 
   # Match args and class
   park <- match.arg(park, several.ok = TRUE,

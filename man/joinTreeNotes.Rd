@@ -11,8 +11,7 @@ joinTreeNotes(
   QAQC = FALSE,
   panels = 1:4,
   locType = c("VS", "all"),
-  eventType = c("complete", "all"),
-  ...
+  eventType = c("complete", "all")
 )
 }
 \arguments{

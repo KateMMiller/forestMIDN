@@ -13,8 +13,7 @@ joinTreeConditions(
   panels = 1:4,
   status = c("all", "active", "live", "dead"),
   speciesType = c("all", "native", "exotic"),
-  dist_m = NA,
-  ...
+  dist_m = NA
 )
 }
 \arguments{

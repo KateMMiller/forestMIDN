@@ -66,7 +66,7 @@
 # Join soil sample data
 #------------------------
 joinSoilSampleData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALSE, panels = 1:4,
-                               locType = c('VS', 'all'), last_lab_year = 2014, ...){
+                               locType = c('VS', 'all'), last_lab_year = 2014){
 
   # Match args and class
   park <- match.arg(park, several.ok = TRUE,
@@ -100,8 +100,8 @@ joinSoilSampleData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALS
   # Pull in the soil lab data with QCed horizons
   # From is 2010, so doesn't fail if no lab data exist for a given year
   soillab <- joinSoilLabData(park = park, from = 2010, to = to, QAQC = QAQC,
-                             panels = panels, locType = locType, eventType = 'complete',
-                             abandoned = FALSE, layer = 'all') %>%
+                             panels = panels, locType = locType,
+                             layer = 'all') %>%
              select(Plot_Name, PlotID, EventID, SampleYear, SampleDate, IsQAQC, Horizon_QC, Field_misID,
                     horizon_depth, num_samps)
 

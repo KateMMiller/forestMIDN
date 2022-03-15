@@ -16,8 +16,7 @@ joinTreeData(
   canopyPosition = c("all", "canopy"),
   dist_m = NA,
   eventType = c("complete", "all"),
-  output = "short",
-  ...
+  output = "short"
 )
 }
 \arguments{
