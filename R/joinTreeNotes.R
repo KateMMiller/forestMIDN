@@ -81,7 +81,8 @@ joinTreeNotes <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pa
 
   plot_events <- joinLocEvent(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
                               locType = locType, eventType = eventType, output = 'verbose') %>%
-                 select(Plot_Name, PlotID, EventID, SampleYear, IsQAQC)
+                 select(Plot_Name, PlotID, EventID, Network, ParkUnit, ParkSubUnit,
+                        SampleDate, SampleYear, cycle, IsQAQC)
 
   if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
 
@@ -89,7 +90,8 @@ joinTreeNotes <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pa
               mutate(Sample_Info = paste0("Tree Tag: ", TagCode),
                      Note_Type = "Tree_Notes",
                      Notes = TreeEventNote) %>%
-              select(Plot_Name, PlotID, EventID, SampleYear, IsQAQC, Note_Type, Sample_Info, Notes)
+              select(Plot_Name, PlotID, EventID, EventID, Network, ParkUnit, ParkSubUnit,
+                     SampleDate, SampleYear, IsQAQC, Note_Type, Sample_Info, Notes)
 
   return(tree_evs)
 

@@ -171,7 +171,11 @@ joinRegenData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pa
   saps_raw <- joinMicroSaplings(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
                                 locType = locType, eventType = eventType, speciesType = speciesType,
                                 canopyForm = canopyForm, status = 'live') %>%
-    mutate(SizeClass = ifelse(DBHcm <= 2.5, "Sapling_SI", "Sapling")) # NAs where None Present
+    mutate(SizeClass = ifelse(is.na(DBHcm) | DBHcm > 2.5, "Sapling", "Sapling_SI")) # NAs where None Present
+
+  # 2 blank DBH records in MIDN data.
+  # Want them to carry through function, but not be included in stocking index (only know 1
+  # was > Stocking_SI)
 
   # Set up plots missing all sapling data and calculate number of microplots sampled
   num_samp_micros_sap <- saps_raw %>% select(Plot_Name, SampleYear, IsQAQC, EventID, SQSaplingCode, MicroplotCode) %>%
@@ -198,8 +202,7 @@ joinRegenData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, pa
              TSN, ScientificName, CanopyExclusion, Exotic, InvasiveMIDN, SizeClass)  %>%
     summarize(Count = sum(Count), .groups = 'drop')
 
-
-  # Combin seedling and sapling data
+  # Combine seedling and sapling data
   reg_long <- rbind(seeds_long, sap_sum)
 
   reg_wide <- reg_long %>% pivot_wider(names_from = "SizeClass",

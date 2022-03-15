@@ -205,6 +205,7 @@ joinQuadSeedlings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
   seed_comb$Pct_Cov[seed_comb$CovClass_num == 9] <- 97.5
   seed_comb$Txt_Cov <- NA
   seed_comb$Txt_Cov <- ifelse(seed_comb$CoverClassLabel == "-<1%", "<1%", seed_comb$CoverClassLabel)
+  seed_comb$Txt_Cov[seed_comb$SQSeedlingCode == "NS"] <- "Not Sampled"
 
   # Clean up filtered columns and NS
   seed_comb$Seedlings_15_30cm[(seed_comb$SQSeedlingCode == "NS")] <- NA_real_

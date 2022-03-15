@@ -145,6 +145,10 @@ joinTreeFoliageCond <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
                            select(-PercentLeavesCode, -PercentLeavesLabel,
                                   -PercentLeafAreaCode, -PercentLeafAreaLabel)
 
+  # Convert 0 to NA for leaf area before it was collected in 2016
+  fol_evs3$Pct_Leaf_Area[fol_evs3$SampleYear < 2016] <- NA_real_
+  fol_evs3$Txt_Leaf_Area[fol_evs3$SampleYear < 2016] <- "Not Collected"
+
   # have to add all possible codes before pivot
   full_conds <- data.frame(FoliageConditionCode = c("C", "H", "L", "N", "S", "W", "O"))
 
@@ -189,6 +193,17 @@ joinTreeFoliageCond <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
 
   fol_final <- filter(fol_wide2, !is.na(Plot_Name)) %>% # NA row added if cond code missing
     arrange(Plot_Name, SampleYear, IsQAQC, TagCode)
+
+  if(valueType == 'classes'){
+    fol_final$Txt_Leaf_Area_C[fol_final$SampleYear < 2016] <- "Not Collected"
+    fol_final$Txt_Leaf_Area_H[fol_final$SampleYear < 2016] <- "Not Collected"
+    fol_final$Txt_Leaf_Area_N[fol_final$SampleYear < 2016] <- "Not Collected"
+
+  } else if(valueType == 'midpoint'){
+    fol_final$Pct_Leaf_Area_C[fol_final$SampleYear < 2016] <- NA_real_
+    fol_final$Pct_Leaf_Area_H[fol_final$SampleYear < 2016] <- NA_real_
+    fol_final$Pct_Leaf_Area_N[fol_final$SampleYear < 2016] <- NA_real_
+  }
 
   return(data.frame(fol_final))
 } # end of function

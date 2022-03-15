@@ -122,9 +122,14 @@ joinStandData <- function(park = 'all', QAQC = FALSE, locType = c('VS', 'all'), 
 
   # standinfo comes in as 1 row per visit, so don't need to reshape, but need to fix cover midpoints and rename
   # to match previous package names
-  standinfo <- standinfo %>% mutate(Stand_Structure = ifelse(StandStructureCode == "PM",
-                                                             paste0("Permanently missing"),
-                                                             StandStructureLabel),
+  standinfo <- standinfo %>% mutate(Stand_Structure = case_when(StandStructureLabel == "Permanently Missing" ~ "Permanently missing",
+                                                                StandStructureLabel == "Not Collected" ~ "Not Collected",
+                                                                StandStructureLabel == "EA" ~ "Even-aged",
+                                                                StandStructureLabel == "ES" ~ "Early successional",
+                                                                StandStructureLabel == "M" ~ "Mosaic",
+                                                                StandStructureLabel == "MA" ~ "Multi-aged",
+                                                                StandStructureLabel == "W" ~ "Woodland (ACAD only)",
+                                                                TRUE ~ NA_character_),
                                     Stand_Structure_Code = ifelse(StandStructureCode == "PM",
                                                                   NA, StandStructureCode),
                                     Pct_Crown_Closure = case_when(CrownClosureLabel == "<10%" ~ 5,

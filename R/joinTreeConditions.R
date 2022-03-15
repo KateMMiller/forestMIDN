@@ -1,7 +1,7 @@
 #' @include joinTreeData.R
 #' @title joinTreeConditions: compiles live and dead tree conditions
 #'
-#' @importFrom dplyr arrange filter full_join group_by left_join mutate select summarize
+#' @importFrom dplyr arrange case_when filter full_join group_by left_join mutate select summarize
 #' @importFrom tidyr pivot_wider
 #' @importFrom magrittr %>%
 #'
@@ -124,8 +124,8 @@ joinTreeConditions <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
                                     status = status, speciesType = speciesType,
                                     dist_m = dist_m, output = 'verbose')) %>%
                  select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-                        PlotCode, PlotID, EventID, IsQAQC, SampleYear, SampleDate, TSN, ScientificName,
-                        TagCode, TreeStatusCode) %>%
+                        PlotCode, PlotID, EventID, IsQAQC, SampleYear, SampleDate, cycle,
+                        TSN, ScientificName, TagCode, TreeStatusCode) %>%
                  filter(ScientificName != "None present") # drop plot-events without trees that match
   # the specified speciesType and/or status
 
@@ -162,7 +162,10 @@ joinTreeConditions <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
   tree_comb <- left_join(trcond_evs2, vine_wide, by = intersect(names(trcond_evs2), names(vine_wide)))
 
   tree_comb$VIN_C <- ifelse(tree_comb$VINE == 0, 0, tree_comb$VIN_C)
-  tree_comb$VIN_B <- ifelse(tree_comb$VINE == 0 & tree_comb$SampleYear >= 2019, 0, tree_comb$VIN_B)
+  tree_comb$VIN_B <- case_when(tree_comb$VINE == 0 & tree_comb$SampleYear >= 2019 ~ 0,
+                               tree_comb$SampleYear < 2019 ~ NA_real_,
+                               TRUE ~ tree_comb$VIN_B)
+
 
 
   # Create list of live and dead tree conditions besides H and NO to count number of conditions
@@ -178,8 +181,8 @@ joinTreeConditions <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
   tree_comb$num_cond <- rowSums(tree_comb[, cond_sum], na.rm = T) # num of conditions recorded
 
   req_cols <- c("Plot_Name", "Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode", "PanelCode",
-                "PlotCode", "PlotID", "EventID", "IsQAQC", "SampleYear", "SampleDate", "TSN",
-                "ScientificName", "TagCode", "TreeStatusCode", "BBDCode", "HWACode")
+                "PlotCode", "PlotID", "EventID", "IsQAQC", "SampleYear", "SampleDate", "cycle",
+                "TSN", "ScientificName", "TagCode", "TreeStatusCode", "BBDCode", "HWACode")
 
   tree_comb2 <-
     if(status == 'dead'){

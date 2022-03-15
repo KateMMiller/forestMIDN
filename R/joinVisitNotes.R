@@ -184,7 +184,8 @@ joinVisitNotes <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, p
 
   # Tree notes
   tree_notes <- joinTreeNotes(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
-                              locType = locType, eventType = eventType)
+                              locType = locType, eventType = eventType) %>%
+    select(Plot_Name, PlotID, EventID, SampleYear, IsQAQC, Note_Type, Sample_Info, Notes)
 
 
   # Combine all notes into 1 data.frame
@@ -194,7 +195,8 @@ joinVisitNotes <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, p
   notes_filt <- if(noteType == 'all'){notes_comb
   } else if(noteType == 'visit'){notes_comb %>% filter(!(Note_Type %in% c("Plot_Notes", "Directions")))}
 
-  notes_final <- inner_join(plot_events %>% select(Plot_Name, PlotID, EventID, SampleYear, SampleDate, IsQAQC, cycle),
+  notes_final <- inner_join(plot_events %>% select(Plot_Name, PlotID, EventID, Network, ParkUnit, ParkSubUnit,
+                                                   SampleYear, SampleDate, IsQAQC, cycle),
                             notes_filt, by = c("Plot_Name", "PlotID", "EventID", "SampleYear", "IsQAQC")) %>%
     arrange(Plot_Name, SampleYear, IsQAQC, Note_Type, Sample_Info)
 

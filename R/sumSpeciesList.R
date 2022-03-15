@@ -143,7 +143,9 @@ sumSpeciesList <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, p
 
   # Quad species
   quadspp <- suppressWarnings(do.call(joinQuadSpecies,
-                                      c(arglist, list(speciesType = speciesType, valueType = 'averages')))
+                                      c(arglist, list(speciesType = speciesType,
+                                                      valueType = 'averages',
+                                                      returnNoCover = TRUE)))
   )
 
   quad_sum <- quadspp %>% select(Plot_Name, PlotID, EventID, IsQAQC, SampleYear, TSN,

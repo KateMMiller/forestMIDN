@@ -14,6 +14,7 @@ joinQuadSpecies(
   eventType = c("complete", "all"),
   speciesType = c("all", "native", "exotic", "invasive"),
   valueType = c("all", "midpoint", "classes", "averages"),
+  returnNoCover = FALSE,
   ...
 )
 }
@@ -71,6 +72,10 @@ associated with that event (eg ACAD-029.2010). This feature is currently hard-co
 \item{"classes"}{Returns the text cover class definitions, with Txt prefix.}
 \item{"averages"}{Returns only the plot-level average cover and percent frequency.}
 }}
+
+\item{returnNoCover}{Logical. If FALSE (default), drops species with 0% cover across all quadrats. If TRUE,
+includes species percent cover across all quadrats. Argument is helpful for generating a plot species list
+(use TRUE) or calculating average cover (use FALSE).}
 
 \item{...}{Other arguments passed to function.}
 }
