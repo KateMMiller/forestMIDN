@@ -100,7 +100,7 @@
 sumTreeDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, locType = c('VS', 'all'), panels = 1:4,
                            status = c('all', 'active', 'live', 'dead'), speciesType = c('all', 'native','exotic', 'invasive'),
                            canopyPosition = c("all", "canopy"), dist_m = NA, eventType = c('complete', 'all'),
-                           units = c('density', 'BA', 'both'), ...){
+                           units = c('density', 'BA', 'both')){
 
   # Match args and class
   status <- match.arg(status)

@@ -16,8 +16,7 @@ sumTreeDBHDist(
   canopyPosition = c("all", "canopy"),
   dist_m = NA,
   eventType = c("complete", "all"),
-  units = c("density", "BA", "both"),
-  ...
+  units = c("density", "BA", "both")
 )
 }
 \arguments{
