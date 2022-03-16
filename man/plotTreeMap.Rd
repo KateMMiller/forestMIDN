@@ -17,8 +17,7 @@ plotTreeMap(
   canopyPosition = c("all", "canopy"),
   plotName = NA,
   path = NA,
-  output_to = c("view", "file"),
-  ...
+  output_to = c("view", "file")
 )
 }
 \arguments{
@@ -95,8 +94,6 @@ the plot name.}
 \item{"file"}{Saves individual plots to pdf. Must also specify a path to save plots to.}
 \item{"view"}{Default. Plot in current R session. Note that this may be slow if multiple plots are included in the function arguments.}
 }}
-
-\item{...}{Other arguments passed to function.}
 
 \item{output}{Allows you to return all columns or just the most important columns for analysis. Valid
 inputs are "short" and "verbose".}
