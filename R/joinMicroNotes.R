@@ -47,8 +47,6 @@
 #' @param panels Allows you to select individual panels from 1 to 4. Default is all 4 panels (1:4).
 #' If more than one panel is selected, specify by c(1, 3), for example.
 #'
-#' @param ... Other arguments passed to function.
-#'
 #' @return Returns a dataframe with all microplot-related notes. Only returns records with notes.
 #'
 #' @examples
@@ -62,7 +60,7 @@
 #'
 
 joinMicroNotes <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, panels = 1:4,
-                           locType = c('VS', 'all'), eventType = c('complete', 'all'), ...){
+                           locType = c('VS', 'all'), eventType = c('complete', 'all')){
 
   # Match args and class
   park <- match.arg(park, several.ok = TRUE,
@@ -88,7 +86,7 @@ joinMicroNotes <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, p
            error = function(e){stop("MicroplotShrubs_MIDN view not found. Please import view.")})
 
   plot_events <- joinLocEvent(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
-                              locType = locType, eventType = eventType, output = 'verbose', ...) %>%
+                              locType = locType, eventType = eventType, output = 'verbose') %>%
     select(Plot_Name, PlotID, EventID, SampleYear, IsQAQC)
 
   if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}

@@ -11,8 +11,7 @@ joinMicroNotes(
   QAQC = FALSE,
   panels = 1:4,
   locType = c("VS", "all"),
-  eventType = c("complete", "all"),
-  ...
+  eventType = c("complete", "all")
 )
 }
 \arguments{
@@ -56,8 +55,6 @@ include all plots, such as deer exclosures.
 \item{"complete"}{Default. Only include sampling events for a plot that are complete.}
 \item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
 associated with that event (eg COLO-380.2018). This feature is currently hard-coded in the function.}}}
-
-\item{...}{Other arguments passed to function.}
 }
 \value{
 Returns a dataframe with all microplot-related notes. Only returns records with notes.
