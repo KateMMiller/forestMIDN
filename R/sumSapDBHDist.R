@@ -179,6 +179,7 @@ sumSapDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, lo
 
   sap_dist_final <- left_join(plot_events, sap_dist_wide,
                               by = intersect(names(plot_events), names(sap_dist_wide))) %>%
+
     select(Plot_Name, ParkUnit, ParkSubUnit, PlotID, EventID, SampleYear, IsQAQC, cycle,
            all_of(sizes))
 

@@ -205,7 +205,6 @@ sumTreeDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, l
     select(Plot_Name, ParkUnit, ParkSubUnit, PlotID, EventID, SampleYear, IsQAQC, cycle,
            all_of(sizes))
 
-
   return(data.frame(tree_dist_final))
 
 } # end of function
