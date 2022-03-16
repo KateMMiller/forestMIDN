@@ -22,6 +22,7 @@ functions in this package without having a connection to the database server. Th
 users who don't have access to NPS servers.
 }
 \examples{
+\dontrun{
 # RUN FIRST
 library(forestMIDN)
 importData()
@@ -34,5 +35,6 @@ exportCSV(path = "C:/Forest_Health/exports/MIDN", zip = TRUE)
 
 # Export views as .csvs to specified path
 exportCSV(path = "C:/Forest_Health/exports/MIDN")
+}
 
 }

@@ -55,6 +55,8 @@ include all plots, such as deer exclosures.
 \item{"complete"}{Default. Only include sampling events for a plot that are complete.}
 \item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
 associated with that event (eg COLO-380.2018). This feature is currently hard-coded in the function.}}}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 returns a dataframe with structural stage and metrics used to assign stages to plots.
@@ -68,8 +70,9 @@ in the field are automatically assigned those classes in the calculation.
 Must run importData first.
 }
 \examples{
+\dontrun{
 importData()
 stage_df <- sumStrStage(park = 'FRSP', from = 2015, to = 2018)
-
+}
 
 }

@@ -86,9 +86,11 @@
 #' @return returns a dataframe with one row for each plot and density, BA, or both by 10 cm size class.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' tree_diam_dist <-sumTreeDBHDist(park = 'MORR', speciesType = 'native', from = 2016, to = 2019, units = 'BA')
 #' head(tree_diam_dist)
+#'}
 #'
 #' @export
 #'
@@ -98,7 +100,7 @@
 sumTreeDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, locType = c('VS', 'all'), panels = 1:4,
                            status = c('all', 'active', 'live', 'dead'), speciesType = c('all', 'native','exotic', 'invasive'),
                            canopyPosition = c("all", "canopy"), dist_m = NA, eventType = c('complete', 'all'),
-                           units = c('density', 'BA', 'both'), ...){
+                           units = c('density', 'BA', 'both')){
 
   # Match args and class
   status <- match.arg(status)
@@ -117,12 +119,14 @@ sumTreeDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, l
   arglist <- list(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
                   locType = locType, eventType = eventType)
 
-  plot_events <- do.call(joinLocEvent, arglist) %>% select(Plot_Name, ParkUnit, ParkSubUnit, PlotID, EventID, StartYear, IsQAQC, cycle)
+  plot_events <- do.call(joinLocEvent, arglist) %>%
+    select(Plot_Name, ParkUnit, ParkSubUnit, PlotID, EventID, SampleYear, IsQAQC, cycle)
 
   tree_df <- do.call(joinTreeData, c(arglist, list(status = status, speciesType = speciesType, dist_m = dist_m,
                                                    canopyPosition = canopyPosition))) %>%
     filter(!TreeStatusCode %in% c('DF', 'DC', '0','EX', 'ES', 'XS', 'XP', 'XO', 'NL', 'PM')) %>%
-    select(Plot_Name, ParkUnit, PlotID, EventID, StartYear, IsQAQC, TagCode, TreeStatusCode, DBHcm, BA_cm2)
+    select(Plot_Name, ParkUnit, ParkSubUnit, PlotID, EventID, SampleYear, IsQAQC,
+           TagCode, TreeStatusCode, DBHcm, BA_cm2)
 
   tree_df <- tree_df %>% mutate(size_class = case_when(between(DBHcm, 10, 19.9) ~ 'd10_19.9',
                                                        between(DBHcm, 20, 29.9) ~ 'd20_29.9',
@@ -143,7 +147,7 @@ sumTreeDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, l
   if(nrow(tree_check)>0){
     warning(paste("The", nrow(tree_check), "records below are missing DBH measurements and will be removed from summaries."),
             "\n",
-            paste(capture.output(data.frame(tree_check[, c("Plot_Name", "StartYear", "TagCode")])), collapse = "\n"))
+            paste(capture.output(data.frame(tree_check[, c("Plot_Name", "SampleYear", "TagCode")])), collapse = "\n"))
   }
 
   tree_df$size_class <- ordered(tree_df$size_class,
@@ -151,10 +155,10 @@ sumTreeDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, l
                                            'd50_59.9', 'd60_69.9', 'd70_79.9', 'd80_89.9',
                                            'd90_99.9', 'd100p', 'unknown'))
 
-  tree_df2 <- tree_df %>% arrange(Plot_Name, StartYear, IsQAQC, size_class) %>% filter(size_class != "unknown")
+  tree_df2 <- tree_df %>% arrange(Plot_Name, SampleYear, IsQAQC, size_class) %>% filter(size_class != "unknown")
 
   # Summarize stems to size class and pivot wide
-  tree_dist <- tree_df2 %>% group_by(Plot_Name, ParkUnit, PlotID, EventID, StartYear, IsQAQC,
+  tree_dist <- tree_df2 %>% group_by(Plot_Name, ParkUnit, ParkSubUnit, PlotID, EventID, SampleYear, IsQAQC,
                                      size_class, unit_conv) %>%
                             summarize(dens = sum(stem) * 10000/first(unit_conv), #stems/ha
                                       BA = sum(BA_cm2)/first(unit_conv), #m2/ha
@@ -198,9 +202,8 @@ sumTreeDBHDist <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, l
   tree_dist_wide[missing_sizes] <- 0
 
   tree_dist_final <- left_join(plot_events, tree_dist_wide, by = intersect(names(plot_events), names(tree_dist_wide))) %>%
-    select(Plot_Name, ParkUnit, ParkSubUnit, PlotID, EventID, StartYear, IsQAQC, cycle,
+    select(Plot_Name, ParkUnit, ParkSubUnit, PlotID, EventID, SampleYear, IsQAQC, cycle,
            all_of(sizes))
-
 
   return(data.frame(tree_dist_final))
 

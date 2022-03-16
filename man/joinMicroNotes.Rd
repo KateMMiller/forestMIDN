@@ -53,6 +53,8 @@ include all plots, such as deer exclosures.
 \item{"complete"}{Default. Only include sampling events for a plot that are complete.}
 \item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
 associated with that event (eg COLO-380.2018). This feature is currently hard-coded in the function.}}}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 Returns a dataframe with all microplot-related notes. Only returns records with notes.
@@ -61,9 +63,10 @@ Returns a dataframe with all microplot-related notes. Only returns records with 
 This function combines microplot notes from Saplings and Shrubs.
 }
 \examples{
+\dontrun{
 importData()
 # compile microplot notes for invasive species in GETT for 2018
 GETT_quads <- joinMicroNotes(park = 'GETT', from = 2018, to = 2018)
-
+}
 
 }

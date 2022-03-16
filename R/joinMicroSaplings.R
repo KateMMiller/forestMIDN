@@ -79,15 +79,19 @@
 #' \item{"averages"}{Returns only the plot-level average cover and percent frequency.}
 #' }
 #'
+#' @param ... Other arguments passed to function.
+#'
 #' @return Returns a dataframe with a row for each species/visit combination for quadrat data
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # compile sapling data for invasive species in VAFO for all years
 #' VAFO_quads <- joinQuadSaplings(park = 'VAFO', speciesType = 'invasive')
 #'
 #' # compile native saplings only for all parks in cycle 3
 #' native_quads <- joinQuadSaplings(speciesType = 'native', from = 2015, to = 2018)
+#' }
 #'
 #' @export
 #'
@@ -117,20 +121,20 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
   env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
 
   # Prepare the microplot data
-  tryCatch(saps_vw <- get("MIDN_MicroplotSaplings", envir = env) %>%
-             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, StartDate, IsQAQC, SQSaplingCode,
+  tryCatch(saps_vw <- get("MicroplotSaplings_MIDN", envir = env) %>%
+             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear, SampleDate, IsQAQC, SQSaplingCode,
                     MicroplotCode, TSN, ScientificName, TagCode, Fork, SaplingStatusCode, DBHcm,
                     IsDBHVerified),
-           error = function(e){stop("MIDN_MicroplotSaplings view not found. Please import view.")})
+           error = function(e){stop("MicroplotSaplings_MIDN view not found. Please import view.")})
 
   taxa_wide <- force(prepTaxa())
 
   # subset with EventID from plot_events to make function faster
   plot_events <- force(joinLocEvent(park = park, from = from , to = to, QAQC = QAQC,
                                     panels = panels, locType = locType, eventType = eventType,
-                                    abandoned = FALSE, output = 'short')) %>%
+                                    abandoned = FALSE, output = 'short', ...)) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
-           EventID, StartYear, StartDate, cycle, IsQAQC)
+           EventID, SampleYear, SampleDate, cycle, IsQAQC)
 
   if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
 
@@ -150,22 +154,8 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
 
   sap_tax$ScientificName[sap_tax$SQSaplingCode == "NP"] <- "None present"
 
-  # Clean up T/F filter columns
-  # sap_tax$CanopyExclusion[sap_tax$ScientificName == "None present"] <- FALSE
-  # sap_tax$Exotic[sap_tax$ScientificName == "None present"] <- FALSE
-  # sap_tax$InvasiveNETN[sap_tax$ScientificName == "None present"] <- FALSE
-#
-#   sap_tax$CanopyExclusion[is.na(sap_tax$CanopyExclusion)] <- FALSE # so next filtering steps don't drop PMs
-#   sap_tax$Exotic[is.na(sap_tax$Exotic)] <- ifelse(speciesType %in% c("exotic", "invasive"), TRUE,
-#                                                   ifelse(speciesType == "native", FALSE, NA))
-#   sap_tax$InvasiveMIDN[is.na(sap_tax$InvasiveMIDN)] <- ifelse(speciesType == 'invasive', TRUE, FALSE)
-
   # Create the left data.frame to join back to after filtering species types
   sap_left <- sap_tax %>% select(Plot_Name:MicroplotCode) %>% unique() #%>%
-  # group_by(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode,
-  #          PlotID, EventID, StartYear, cycle, IsQAQC) %>%
-  # mutate(nummicros = length(MicroplotCode)) # All plots have expected # micros
-  # table(sap_left$nummicros) # all 3
 
   # Drop unwanted status
   alive <- c("AB", "AF", "AL" ,"AM" ,"AS", "RB", "RF", "RL", "RS")
@@ -187,14 +177,13 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
                     "exotic" = filter(sap_can, Exotic == TRUE),
                     "invasive" = filter(sap_can, InvasiveMIDN == TRUE)) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-           PlotCode, PlotID, EventID, IsQAQC, StartYear, StartDate, cycle, SQSaplingCode, MicroplotCode,
+           PlotCode, PlotID, EventID, IsQAQC, SampleYear, SampleDate, cycle, SQSaplingCode, MicroplotCode,
            TSN, ScientificName, CanopyExclusion, Exotic, InvasiveMIDN, TagCode, Fork,
            SaplingStatusCode, DBHcm, IsDBHVerified, Count)
 
   # join filtered data back to full plot/visit/microplot list
   sap_comb <- left_join(sap_left, sap_nat, by = intersect(names(sap_left), names(sap_nat)))
 
-  # table(complete.cases(sap_comb[,16])) no rows with missing SN values.
 
   # Use SQs to fill blank ScientificNames after filtering
   sap_comb$ScientificName[is.na(sap_comb$ScientificName) &
@@ -203,6 +192,6 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
                             (sap_comb$SQSaplingCode %in% c("ND", "NS"))] = "Not Sampled"
   sap_comb$Count[(sap_comb$ScientificName == "None present") & is.na(sap_comb$Count)] <- 0
 
-  sap_final <- sap_comb %>% arrange(Plot_Name, StartYear, IsQAQC, MicroplotCode, ScientificName, TagCode)
+  sap_final <- sap_comb %>% arrange(Plot_Name, SampleYear, IsQAQC, MicroplotCode, ScientificName, TagCode)
   } # end of function
 

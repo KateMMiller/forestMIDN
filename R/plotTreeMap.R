@@ -89,12 +89,15 @@
 #' \item{"view"}{Default. Plot in current R session. Note that this may be slow if multiple plots are included in the function arguments.}
 #' }
 #'
+#' @param ... Other arguments passed to function.
+#'
 #' @return Returns a map of trees on a given plot. Trees are color coded by status, with AB= Alive Broken,
 #' AF= Alive Fallen, AL= Alive Leaning, AS= Alive Standing, DB= Dead Broken, DL= Dead Leaning, and DS= Dead Standing.
 #' The size of the circle is relative to the DBH of the tree. The plot is relative to the plot Orientation, which
 #' is North (360 degrees) on flat lands, and upslope on slopes.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #'
 #' # make map for single plot
@@ -102,6 +105,7 @@
 #'
 #' # save pdfs of maps for panel 3
 #' plotTreeMap(from = 2016, to = 2019, panels = 3, output_to = "file", path = "C:/Temp")
+#' }
 #'
 #' @export
 #'
@@ -175,7 +179,7 @@ plotTreeMap <- function(park = 'all', from = 2007, to = 2021, locType = c('VS', 
 
   #----- Internal ggplot function -----
   tree_map_fun <- function(df){
-    orient <- paste0(unique(df$Plot_Name), "-", unique(df$StartYear), " Orientation: ",
+    orient <- paste0(unique(df$Plot_Name), "-", unique(df$SampleYear), " Orientation: ",
                      unique(df$Orientation))
 
       p <- ggplot(data = df %>% arrange(-DBHcm), aes(x = x, y = y, group = StatusCode, fill = StatusCode,
@@ -195,7 +199,7 @@ plotTreeMap <- function(park = 'all', from = 2007, to = 2021, locType = c('VS', 
                  legend.position = 'none',
                  legend.spacing.y = unit(0.05,'cm'),
                  legend.text = element_text(size = 10))+
-           guides(shape = T, size = F)+
+           guides(shape = T, size = 'none')+
            scale_size_continuous(range = c(2,10))+
            ggrepel::geom_text_repel(aes(x = x, y = y, label = TagCode), direction = 'both',
                                     size = 4, nudge_x = 0.2, nudge_y = 0.2)+
@@ -220,7 +224,7 @@ plotTreeMap <- function(park = 'all', from = 2007, to = 2021, locType = c('VS', 
 
   # Set up data
   arglist <- list(park = park, from = from, to = to, QAQC = FALSE, panels = panels,
-                  locType = locType, eventType = eventType)
+                  locType = locType, eventType = eventType, ...)
 
 
   plot_events <- do.call(joinLocEvent, arglist) %>% select(Plot_Name, EventID, Orientation) %>% unique()
@@ -240,7 +244,7 @@ plotTreeMap <- function(park = 'all', from = 2007, to = 2021, locType = c('VS', 
 
   tree_events <- do.call(joinTreeData, c(arglist, list(status = status, speciesType = speciesType,
                                                        canopyPosition = canopyPosition, dist_m = dist_m))) %>%
-                 select(Plot_Name, ParkUnit, PlotID, EventID, StartYear, IsQAQC, TagCode, TreeStatusCode,
+                 select(Plot_Name, ParkUnit, PlotID, EventID, SampleYear, IsQAQC, TagCode, TreeStatusCode,
                         Distance, Azimuth, DBHcm, BA_cm2)
 
   if(nrow(tree_events) == 0){stop("Function returned 0 rows. Check that there are trees to map for each specified plot.")}
@@ -249,8 +253,8 @@ plotTreeMap <- function(park = 'all', from = 2007, to = 2021, locType = c('VS', 
 
   # Combine plot visit and tree data for plotting
   tree_evs_rec <- left_join(plot_events2, tree_events2, by = c("Plot_Name", "EventID")) %>%
-    arrange(Plot_Name, -StartYear) %>% group_by(Plot_Name) %>%
-    filter(StartYear == max(StartYear)) %>%
+    arrange(Plot_Name, -SampleYear) %>% group_by(Plot_Name) %>%
+    filter(SampleYear == max(SampleYear)) %>%
     ungroup()
 
   tree_evs_rec$DBHcm[is.na(tree_evs_rec$DBHcm)] <- 10 # for excluded status trees

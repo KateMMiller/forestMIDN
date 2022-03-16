@@ -11,8 +11,7 @@ joinTreeNotes(
   QAQC = FALSE,
   panels = 1:4,
   locType = c("VS", "all"),
-  eventType = c("complete", "all"),
-  ...
+  eventType = c("complete", "all")
 )
 }
 \arguments{
@@ -61,9 +60,10 @@ Returns a dataframe with all tree-related notes. Only returns records with notes
 This function combines all tree-level notes recorded in a given visit. N
 }
 \examples{
+\dontrun{
 importData()
 # compile quadrat data for invasive species in THST for 2018
 THST_tree_notes <- joinTreeNotes(park = 'THST', from = 2018, to = 2018)
-
+}
 
 }

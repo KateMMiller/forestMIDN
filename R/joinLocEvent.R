@@ -56,6 +56,7 @@
 #' @return returns a dataframe with location and visit events
 #'
 #' @examples
+#' \dontrun{
 #' importCSV('./forest_csvs')
 #' # Select most recent survey of data from APCO
 #' APCO_data <- joinLocEvent(park = 'APCO',from = 2016, to = 2019)
@@ -67,6 +68,7 @@
 #' GETT_data <- joinLocEvent(park = 'GETT', QAQC = TRUE, from = 2019)
 #' QAQC_plots <- GETT_data$Plot_Name[which(GETT_data$Event_QAQC == TRUE)]
 #' GETT_QAQC <- GETT_data %>% filter(Plot_Name %in% QAQC_plots)
+#' }
 #'
 #' @export
 #'
@@ -93,12 +95,12 @@ joinLocEvent<-function(park = "all", from = 2007, to = 2021, QAQC = FALSE, aband
   env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
 
   # Check if the views exist and stop if they don't
-  tryCatch(plots <- get("COMN_Plots", envir = env),
-           error = function(e){stop("COMN_Plots view not found. Please import views.")}
+  tryCatch(plots <- get("Plots_MIDN", envir = env),
+           error = function(e){stop("Plots_MIDN view not found. Please import views.")}
   )
 
-  tryCatch(events <- get("COMN_Events", envir = env),
-           error = function(e){stop("COMN_Events view not found. Please import views.")}
+  tryCatch(events <- get("Events_MIDN", envir = env),
+           error = function(e){stop("Events_MIDN view not found. Please import views.")}
   )
 
   # Merge COMN_Plots and COMN_Events
@@ -122,7 +124,7 @@ joinLocEvent<-function(park = "all", from = 2007, to = 2021, QAQC = FALSE, aband
                     "IsAbandoned", "PlotID", "PlotLegacyID", "xCoordinate", "yCoordinate", "ZoneCode",
                     "PhysiographyCode", "PhysiographyLabel", "PhysiographySummary", "Aspect",
                     "Orientation", "GRTS", "IsOrientationChanged", "IsStuntedWoodland",
-                    "EventID", "EventLegacyID", "StartDate", "IsQAQC", "StartYear",
+                    "EventID", "EventLegacyID", "SampleDate", "IsQAQC", "SampleYear",
                     "PlotNotes", "Directions", "EventNotes", "StandNotes")]} else {plot_events}
 
 
@@ -139,11 +141,11 @@ joinLocEvent<-function(park = "all", from = 2007, to = 2021, QAQC = FALSE, aband
   } else {plot_events3}
 
   plot_events5 <- if(eventType == "complete"){
-    filter(plot_events4, !(Plot_Name == 'COLO-380' & StartDate == '2018-08-15'))
+    filter(plot_events4, !(Plot_Name == 'COLO-380' & SampleDate == '2018-08-15'))
   } else {plot_events4}
 
   plot_events6 <- plot_events5[plot_events5$PanelCode %in% c(panels), ]
-  plot_events7 <- plot_events6[plot_events6$StartYear %in% c(from:to), ]
+  plot_events7 <- plot_events6[plot_events6$SampleYear %in% c(from:to), ]
 
   # This is ugly, but too complicated to try iterating
   cycle1 <- (2007:2010)
@@ -160,25 +162,25 @@ joinLocEvent<-function(park = "all", from = 2007, to = 2021, QAQC = FALSE, aband
   ncbnc4 <- (2020:2023)
   ncbn <- c("GEWA", "SAHI", "THST")
   midn <- c("APCO", "BOWA", "FRSP", "GETT", "HOFU", "PETE", "RICH", "VAFO")
-  asisc1 <- c(2019:2022)
+  asisc1 <- c(2019:2024)
 
   plot_events7$cycle <- NA
-  plot_events7$cycle[plot_events7$ParkUnit == "COLO" & plot_events7$StartYear %in% coloc1] <- 1
-  plot_events7$cycle[plot_events7$ParkUnit == "COLO" & plot_events7$StartYear %in% coloc2] <- 2
-  plot_events7$cycle[plot_events7$ParkUnit == "COLO" & plot_events7$StartYear %in% coloc3] <- 3
-  plot_events7$cycle[plot_events7$ParkUnit == "COLO" & plot_events7$StartYear %in% coloc4] <- 4
+  plot_events7$cycle[plot_events7$ParkUnit == "COLO" & plot_events7$SampleYear %in% coloc1] <- 1
+  plot_events7$cycle[plot_events7$ParkUnit == "COLO" & plot_events7$SampleYear %in% coloc2] <- 2
+  plot_events7$cycle[plot_events7$ParkUnit == "COLO" & plot_events7$SampleYear %in% coloc3] <- 3
+  plot_events7$cycle[plot_events7$ParkUnit == "COLO" & plot_events7$SampleYear %in% coloc4] <- 4
 
-  plot_events7$cycle[plot_events7$ParkUnit == "ASIS" & plot_events7$StartYear %in% asisc1] <- 1
+  plot_events7$cycle[plot_events7$ParkUnit == "ASIS" & plot_events7$SampleYear %in% asisc1] <- 1
 
-  plot_events7$cycle[plot_events7$ParkUnit %in% ncbn & plot_events7$StartYear %in% ncbnc1] <- 1
-  plot_events7$cycle[plot_events7$ParkUnit %in% ncbn & plot_events7$StartYear %in% ncbnc2] <- 2
-  plot_events7$cycle[plot_events7$ParkUnit %in% ncbn & plot_events7$StartYear %in% ncbnc3] <- 3
-  plot_events7$cycle[plot_events7$ParkUnit %in% ncbn & plot_events7$StartYear %in% ncbnc4] <- 4
+  plot_events7$cycle[plot_events7$ParkUnit %in% ncbn & plot_events7$SampleYear %in% ncbnc1] <- 1
+  plot_events7$cycle[plot_events7$ParkUnit %in% ncbn & plot_events7$SampleYear %in% ncbnc2] <- 2
+  plot_events7$cycle[plot_events7$ParkUnit %in% ncbn & plot_events7$SampleYear %in% ncbnc3] <- 3
+  plot_events7$cycle[plot_events7$ParkUnit %in% ncbn & plot_events7$SampleYear %in% ncbnc4] <- 4
 
-  plot_events7$cycle[plot_events7$ParkUnit %in% midn & plot_events7$StartYear %in% cycle1] <- 1
-  plot_events7$cycle[plot_events7$ParkUnit %in% midn & plot_events7$StartYear %in% cycle2] <- 2
-  plot_events7$cycle[plot_events7$ParkUnit %in% midn & plot_events7$StartYear %in% cycle3] <- 3
-  plot_events7$cycle[plot_events7$ParkUnit %in% midn & plot_events7$StartYear %in% cycle4] <- 4
+  plot_events7$cycle[plot_events7$ParkUnit %in% midn & plot_events7$SampleYear %in% cycle1] <- 1
+  plot_events7$cycle[plot_events7$ParkUnit %in% midn & plot_events7$SampleYear %in% cycle2] <- 2
+  plot_events7$cycle[plot_events7$ParkUnit %in% midn & plot_events7$SampleYear %in% cycle3] <- 3
+  plot_events7$cycle[plot_events7$ParkUnit %in% midn & plot_events7$SampleYear %in% cycle4] <- 4
 
   return(data.frame(plot_events7))
 } # end of function

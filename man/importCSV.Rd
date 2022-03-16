@@ -25,11 +25,12 @@ previously exported as .csvs or a zip file using the exportCSV() function. Each 
 environment in your workspace, or to your global environment based on whether new_env = TRUE or FALSE.
 }
 \examples{
+\dontrun{
 # Import individual csvs into global environment
 importCSV(path = "C:/Forest_Health/exports/MIDN", new_env = FALSE)
 
 # Import zipped csvs into VIEWS_MIDN environment
 path <- "C:/Forest_Health/exports/MIDN"
 importCSV(path = path, zip_name = "MIDN_Forest_20210409.zip")
-
+}
 }

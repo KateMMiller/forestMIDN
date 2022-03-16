@@ -73,10 +73,12 @@ associated with that event (eg COLO-380-2018). This feature is currently hard-co
 
 \item{units}{Calculates seedling and sapling densities based on different units.
 \describe{
-\item{"sq.m"}{Default. Returns seedling and sapling densities per square meter.}
-\item{"ha"}{Returns seedling and sapling densities per hectare}
-\item{"acres"}{Returns densities per acre}
+\item{"sq.m"}{Default. Returns seedling and sapling densities and stocking index per square meter.}
+\item{"ha"}{Returns seedling and sapling densities per hectare and stocking index on McWilliams 100pt scale.}
+\item{"acres"}{Returns seedling and sapling densities per acre. Stocking index is same as sq.m.}
 }}
+
+\item{...}{Other arguments passed to function.}
 
 \item{valueType}{Allows you to return cover class midpoints (numeric) or cover class ranges (text)
 \describe{
@@ -98,6 +100,7 @@ rare, but mostly occur in data <2011. Note that the stocking index only includes
 but the sapling density returned is all saplings > 1cm and <10cm DBH. Must run importData first.
 }
 \examples{
+\dontrun{
 importCSV('./forest_csvs/')
 # Compile seedling and sapling data for all parks and all species in most recent cycle,
 # and only include seedlings >=15cm tall (default).
@@ -108,5 +111,6 @@ VAFO_regen <- joinRegenData(park = 'VAFO', speciesType = 'native')
 
 # Compile seedling and sapling densities as stems/ha for all parks in most recent survey
 regen_data <- joinRegenData(units = 'ha', from = 2015, to = 2018)
+}
 
 }

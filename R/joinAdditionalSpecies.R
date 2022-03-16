@@ -9,7 +9,7 @@
 #' @description This function compiles the additional species collected during a timed 15-minute plot search. This is
 #' primarily an internal function used for QAQC and to generate the species lists for makeSppList(). Note that the timed
 #' search wasn't implemented until 2009, and only included species on the MIDN indicator list, which has also had additions
-#' over time. Starting in 2019, all woody species were included in the timed search.For more information about how the
+#' over time. Sampleing in 2019, all woody species were included in the timed search.For more information about how the
 #' indicator list and protocol had changed ovre time, refer to the Summary of Major Protocol Changes document
 #' for the MIDN forest protocol located in the Long-Term Forest Monitoring Protocol IRMA Project:
 #'    https://irma.nps.gov/Datastore/Reference/Profile/2189101.
@@ -65,12 +65,14 @@
 #' @return Returns a dataframe with a row for each species recorded during the timed search per visit.
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # compile invasive species found in plot search in VAFO for all years
-#' SARA_quads <- joinAdditionalSpecies.R(park = 'VAFO', speciesType = 'invasive')
+#' SARA_quads <- joinAdditionalSpecies(park = 'VAFO', speciesType = 'invasive')
 #'
 #' # compile all species, including QAQC visits for parks in cycle 3
 #' native_quads <- joinQuadSpecies(from = 2015, to = 2018, QAQC = TRUE)
+#' }
 #'
 #' @export
 #'
@@ -96,11 +98,11 @@ joinAdditionalSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = F
   env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
 
   # Prepare the quadrat data
-  tryCatch(addspp_vw <- get("COMN_AdditionalSpecies", envir = VIEWS_MIDN) %>%
-             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC,
+  tryCatch(addspp_vw <- get("AdditionalSpecies_MIDN", envir = env) %>%
+             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear, IsQAQC,
                     SQAddSppCode, SQAddSppNotes, TSN, ScientificName, ConfidenceClassCode,
                     IsCollected, Note),
-           error = function(e){stop("COMN_AdditionalSpecies view not found. Please import view.")})
+           error = function(e){stop("AdditionalSpecies_MIDN view not found. Please import view.")})
 
   taxa_wide <- force(prepTaxa())
 
@@ -109,7 +111,7 @@ joinAdditionalSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = F
                                     panels = panels, locType = locType, eventType = eventType,
                                     abandoned = FALSE, output = 'short')) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
-           EventID, StartYear, StartDate, cycle, IsQAQC)
+           EventID, SampleYear, SampleDate, cycle, IsQAQC)
 
   if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
 
@@ -142,7 +144,7 @@ joinAdditionalSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = F
 
   addspp_final <- addspp_comb %>% select(Plot_Name, Network, ParkUnit, ParkSubUnit,
                                          PlotTypeCode, PanelCode, PlotCode, PlotID,
-                                         EventID, IsQAQC, StartYear, StartDate, cycle, SQAddSppCode,
+                                         EventID, IsQAQC, SampleYear, SampleDate, cycle, SQAddSppCode,
                                          TSN, ScientificName, addspp_present, Exotic, InvasiveMIDN,
                                          Confidence, IsCollected, Note, SQAddSppNotes)
   return(data.frame(addspp_final))

@@ -73,6 +73,7 @@ returns a dataframe with location and visit events
 This function combines location and event data. Must run importData first.
 }
 \examples{
+\dontrun{
 importCSV('./forest_csvs')
 # Select most recent survey of data from APCO
 APCO_data <- joinLocEvent(park = 'APCO',from = 2016, to = 2019)
@@ -84,5 +85,6 @@ cycle3 <- joinLocEvent(park = c("RICH", "FRSP"), from = 2015, to = 2018) # all p
 GETT_data <- joinLocEvent(park = 'GETT', QAQC = TRUE, from = 2019)
 QAQC_plots <- GETT_data$Plot_Name[which(GETT_data$Event_QAQC == TRUE)]
 GETT_QAQC <- GETT_data \%>\% filter(Plot_Name \%in\% QAQC_plots)
+}
 
 }

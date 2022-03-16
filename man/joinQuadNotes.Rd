@@ -53,6 +53,8 @@ include all plots, such as deer exclosures.
 \item{"complete"}{Default. Only include sampling events for a plot that are complete.}
 \item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
 associated with that event (eg ACAD-029.2010). This feature is currently hard-coded in the function.}}}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 Returns a dataframe with all quadrat-related notes. Only returns visits with notes. The Note_Info
@@ -66,9 +68,10 @@ This function combines qudrat-level notes from Quadrat Data, Quadrat Species, an
 Quadrat Seedling tabs and species level notes in the Quadrat Species and Seedlings Tabs.
 }
 \examples{
+\dontrun{
 importData()
 # compile quadrat data for invasive species in THST for 2019
 THST_quads <- joinQuadNotes(park = 'THST', from = 2019, to = 2019)
-
+}
 
 }

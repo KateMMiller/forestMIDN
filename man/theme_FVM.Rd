@@ -14,6 +14,7 @@ This function customizes a theme for plotting MIDN forest data, including removi
 default panel grids from ggplot2 figures.
 }
 \examples{
+\dontrun{
 importData()
  size_dist <- ggplot(mean_dens, aes(x = size_class, y = stems_ha_mean))+
      geom_bar(stat = 'identity', fill = 'CadetBlue', position = position_dodge())+
@@ -23,5 +24,6 @@ importData()
      labs(x='Regeneration Size Distribution', y='stems/ha')+
      scale_x_discrete(labels=c('15-30cm', '30-100cm', '100-150cm', '>150cm','1-10cm DBH'))+
      theme_FVM()
+     }
 
 }

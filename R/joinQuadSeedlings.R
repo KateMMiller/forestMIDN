@@ -75,15 +75,19 @@
 #' \item{"classes"}{Returns the text cover class definitions, with Txt prefix.}
 #' }
 #'
+#' @param ... Other arguments passed to function.
+#'
 #' @return Returns a dataframe with a row for each species/visit combination for quadrat data
 #'
 #' @examples
+#' \dontrun{
 #' importData()
 #' # compile seedling data for invasive species in VAFO for all years
 #' VAFO_quads <- joinQuadSeedlings(park = 'VAFO', speciesType = 'invasive')
 #'
 #' # compile native seedlings only for all parks in cycle 3
 #' native_quads <- joinQuadSeedlings(speciesType = 'native', from = 2015, to = 2018)
+#' }
 #'
 #' @export
 #'
@@ -91,10 +95,10 @@
 # Joins quadrat tables and filters by park, year, and plot/visit type
 #------------------------
 joinQuadSeedlings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, panels = 1:4,
-                            locType = c('VS', 'all'), eventType = c('complete', 'all'),
-                            speciesType = c('all', 'native', 'exotic', 'invasive'),
-                            canopyForm = c('all', 'canopy'),
-                            valueType = c('all', 'midpoint', 'classes'), ...){
+                              locType = c('VS', 'all'), eventType = c('complete', 'all'),
+                              speciesType = c('all', 'native', 'exotic', 'invasive'),
+                              canopyForm = c('all', 'canopy'),
+                              valueType = c('all', 'midpoint', 'classes'), ...){
   # Match args and class
   park <- match.arg(park, several.ok = TRUE,
                     c("all", "APCO", "ASIS", "BOWA", "COLO", "FRSP", "GETT", "GEWA", "HOFU", "PETE",
@@ -113,20 +117,21 @@ joinQuadSeedlings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
   env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
 
   # Prepare the quadrat data
-  tryCatch(seeds_vw <- get("MIDN_QuadSeedlings", envir = env) %>%
-             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, StartYear, IsQAQC, SQSeedlingCode,
-                    QuadratCode, TSN, ScientificName, SizeClassCode, SizeClassLabel, Count, CoverClassCode,
+  tryCatch(seeds_vw <- get("QuadSeedlings_MIDN", envir = env) %>%
+             select(Plot_Name, PlotID, EventID, SQSeedlingCode, SQSeedlingNotes, QuadratCode,
+                    TSN, ScientificName, Seedlings_15_30cm, Seedlings_30_100cm,
+                    Seedlings_100_150cm, Seedlings_Above_150cm, CoverClassCode,
                     CoverClassLabel, BrowsedCount, IsCollected, SeedlingCoverNote),
-           error = function(e){stop("MIDN_QuadSeedlings view not found. Please import view.")})
+           error = function(e){stop("QuadSeedlings_MIDN view not found. Please import view.")})
 
   taxa_wide <- force(prepTaxa())
 
   # subset with EventID from plot_events to make function faster
   plot_events <- force(joinLocEvent(park = park, from = from , to = to, QAQC = QAQC,
                                     panels = panels, locType = locType, eventType = eventType,
-                                    abandoned = FALSE, output = 'short')) %>%
+                                    abandoned = FALSE, output = 'short', ...)) %>%
                  select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
-                        EventID, StartYear, StartDate, cycle, IsQAQC)
+                        EventID, SampleYear, SampleDate, cycle, IsQAQC)
 
   if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
 
@@ -137,45 +142,26 @@ joinQuadSeedlings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
 
   # join with taxa data, so can filter for smaller dataset early
   seed_tax <- left_join(seed_evs,
-                        taxa_wide[, c("TSN", "ScientificName", "CanopyExclusion", "Exotic", "InvasiveMIDN", "FilterMIDN")],
+                        taxa_wide[, c("TSN", "ScientificName", "CanopyExclusion",
+                                      "Exotic", "InvasiveMIDN", "FilterMIDN")],
                         by = c("TSN", "ScientificName"))
 
-  seed_tax$sizeclass <- NA
-  seed_tax$sizeclass[seed_tax$SizeClassCode == 1] <- "sd_15_30cm"
-  seed_tax$sizeclass[seed_tax$SizeClassCode == 2] <- "sd_30_100cm"
-  seed_tax$sizeclass[seed_tax$SizeClassCode == 3] <- "sd_100_150cm"
-  seed_tax$sizeclass[seed_tax$SizeClassCode == 4] <- "sd_p150cm"
-
   seed_tax$ScientificName[seed_tax$SQSeedlingCode == "NP"] <- "None present"
-  seed_tax$Count[seed_tax$SQSeedlingCode == "NP"] <- 0
-
-  seed_wide <- seed_tax %>% select(-SizeClassCode, - SizeClassLabel) %>%
-    pivot_wider(names_from = sizeclass,
-                values_from = Count,
-                values_fill = NA_real_)
 
   # Create the left data.frame to join back to after filtering species types
-  seed_left <- seed_wide %>% select(Plot_Name:QuadratCode) %>% unique() #%>%
-    # group_by(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode,
-    #          PlotID, EventID, StartYear, cycle, IsQAQC) %>%
-    # mutate(numquads = length(QuadratCode))
-    # COLO-380-2018 is the only plot with 1 NA quad instead of 12
+  seed_left <- seed_tax %>% select(Plot_Name:QuadratCode) %>% unique() #%>%
 
-  # Fill seedling size columns with 0, if their ScientificName isn't NA
-  seed_wide$sd_15_30cm[(!is.na(seed_wide$ScientificName)) & is.na(seed_wide$sd_15_30cm)] <- 0
-  seed_wide$sd_30_100cm[(!is.na(seed_wide$ScientificName)) & is.na(seed_wide$sd_30_100cm)] <- 0
-  seed_wide$sd_100_150cm[(!is.na(seed_wide$ScientificName)) & is.na(seed_wide$sd_100_150cm)] <- 0
-  seed_wide$sd_p150cm[(!is.na(seed_wide$ScientificName)) & is.na(seed_wide$sd_p150cm)] <- 0
-  seed_wide$ScientificName[seed_wide$SQSeedlingCode == "NS"] <- "Not Sampled"
+  seed_tax$ScientificName[seed_tax$SQSeedlingCode == "NS"] <- "Not Sampled"
 
-  sd_cols <- c("sd_15_30cm", "sd_30_100cm", "sd_100_150cm", "sd_p150cm")
-  seed_wide$tot_seeds = ifelse(!(seed_wide$SQSeedlingCode %in% c("ND", "NS")) &
-                                 !is.na(seed_wide$ScientificName),
-                               rowSums(seed_wide[, sd_cols], na.rm = T),
-                               NA)
+  sd_cols <- c("Seedlings_15_30cm", "Seedlings_30_100cm", "Seedlings_100_150cm",
+               "Seedlings_Above_150cm")
 
-  seed_can <- if(canopyForm == "canopy"){filter(seed_wide, CanopyExclusion == FALSE)
-  } else {seed_wide}
+  seed_tax$tot_seeds = ifelse(!(seed_tax$SQSeedlingCode %in% c("ND", "NS")) &
+                                !is.na(seed_tax$ScientificName),
+                              rowSums(seed_tax[, sd_cols], na.rm = T),
+                              NA)
+  seed_can <- if(canopyForm == "canopy"){seed_tax %>% filter(CanopyExclusion == FALSE)
+  } else {seed_tax}
 
   seed_nat <- switch(speciesType,
                      "all" = seed_can,
@@ -183,25 +169,28 @@ joinQuadSeedlings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
                      "exotic" = filter(seed_can, Exotic == TRUE),
                      "invasive" = filter(seed_can, InvasiveMIDN == TRUE)) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-           PlotCode, PlotID, EventID, IsQAQC, StartYear, StartDate, cycle, SQSeedlingCode,
-           QuadratCode,
-           CoverClassCode, CoverClassLabel, BrowsedCount, IsCollected,
-           TSN, ScientificName, CanopyExclusion, Exotic, InvasiveMIDN,
-           sd_15_30cm, sd_30_100cm, sd_100_150cm, sd_p150cm, tot_seeds)
+           PlotCode, PlotID, EventID, IsQAQC, SampleYear, cycle, SQSeedlingCode, QuadratCode,
+           BrowsedCount, IsCollected, TSN, ScientificName, CanopyExclusion, Exotic, InvasiveMIDN,
+           Seedlings_15_30cm, Seedlings_30_100cm, Seedlings_100_150cm,
+           Seedlings_Above_150cm, tot_seeds, CoverClassCode, CoverClassLabel,
+           SeedlingCoverNote)
 
+  seed_comb <- left_join(seed_left, seed_nat, by = intersect(names(seed_left), names(seed_nat)))
 
-  seed_comb <- left_join(seed_left, seed_nat, by = intersect(names(seed_left), names(seed_nat)))# %>% unique()
+  # Use SQs to fill blank ScientificNames after filtering
+  seed_comb$ScientificName[is.na(seed_comb$ScientificName) &
+                             (seed_comb$SQSeedlingCode %in% c("SS", "NP"))] = "None present"
+  seed_comb$ScientificName[is.na(seed_comb$ScientificName) &
+                             (seed_comb$SQSeedlingCode %in% c("ND", "NS"))] = "Not Sampled"
 
-  # Use SQs to fill blank ScientificNames after filters
-  seed_comb$ScientificName[(is.na(seed_comb$ScientificName)) &
-                             (seed_comb$SQSeedlingCode %in% c("SS", "NP"))] <- "None present"
-  seed_comb$ScientificName[(is.na(seed_comb$ScientificName)) &
-                             (seed_comb$SQSeedlingCode %in% c("ND", "NS"))] <- "Not Sampled"
+  #Fill NAs for None present
+  seed_comb$Seedlings_15_30cm[(seed_comb$ScientificName == "None present") & is.na(seed_comb$Seedlings_15_30cm)] <- 0
+  seed_comb$Seedlings_30_100cm[(seed_comb$ScientificName == "None present") & is.na(seed_comb$Seedlings_30_100cm)] <- 0
+  seed_comb$Seedlings_100_150cm[(seed_comb$ScientificName == "None present") & is.na(seed_comb$Seedlings_100_150cm)] <- 0
+  seed_comb$Seedlings_Above_150cm[(seed_comb$ScientificName == "None present") & is.na(seed_comb$Seedlings_Above_150cm)] <- 0
+  seed_comb$tot_seeds[(seed_comb$ScientificName == "None present") & is.na(seed_comb$tot_seeds)] <- 0
 
-  # table(complete.cases(seed_comb[,25:29])) 21 rows with missing values.
-  # Should be ~*3less after next migration handles NS vs NP
-
-  # Final clean up with cover classes
+  #Clean up cover data
   seed_comb$CovClass_num <- suppressWarnings(as.numeric(seed_comb$CoverClassCode))
   seed_comb$Pct_Cov <- as.numeric(NA)
   seed_comb$Pct_Cov[seed_comb$CovClass_num == 0] <- 0
@@ -216,34 +205,25 @@ joinQuadSeedlings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE
   seed_comb$Pct_Cov[seed_comb$CovClass_num == 9] <- 97.5
   seed_comb$Txt_Cov <- NA
   seed_comb$Txt_Cov <- ifelse(seed_comb$CoverClassLabel == "-<1%", "<1%", seed_comb$CoverClassLabel)
-  seed_comb$Txt_Cov[seed_comb$SQSeedlingCode == 'NP'] <- "0%"
-  seed_comb$Txt_Cov[seed_comb$SQSeedlingCode %in% c('NS', 'ND')] <- "Not Sampled"
-
-  #Fill NAs for None present
-  seed_comb$sd_15_30cm[(seed_comb$ScientificName == "None present") & is.na(seed_comb$sd_15_30cm)] <- 0
-  seed_comb$sd_30_100cm[(seed_comb$ScientificName == "None present") & is.na(seed_comb$sd_30_100cm)] <- 0
-  seed_comb$sd_100_150cm[(seed_comb$ScientificName == "None present") & is.na(seed_comb$sd_100_150cm)] <- 0
-  seed_comb$sd_p150cm[(seed_comb$ScientificName == "None present") & is.na(seed_comb$sd_p150cm)] <- 0
-  seed_comb$tot_seeds[(seed_comb$ScientificName == "None present") & is.na(seed_comb$tot_seeds)] <- 0
-
-  seed_comb$Pct_Cov[(seed_comb$ScientificName == "None present") & is.na(seed_comb$Pct_Cov)] <- 0
-  seed_comb$Txt_Cov[(seed_comb$ScientificName == "None present") & is.na(seed_comb$Txt_Cov)] <- "0%"
+  seed_comb$Txt_Cov[seed_comb$SQSeedlingCode == "NS"] <- "Not Sampled"
 
   # Clean up filtered columns and NS
-  seed_comb$sd_15_30cm[(seed_comb$SQSeedlingCode == "NS")] <- NA_real_
-  seed_comb$sd_30_100cm[(seed_comb$SQSeedlingCode == "NS")] <- NA_real_
-  seed_comb$sd_100_150cm[(seed_comb$SQSeedlingCode == "NS")] <- NA_real_
-  seed_comb$sd_p150cm[(seed_comb$SQSeedlingCode == "NS")] <- NA_real_
+  seed_comb$Seedlings_15_30cm[(seed_comb$SQSeedlingCode == "NS")] <- NA_real_
+  seed_comb$Seedlings_30_100cm[(seed_comb$SQSeedlingCode == "NS")] <- NA_real_
+  seed_comb$Seedlings_100_150cm[(seed_comb$SQSeedlingCode == "NS")] <- NA_real_
+  seed_comb$Seedlings_Above_150cm[(seed_comb$SQSeedlingCode == "NS")] <- NA_real_
   seed_comb$tot_seeds[(seed_comb$SQSeedlingCode == "NS")] <- NA_real_
-  seed_comb$CanopyExclusion[seed_comb$SQSeedlingCode %in% c("NS", "NP")] <- NA
-  seed_comb$Exotic[seed_comb$SQSeedlingCode %in% c("NS", "NP")] <- NA
-  seed_comb$InvasiveMIDN[seed_comb$SQSeedlingCode %in% c("NS", "NP")] <- NA
+  seed_comb$CanopyExclusion[seed_comb$SQSeedlingCode == "NS"] <- NA
+  seed_comb$Exotic[seed_comb$SQSeedlingCode == "NS"] <- NA
+  seed_comb$InvasiveMIDN[seed_comb$SQSeedlingCode == "NS"] <- NA
 
+  # seed_comb <- seed_comb %>% arrange(Plot_Name, SampleYear, IsQAQC, QuadratCode, ScientificName)
+  #
   seed_comb2 <- seed_comb %>% select(-CovClass_num, -CoverClassCode, -CoverClassLabel) %>%
-    arrange(Plot_Name, StartYear, IsQAQC, QuadratCode, ScientificName)
+    arrange(Plot_Name, SampleYear, IsQAQC, QuadratCode, ScientificName)
 
   seed_final <- switch(valueType,
-                       "all" = seed_comb2,# %>% unique(),
+                       "all" = seed_comb2,
                        "midpoint" = seed_comb2 %>% select(-Txt_Cov),
                        "classes" =  seed_comb2 %>% select(-Pct_Cov))
 

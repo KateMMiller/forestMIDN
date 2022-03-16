@@ -73,6 +73,8 @@ microplot/species combination.}
 species combination.}
 \item{"averages"}{Returns only the plot-level average cover and percent frequency per species.}
 }}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 returns a dataframe with shrub data collected in microplots
@@ -81,18 +83,20 @@ returns a dataframe with shrub data collected in microplots
 This function compiles shrub data sampled in microplots. For microplot or species-level notes
 run the joinMicroNotes function. Note that from 2007 to 2008, stem tallies and DRC were recorded instead of
 % cover for all shrub species. From 2009 to 2010, some shrubs were still stem tallies and DRC, while others
-were % cover. Starting in 2011, all shrub species were measured with percent cover. For records missing percent
+were % cover. Sampleing in 2011, all shrub species were measured with percent cover. For records missing percent
 cover data, this function will summarize percent microplot frequency by species, but average percent cover will be
 NA. For more information on how methods evolved for shrubs in MIDN, refer to Table S17.3 in the Summary of Major
 Protocol Changes and Deviations document located in the Long-Term Forest Monitoring Protocol IRMA Project:
    https://irma.nps.gov/Datastore/Reference/Profile/2189101.
 }
 \examples{
+\dontrun{
 importData()
 # native shrubs in MORR all years
 native_shrubs <- joinMicroShrubData(park ='MORR', speciesType = 'native')
 
 # all parks with exotic shrubs in most recent survey
 exotic_shrubs <- joinMicroShrubData(from = 2015, to = 2018, speciesType = 'exotic')
+}
 
 }

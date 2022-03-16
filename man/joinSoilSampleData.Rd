@@ -11,8 +11,7 @@ joinSoilSampleData(
   QAQC = FALSE,
   panels = 1:4,
   locType = c("VS", "all"),
-  last_lab_year = 2014,
-  ...
+  last_lab_year = 2014
 )
 }
 \arguments{
@@ -66,8 +65,10 @@ visits and plots that haven't been abandoned. Note that Earthworms are summarize
 been collected once per plot from 2010 to 2014, and have not been sampled in ASIS or COLO.
 }
 \examples{
+\dontrun{
 importData() #default imports
 # join horizon depth data for GETT
 soil_GETT_O <- joinSoilSampleData(park = 'GETT', from = 2010, to = 2013)
+}
 
 }

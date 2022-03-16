@@ -14,6 +14,7 @@ joinQuadSpecies(
   eventType = c("complete", "all"),
   speciesType = c("all", "native", "exotic", "invasive"),
   valueType = c("all", "midpoint", "classes", "averages"),
+  returnNoCover = FALSE,
   ...
 )
 }
@@ -71,6 +72,12 @@ associated with that event (eg ACAD-029.2010). This feature is currently hard-co
 \item{"classes"}{Returns the text cover class definitions, with Txt prefix.}
 \item{"averages"}{Returns only the plot-level average cover and percent frequency.}
 }}
+
+\item{returnNoCover}{Logical. If FALSE (default), drops species with 0% cover across all quadrats. If TRUE,
+includes species percent cover across all quadrats. Argument is helpful for generating a plot species list
+(use TRUE) or calculating average cover (use FALSE).}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 Returns a dataframe with a row for each species/visit combination for quadrat data
@@ -85,11 +92,13 @@ Protocol Changes and Deviations document located in the Long-Term Forest Monitor
    https://irma.nps.gov/Datastore/Reference/Profile/2189101.
 }
 \examples{
+\dontrun{
 importData()
 # compile quadrat data for invasive species in VAFO for all years
 VAFO_quads <- joinQuadSpecies(park = 'VAFO', speciesType = 'invasive')
 
 # compile native species only for all parks in cycle 3
 native_quads <- joinQuadSpecies(speciesType = 'native', from = 2015, to = 2018)
+}
 
 }

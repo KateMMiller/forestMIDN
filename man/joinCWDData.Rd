@@ -59,15 +59,18 @@ inputs are "short" and "verbose".}
 \item{"ha"}{Default. Returns CWD volume as cubic m/hectare}
 \item{"acres"}{Returns CWD volume as cubic ft/acre}
 }}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 returns a dataframe with CWD volume for each plot, species, decay class combination
 }
 \description{
-his function combines and calculates CWD volume for each plot. Must run importData() first. Function
+This function combines and calculates CWD volume for each plot. Must run importData() first. Function
 only works for complete visits.
 }
 \examples{
+\dontrun{
 importData() #imports data
 
 # Compile CWD data for FRSP for 4-year interval in ft^3/acre
@@ -75,5 +78,6 @@ cwd_data <- joinCWDData(park = 'FRSP', from = 2016, to = 2019, units = 'acres')
 
 # Compile CWD data for all parks and years in m^3/ha (default)
 cwd_data <- joinCWDData()
+}
 
 }

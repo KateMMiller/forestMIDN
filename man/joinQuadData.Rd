@@ -60,6 +60,8 @@ associated with that event (eg ACAD-029.2010). This feature is currently hard-co
 \item{"midpoint"}{Default. Returns numeric cover class midpoints, with Pct prefix.}
 \item{"classes"}{Returns the text cover class definitions, with Txt prefix.}
 }}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 Returns a dataframe with cover class midpoints for each quadrat and includes guild for each species.
@@ -70,11 +72,13 @@ so that each quadrat has a column. Notes fields are not compiled in this functio
 use the joinQuadNotes() function.
 }
 \examples{
+\dontrun{
 importData()
 # compile quadrat data cover class midpoints invasive species in VAFO for all years
 VAFO_quads <- joinQuadData(park = 'VAFO', valueType = 'midpoint')
 
 # compile quadrat data for cycle 3
 native_quads <- joinQuadData( from = 2015, to = 2018)
+}
 
 }

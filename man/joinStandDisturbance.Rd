@@ -59,6 +59,8 @@ associated with that event (eg ACAD-029.2010). This feature is currently hard-co
 
 \item{output}{Allows you to return all columns or just the most important columns for analysis. Valid
 inputs are "short" and "verbose".}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 returns a dataframe with recorded disturbances
@@ -68,10 +70,13 @@ This function combines stand disturbance data for each plot. Visits without dist
 Must run importData first.
 }
 \examples{
+\dontrun{
 importData()
 # import 4 years of HOFU stand disturbances
 stand_df <- joinStandDisturbance(park = 'HOFU', from = 2015, to = 2019)
 
 # import all visits, including QAQC, from 2019 in FRSP. Only return important data fields.
 frsp_stand <- joinStandDisturbance(park = FRSP, from = 2019, to = 2019, QAQC = TRUE)
+}
+
 }

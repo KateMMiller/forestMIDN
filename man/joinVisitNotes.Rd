@@ -59,6 +59,8 @@ associated with that event (eg COLO-380.2018). This feature is currently hard-co
 \item{"visit"}{Default. Only return notes recorded at the visit level.}
 \item{"all"}{Return visit and plot-level notes.}
 }}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 Returns a dataframe with all notes related to a plot and visit. Only returns records with notes. The Note_Info
@@ -69,8 +71,10 @@ help interpret the note.
 This function combines all notes collected for a given plot and/or visit
 }
 \examples{
+\dontrun{
 importData()
 # compile visit-level notes for plots sampled in GEWA in 2019
 GEWA_notes <- joinVisitNotes(park = 'GEWA', from = 2019, to = 2019, noteType = 'visit')
+}
 
 }

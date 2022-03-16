@@ -77,6 +77,8 @@ associated with that event (eg ACAD-029.2010). This feature is currently hard-co
 \item{"midpoint"}{Default. Returns numeric cover class midpoints, with Pct prefix.}
 \item{"classes"}{Returns the text cover class definitions, with Txt prefix.}
 }}
+
+\item{...}{Other arguments passed to function.}
 }
 \value{
 Returns a dataframe with a row for each species/visit combination for quadrat data
@@ -93,11 +95,13 @@ for the MIDN forest protocol located in the Long-Term Forest Monitoring Protocol
    https://irma.nps.gov/Datastore/Reference/Profile/2189101.
 }
 \examples{
+\dontrun{
 importData()
 # compile seedling data for invasive species in VAFO for all years
 VAFO_quads <- joinQuadSeedlings(park = 'VAFO', speciesType = 'invasive')
 
 # compile native seedlings only for all parks in cycle 3
 native_quads <- joinQuadSeedlings(speciesType = 'native', from = 2015, to = 2018)
+}
 
 }

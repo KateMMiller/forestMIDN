@@ -16,8 +16,7 @@ joinTreeData(
   canopyPosition = c("all", "canopy"),
   dist_m = NA,
   eventType = c("complete", "all"),
-  output = "short",
-  ...
+  output = "short"
 )
 }
 \arguments{
@@ -102,6 +101,7 @@ This function combines tree location and visit data for measurements that have o
 Must run importData first. Abandoned plots are excluded from function.
 }
 \examples{
+\dontrun{
 importData()
 # compile tree data in all parks for live trees only in cycle 3, excluding QAQC visits
 live_trees <- joinTreeData(status = 'live', from = 2015, to = 2018)
@@ -117,5 +117,6 @@ VAFO_exotic <- joinTreeData(park = 'VAFO', speciesType = 'exotic')
 
 # compile all visits in GETT for 2019, including QAQC visits
 GETT_trees <- joinTreeData(park = "GETT", from = 2019, to = 2019, QAQC = TRUE)
+}
 
 }

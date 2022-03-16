@@ -13,8 +13,7 @@ joinTreeConditions(
   panels = 1:4,
   status = c("all", "active", "live", "dead"),
   speciesType = c("all", "native", "exotic"),
-  dist_m = NA,
-  ...
+  dist_m = NA
 )
 }
 \arguments{
@@ -88,6 +87,7 @@ one row per tree visit and a column for each foliage condition type. Must run im
 Abandoned plots and incomplete visits are excluded from function.
 }
 \examples{
+\dontrun{
 importData()
 # compile tree condition data for live trees in all parks in cycle 3, excluding QAQC visits
 trcond_c3 <- joinTreeConditions(from = 2014, to = 2017, status = 'live', QAQC = FALSE)
@@ -95,5 +95,5 @@ trcond_c3 <- joinTreeConditions(from = 2014, to = 2017, status = 'live', QAQC = 
 # compile tree condition for GETT in 2019, including QAQC visits for active trees
 GETT_trees <- joinTreeConditions(park = "GETT", from = 2019, to = 2019, status = 'active',
                                  QAQC = TRUE)
-
+}
 }

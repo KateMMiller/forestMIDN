@@ -13,8 +13,7 @@ joinTreeFoliageCond(
   panels = 1:4,
   speciesType = c("all", "native", "exotic"),
   dist_m = NA,
-  valueType = c("midpoint", "classes"),
-  ...
+  valueType = c("midpoint", "classes")
 )
 }
 \arguments{
@@ -79,6 +78,7 @@ one row per tree visit and a column for each foliage condition type. Must run im
 Abandoned plots and incomplete visits are excluded from function.
 }
 \examples{
+\dontrun{
 importData()
 # compile numeric tree foliage condition data in all parks in cycle 3, excluding QAQC visits
 fol_c3 <- joinTreeFoliageCond(from = 2015, to = 2018, valueType = 'midpoint', QAQC = FALSE)
@@ -86,5 +86,6 @@ fol_c3 <- joinTreeFoliageCond(from = 2015, to = 2018, valueType = 'midpoint', QA
 # compile foliage condition cover classes for GETT in 2019, including QAQC visits
 GETT_trees <- joinTreeFoliageCond(park = "GETT", from = 2019, to = 2019, QAQC = TRUE,
                                   valueType = 'classes')
+}
 
 }

@@ -13,6 +13,7 @@
 #' @return MIDN database views exported to specified path
 #'
 #' @examples
+#' \dontrun{
 #' # RUN FIRST
 #' library(forestMIDN)
 #' importData()
@@ -25,6 +26,7 @@
 #'
 #' # Export views as .csvs to specified path
 #' exportCSV(path = "C:/Forest_Health/exports/MIDN")
+#' }
 #'
 #' @export
 
@@ -38,14 +40,14 @@ exportCSV<- function(path = NA, zip = FALSE){
   options(scipen = 100) # For TSNs
 
   # Make sure all the views are loaded. If anything is missing, function stops.
-  view_list <- c("COMN_AdditionalSpecies", "COMN_CWD", "COMN_EventObservers", "COMN_Events",
-                 "COMN_MicroplotShrubs", "COMN_Plots", "COMN_QuadCharacter",
-                 "COMN_SoilHeader", "COMN_SoilSample", "COMN_SoilLab",
-                 "COMN_StandDisturbances", "COMN_StandForestFloor", "COMN_StandPlantCoverStrata",
-                 "COMN_StandSlopes", "COMN_StandTreeHeights", "COMN_Taxa", "COMN_TreesByEvent",
-                 "COMN_TreesConditions", "COMN_TreesFoliageCond", "COMN_TreesVine",
-                 "MIDN_MicroplotSaplings", "MIDN_QuadSeedlings",
-                 "MIDN_QuadSpecies", "MIDN_StandInfoPhotos")
+  view_list <- c("AdditionalSpecies_MIDN", "CWD_MIDN", "EventObservers_MIDN", "Events_MIDN",
+                 "MicroplotSaplings_MIDN", "MicroplotShrubs_MIDN", "Plots_MIDN",
+                 "QuadCharacter_MIDN", "QuadNotes_MIDN", "QuadSeedlings_MIDN", "QuadSpecies_MIDN",
+                 "SoilHeader_MIDN", "SoilLab_MIDN", "SoilSample_MIDN", "StandDisturbances_MIDN",
+                 "StandForestFloor_MIDN", "StandInfoPhotos_MIDN", "StandPlantCoverStrata_MIDN",
+                 "StandSlopes_MIDN", "StandTreeHeights_MIDN", "Taxa_MIDN", "TreesByEvent_MIDN",
+                 "TreesConditions_MIDN", "TreesFoliageCond_MIDN", "TreesVine_MIDN")
+
 
   files <- if(exists("VIEWS_MIDN")){ls(envir = VIEWS_MIDN)} else {ls()}
 
@@ -63,8 +65,12 @@ exportCSV<- function(path = NA, zip = FALSE){
     stop("Specified directory does not exist.")
   } else{print(paste0("Output saving to ", path), quote = FALSE)}
 
+  # Normalize path for zip
+  pathn <- normalizePath(path)
+
   # Add / to end of path if it wasn't specified.
-  path <- if(substr(path,nchar(path),nchar(path))!="/"){paste0(path,"/")} else {(paste0(path))}
+  pathn <- if(substr(pathn, nchar(pathn), nchar(pathn)) != "/"){
+    paste0(pathn,"\\")} else {(paste0(pathn))}
 
   # Set up progress bar
   pb <- txtProgressBar(min = 0, max = length(view_list), style = 3)
@@ -90,14 +96,15 @@ exportCSV<- function(path = NA, zip = FALSE){
                 paste0(tmp, "\\", view_list[x], ".csv"),
                 row.names = FALSE)}))
 
+  close(pb)
+
     file_list <- list.files(tmp)
 
-    zip::zipr(zipfile = paste0(path, "MIDN_Forest_", format(Sys.Date(), "%Y%m%d"), ".zip"),
+    zip::zipr(zipfile = paste0(pathn, "MIDN_Forest_", format(Sys.Date(), "%Y%m%d"), ".zip"),
               root = tmp,
               files = file_list)
     # csvs will be deleted as soon as R session is closed b/c tempfile
   }
-  close(pb)
   noquote('Export complete.')
 }
 
