@@ -58,6 +58,13 @@
 #' \item{"exotic"}{Returns exotic species only}
 #' }
 #'
+#' @param canopyPosition Allows you to filter on tree crown class
+#' \describe{
+#' \item{"all"}{Returns all canopy positions}
+#' \item{"canopy"}{Returns only dominant, codominant, and intermediate crown classes. Since only live trees
+#' are assigned crown classes, this also only returns live trees.}
+#' }
+#'
 #' @param dist_m Filter trees by a distance that is less than or equal to the specified distance in meters
 #' of the tree to the center of the plot. If no distance is specified, then all trees will be selected. For
 #' example, to select an area of trees that is 100 square meters in area, use a distance of 5.64m.
@@ -89,7 +96,8 @@
 joinTreeConditions <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE,
                                locType = c('VS', 'all'), panels = 1:4,
                                status = c('all', 'active', 'live', 'dead'),
-                               speciesType = c('all', 'native','exotic'), dist_m = NA){
+                               speciesType = c('all', 'native','exotic', 'invasive'),
+                               canopyPosition = c("all", "canopy"), dist_m = NA){
 
   # Match args and class
   park <- match.arg(park, several.ok = TRUE,
@@ -101,6 +109,7 @@ joinTreeConditions <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
   stopifnot(class(QAQC) == 'logical')
   stopifnot(panels %in% c(1, 2, 3, 4))
   speciesType <- match.arg(speciesType)
+  canopyPosition <- match.arg(canopyPosition)
   status <- match.arg(status)
 
   env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
@@ -121,7 +130,7 @@ joinTreeConditions <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
   # subset with EventID from tree_events to make tree data as small as possible to speed up function
   tree_events <- force(joinTreeData(park = park, from = from , to = to, QAQC = QAQC,
                                     locType = locType, panels = panels, eventType = 'complete',
-                                    status = status, speciesType = speciesType,
+                                    status = status, speciesType = speciesType, canopyPosition = canopyPosition,
                                     dist_m = dist_m, output = 'verbose')) %>%
                  select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
                         PlotCode, PlotID, EventID, IsQAQC, SampleYear, SampleDate, cycle,
@@ -160,6 +169,7 @@ joinTreeConditions <- function(park = 'all', from = 2007, to = 2021, QAQC = FALS
 
   # Combine tree condition and vine data
   tree_comb <- left_join(trcond_evs2, vine_wide, by = intersect(names(trcond_evs2), names(vine_wide)))
+  if(!"VIN_B" %in% names(tree_comb)){tree_comb$VIN_B <- NA_real_}
 
   tree_comb$VIN_C <- ifelse(tree_comb$VINE == 0, 0, tree_comb$VIN_C)
   tree_comb$VIN_B <- case_when(tree_comb$VINE == 0 & tree_comb$SampleYear >= 2019 ~ 0,

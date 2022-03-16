@@ -11,7 +11,8 @@ joinTreeFoliageCond(
   QAQC = FALSE,
   locType = c("VS", "all"),
   panels = 1:4,
-  speciesType = c("all", "native", "exotic"),
+  speciesType = c("all", "native", "exotic", "invasive"),
+  canopyPosition = c("all", "canopy"),
   dist_m = NA,
   valueType = c("midpoint", "classes")
 )
@@ -57,6 +58,13 @@ If more than one panel is selected, specify by c(1, 3), for example.}
 \item{"all"}{Default. Returns all species.}
 \item{"native"}{Returns native species only}
 \item{"exotic"}{Returns exotic species only}
+}}
+
+\item{canopyPosition}{Allows you to filter on tree crown class
+\describe{
+\item{"all"}{Returns all canopy positions}
+\item{"canopy"}{Returns only dominant, codominant, and intermediate crown classes. Since only live trees
+are assigned crown classes, this also only returns live trees.}
 }}
 
 \item{dist_m}{Filter trees by a distance that is less than or equal to the specified distance in meters

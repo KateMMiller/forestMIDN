@@ -49,11 +49,16 @@
 #' \item{"exotic"}{Returns exotic species only}
 #' }
 #'
+#' @param canopyPosition Allows you to filter on tree crown class
+#' \describe{
+#' \item{"all"}{Returns all canopy positions}
+#' \item{"canopy"}{Returns only dominant, codominant, and intermediate crown classes. Since only live trees
+#' are assigned crown classes, this also only returns live trees.}
+#' }
+#'
 #' @param dist_m Filter trees by a distance that is less than or equal to the specified distance in meters
 #' of the tree to the center of the plot. If no distance is specified, then all trees will be selected. For
 #' example, to select an area of trees that is 100 square meters in area, use a distance of 5.64m.
-#'
-#' @param ... Other arguments passed to function.
 #'
 #' @return returns a data frame for every tree visit with at least one vine condition recorded. Trees
 #' without a vine condition are not returned.
@@ -78,7 +83,8 @@
 #------------------------
 joinTreeVineSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE,
                                locType = c('VS', 'all'), panels = 1:4,
-                               speciesType = c('all', 'native','exotic'), dist_m = NA, ...){
+                               canopyPosition = c("all", "canopy"),
+                               speciesType = c('all', 'native','exotic', 'invasive'), dist_m = NA){
 
   # Match args and class
   park <- match.arg(park, several.ok = TRUE,
@@ -90,6 +96,7 @@ joinTreeVineSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
   stopifnot(class(QAQC) == 'logical')
   stopifnot(panels %in% c(1, 2, 3, 4))
   speciesType <- match.arg(speciesType)
+  canopyPosition <- match.arg(canopyPosition)
 
   env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
 
@@ -102,16 +109,17 @@ joinTreeVineSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
 
            error = function(e){stop("TreesVine_MIDN view not found. Please import view.")})
 
-  tryCatch(taxa <- subset(get("Taxa_MIDN", envir = env),
-                          select = c(TaxonID, TSN, ScientificName, IsExotic)),
-           error = function(e){stop("Taxa_MIDN view not found. Please import view.")})
+  # tryCatch(taxa <- subset(get("Taxa_MIDN", envir = env),
+  #                         select = c(TaxonID, TSN, ScientificName, IsExotic)),
+  #          error = function(e){stop("Taxa_MIDN view not found. Please import view.")})
 
+  taxa <- prepTaxa() %>% select(TaxonID, TSN, ScientificName, Exotic, InvasiveMIDN)
 
   # subset with EventID from tree_events to make tree data as small as possible to speed up function
-  tree_events <- force(joinTreeData(park = park, from = from , to = to, QAQC = QAQC, ...,
+  tree_events <- force(joinTreeData(park = park, from = from , to = to, QAQC = QAQC,
                                     locType = locType, panels = panels, eventType = 'complete',
-                                    abandoned = FALSE, status = 'live', speciesType = 'all',
-                                    dist_m = dist_m, output = 'verbose')) %>%
+                                    status = 'live', speciesType = 'all',
+                                    canopyPosition = canopyPosition, dist_m = dist_m, output = 'verbose')) %>%
                  filter(ScientificName != 'None present') %>%
                  select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
                         PlotCode, PlotID, EventID, IsQAQC, SampleYear, SampleDate, TagCode)
@@ -130,9 +138,10 @@ joinTreeVineSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
   # Join vines with taxon to filter on speciesType
   vine_taxa <- left_join(vine_evs2, taxa, by = c("TSN", "ScientificName"))
 
-  vine_nat <- if(speciesType == 'native'){filter(vine_taxa, IsExotic == FALSE)
-       } else if(speciesType == 'exotic'){filter(vine_taxa, IsExotic == TRUE)
-       } else if(speciesType == 'all'){(vine_taxa)}
+  vine_nat <- if(speciesType == 'invasive'){filter(vine_taxa, InvasiveMIDN == TRUE)
+  } else if(speciesType == 'exotic'){filter(vine_taxa, Exotic == TRUE)
+  } else if(speciesType == 'native'){filter(vine_taxa, Exotic == FALSE)
+  } else if(speciesType == 'all'){(vine_taxa)}
 
   vines_final <- vine_nat %>% filter(!is.na(Plot_Name)) %>%
     arrange(Plot_Name, SampleYear, IsQAQC, TagCode)# drops trees that are not the selected status

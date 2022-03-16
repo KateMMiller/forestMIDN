@@ -50,6 +50,13 @@
 #' \item{"exotic"}{Returns exotic species only}
 #' }
 #'
+#' @param canopyPosition Allows you to filter on tree crown class
+#' \describe{
+#' \item{"all"}{Returns all canopy positions}
+#' \item{"canopy"}{Returns only dominant, codominant, and intermediate crown classes. Since only live trees
+#' are assigned crown classes, this also only returns live trees.}
+#' }
+#'
 #' @param valueType Allows you to return cover class midpoints (numeric) or coverclass ranges (text)
 #' \describe{
 #' \item{"midpoint"}{Default. Returns cover class midpoints}
@@ -80,7 +87,8 @@
 #------------------------
 joinTreeFoliageCond <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE,
                                 locType = c('VS', 'all'), panels = 1:4,
-                                speciesType = c('all', 'native','exotic'), dist_m = NA,
+                                speciesType = c('all', 'native','exotic', 'invasive'),
+                                canopyPosition = c("all", "canopy"), dist_m = NA,
                                 valueType = c("midpoint", "classes")){
 
   # Match args and class
@@ -93,6 +101,7 @@ joinTreeFoliageCond <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
   stopifnot(class(QAQC) == 'logical')
   stopifnot(panels %in% c(1, 2, 3, 4))
   speciesType <- match.arg(speciesType)
+  canopyPosition <- match.arg(canopyPosition)
   valueType <- match.arg(valueType)
 
   env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
@@ -108,7 +117,7 @@ joinTreeFoliageCond <- function(park = 'all', from = 2007, to = 2021, QAQC = FAL
   # subset with EventID from tree_events to make tree data as small as possible to speed up function
   tree_events <- force(joinTreeData(park = park, from = from , to = to, QAQC = QAQC,
                                     locType = locType, panels = panels, eventType = 'complete',
-                                    status = 'live', speciesType = speciesType,
+                                    status = 'live', speciesType = speciesType, canopyPosition = canopyPosition,
                                     dist_m = dist_m, output = 'verbose')) %>%
                  select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
                         PlotCode, PlotID, EventID, IsQAQC, SampleYear, SampleDate, TSN, ScientificName,
