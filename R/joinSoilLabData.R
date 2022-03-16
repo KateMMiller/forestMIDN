@@ -231,9 +231,9 @@ joinSoilLabData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALSE, 
            Fe_meq = Fe/((55.85/2)*10),
            Mn_meq = Mn/((54.94/2)*10),
            Zn_meq = Zn/((65.39/2)*10),
-           BaseSat = if_else(is.na(ECEC), NA_real_, ((Ca_meq + K_meq + Mg_meq + Na_meq)/ECEC)*100),
-           CaSat = if_else(is.na(ECEC), NA_real_, ((Ca_meq)/ECEC)*100),
-           AlSat = if_else(is.na(ECEC), NA_real_, ((Al_meq)/ECEC)*100)) %>%
+           BaseSat = ifelse(is.na(ECEC), NA_real_, ((Ca_meq + K_meq + Mg_meq + Na_meq)/ECEC)*100),
+           CaSat = ifelse(is.na(ECEC), NA_real_, ((Ca_meq)/ECEC)*100),
+           AlSat = ifelse(is.na(ECEC), NA_real_, ((Al_meq)/ECEC)*100)) %>%
     select(PlotID:LabLayer, Horizon_QC, hor_samps, layer_misID, O_Hor_sum:Sample_Depth, everything())
 
   # Fixing the misIDed (or 10 cm) layers that don't have duplicates
