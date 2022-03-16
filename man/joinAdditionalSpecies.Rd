@@ -12,8 +12,7 @@ joinAdditionalSpecies(
   panels = 1:4,
   locType = c("VS", "all"),
   eventType = c("complete", "all"),
-  speciesType = c("all", "native", "exotic", "invasive"),
-  ...
+  speciesType = c("all", "native", "exotic", "invasive")
 )
 }
 \arguments{

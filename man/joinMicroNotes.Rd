@@ -42,6 +42,9 @@ joinMicroNotes(
 \item{FALSE}{Default. Only returns visits that are not QAQC visits}
 \item{TRUE}{Returns all visits, including QAQC visits}}}
 
+\item{panels}{Allows you to select individual panels from 1 to 4. Default is all 4 panels (1:4).
+If more than one panel is selected, specify by c(1, 3), for example.}
+
 \item{locType}{Allows you to only include plots that are part of the GRTS sample design or
 include all plots, such as deer exclosures.
 \describe{

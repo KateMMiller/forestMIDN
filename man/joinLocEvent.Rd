@@ -13,8 +13,7 @@ joinLocEvent(
   panels = 1:4,
   locType = c("VS", "all"),
   eventType = c("complete", "all"),
-  output = "short",
-  ...
+  output = "short"
 )
 }
 \arguments{
@@ -44,6 +43,11 @@ joinLocEvent(
 \item{FALSE}{Default. Only returns visits that are not QAQC visits}
 \item{TRUE}{Returns all visits, including QAQC visits}}}
 
+\item{abandoned}{Allows you to include (TRUE) or remove (FALSE; Default.) or abandoned plots.
+\describe{
+\item{FALSE}{Default. Only returns plots that were not rejected.}
+\item{TRUE}{returns all records}}}
+
 \item{panels}{Allows you to select individual panels from 1 to 4. Default is all 4 panels (1:4).
 If more than one panel is selected, specify by c(1, 3), for example.}
 
@@ -60,11 +64,6 @@ associated with that event (eg COLO-380.2018). This feature is currently hard-co
 
 \item{output}{Allows you to return all columns or just the most important columns for analysis. Valid
 inputs are "short" and "verbose".}
-
-\item{abandonded}{Allows you to include (TRUE) or remove (FALSE; Default.) or abandoned plots.
-\describe{
-\item{FALSE}{Default. Only returns plots that were not rejected.}
-\item{TRUE}{returns all records}}}
 }
 \value{
 returns a dataframe with location and visit events

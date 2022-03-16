@@ -45,6 +45,9 @@ joinMicroSaplings(
 \item{FALSE}{Default. Only returns visits that are not QAQC visits}
 \item{TRUE}{Returns all visits, including QAQC visits}}}
 
+\item{panels}{Allows you to select individual panels from 1 to 4. Default is all 4 panels (1:4).
+If more than one panel is selected, specify by c(1, 3), for example.}
+
 \item{locType}{Allows you to only include plots that are part of the GRTS sample design or
 include all plots, such as deer exclosures.
 \describe{
@@ -80,14 +83,6 @@ associated with that event (eg COLO-380-2018). This feature is currently hard-co
 }}
 
 \item{...}{Other arguments passed to function.}
-
-\item{valueType}{Allows you to return cover class midpoints (numeric) or cover class ranges (text)
-\describe{
-\item{"all"}{Default. Returns columns for midpoint and cover classes for each quad}
-\item{"midpoint"}{Default. Returns numeric cover class midpoints, with Pct prefix.}
-\item{"classes"}{Returns the text cover class definitions, with Txt prefix.}
-\item{"averages"}{Returns only the plot-level average cover and percent frequency.}
-}}
 }
 \value{
 Returns a dataframe with a row for each species/visit combination for quadrat data

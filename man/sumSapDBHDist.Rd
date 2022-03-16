@@ -14,8 +14,7 @@ sumSapDBHDist(
   speciesType = c("all", "native", "exotic", "invasive"),
   canopyForm = c("all", "canopy"),
   eventType = c("complete", "all"),
-  units = c("density", "BA", "both"),
-  ...
+  units = c("density", "BA", "both")
 )
 }
 \arguments{

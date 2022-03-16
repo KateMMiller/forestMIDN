@@ -49,6 +49,9 @@
 #' \item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
 #' associated with that event (eg COLO-380.2018). This feature is currently hard-coded in the function.}}
 #'
+#' @param panels Allows you to select individual panels from 1 to 4. Default is all 4 panels (1:4).
+#' If more than one panel is selected, specify by c(1, 3), for example.
+#'
 #' @param noteType
 #' \describe{
 #' \item{"visit"}{Default. Only return notes recorded at the visit level.}

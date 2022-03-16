@@ -81,7 +81,7 @@
 #------------------------
 joinAdditionalSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, panels = 1:4,
                                   locType = c('VS', 'all'), eventType = c('complete', 'all'),
-                                  speciesType = c('all', 'native', 'exotic', 'invasive'), ...){
+                                  speciesType = c('all', 'native', 'exotic', 'invasive')){
   # Match args and class
   park <- match.arg(park, several.ok = TRUE,
                     c("all", "APCO", "ASIS", "BOWA", "COLO", "FRSP", "GETT", "GEWA", "HOFU", "PETE",

@@ -89,14 +89,13 @@ Function only set up to handle 1 plotName specified at a time. If you want to sa
 and select plots based on other arguments in function. Note that function runs faster if you speficy the park along with
 the plot name.}
 
+\item{path}{Quote path to save pdfs of maps to.}
+
 \item{output_to}{Select whether to plot in current session or save to pdf
 \describe{
 \item{"file"}{Saves individual plots to pdf. Must also specify a path to save plots to.}
 \item{"view"}{Default. Plot in current R session. Note that this may be slow if multiple plots are included in the function arguments.}
 }}
-
-\item{output}{Allows you to return all columns or just the most important columns for analysis. Valid
-inputs are "short" and "verbose".}
 }
 \value{
 Returns a map of trees on a given plot. Trees are color coded by status, with AB= Alive Broken,

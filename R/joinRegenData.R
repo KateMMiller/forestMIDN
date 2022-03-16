@@ -53,6 +53,9 @@
 #' \item{"all}{Include all plot events with a record in tblCOMN.Event, including plots missing most of the data
 #' associated with that event (eg COLO-380-2018). This feature is currently hard-coded in the function.}}
 #'
+#' @param panels Allows you to select individual panels from 1 to 4. Default is all 4 panels (1:4).
+#' If more than one panel is selected, specify by c(1, 3), for example.
+#'
 #' @param speciesType Allows you to filter on native, exotic or include all species.
 #' \describe{
 #' \item{"all"}{Default. Returns all species.}
@@ -67,13 +70,6 @@
 #' \item{"canopy"}{Returns canopy-forming species only.}
 #'}
 #'
-#' @param valueType Allows you to return cover class midpoints (numeric) or cover class ranges (text)
-#' \describe{
-#' \item{"all"}{Default. Returns columns for midpoint and cover classes for each quad}
-#' \item{"midpoint"}{Default. Returns numeric cover class midpoints, with Pct prefix.}
-#' \item{"classes"}{Returns the text cover class definitions, with Txt prefix.}
-#' \item{"averages"}{Returns only the plot-level average cover and percent frequency.}
-#' }
 #'
 #' @param units Calculates seedling and sapling densities based on different units.
 #' \describe{

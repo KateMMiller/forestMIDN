@@ -31,7 +31,7 @@
 #' \item{FALSE}{Default. Only returns visits that are not QAQC visits}
 #' \item{TRUE}{Returns all visits, including QAQC visits}}
 #'
-#' @param abandonded Allows you to include (TRUE) or remove (FALSE; Default.) or abandoned plots.
+#' @param abandoned Allows you to include (TRUE) or remove (FALSE; Default.) or abandoned plots.
 #' \describe{
 #' \item{FALSE}{Default. Only returns plots that were not rejected.}
 #' \item{TRUE}{returns all records}}
@@ -77,7 +77,7 @@
 # Joins Plots and Events views and filters by park, year, and plot/visit type
 #------------------------
 joinLocEvent<-function(park = "all", from = 2007, to = 2021, QAQC = FALSE, abandoned = FALSE, panels = 1:4,
-                       locType = c('VS', 'all'), eventType = c('complete', 'all'), output = 'short', ...){
+                       locType = c('VS', 'all'), eventType = c('complete', 'all'), output = 'short'){
 
   # Match args and class
   locType <- match.arg(locType)
