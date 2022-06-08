@@ -74,7 +74,8 @@
 #------------------------
 # Joins quadrat character data and filters by park, year, and plot/visit type
 #------------------------
-joinQuadData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, panels = 1:4,
+joinQuadData <- function(park = 'all', from = 2007, to = as.numeric(format(Sys.Date(), "%Y")),
+                         QAQC = FALSE, panels = 1:4,
                          locType = c('VS', 'all'), eventType = c('complete', 'all'),
                          valueType = c('all', 'midpoint', 'classes'),  ...){
 

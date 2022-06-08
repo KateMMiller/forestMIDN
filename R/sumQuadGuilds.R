@@ -84,7 +84,8 @@
 #------------------------
 # Joins quadrat tables and filters by park, year, and plot/visit type
 #------------------------
-sumQuadGuilds <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, panels = 1:4,
+sumQuadGuilds <- function(park = 'all', from = 2007, to = as.numeric(format(Sys.Date(), "%Y")),
+                          QAQC = FALSE, panels = 1:4,
                           locType = c('VS', 'all'), speciesType = c('all', 'native', 'exotic', 'invasive'),
                           splitHerb = TRUE, ...){
   # Match args and class

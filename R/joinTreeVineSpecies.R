@@ -81,7 +81,8 @@
 #------------------------
 # Joins tree vine data and filters by plot, event, and species type
 #------------------------
-joinTreeVineSpecies <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE,
+joinTreeVineSpecies <- function(park = 'all', from = 2007, to = as.numeric(format(Sys.Date(), "%Y")),
+                                QAQC = FALSE,
                                locType = c('VS', 'all'), panels = 1:4,
                                canopyPosition = c("all", "canopy"),
                                speciesType = c('all', 'native','exotic', 'invasive'), dist_m = NA){

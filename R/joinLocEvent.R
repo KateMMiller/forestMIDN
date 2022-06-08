@@ -76,7 +76,8 @@
 #------------------------
 # Joins Plots and Events views and filters by park, year, and plot/visit type
 #------------------------
-joinLocEvent<-function(park = "all", from = 2007, to = 2021, QAQC = FALSE, abandoned = FALSE, panels = 1:4,
+joinLocEvent<-function(park = "all", from = 2007, to = as.numeric(format(Sys.Date(), "%Y")),
+                       QAQC = FALSE, abandoned = FALSE, panels = 1:4,
                        locType = c('VS', 'all'), eventType = c('complete', 'all'), output = 'short'){
 
   # Match args and class

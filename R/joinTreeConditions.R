@@ -93,7 +93,8 @@
 #------------------------
 # Joins tree and foliage data and filters by plot, event, and tree types
 #------------------------
-joinTreeConditions <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE,
+joinTreeConditions <- function(park = 'all', from = 2007, to = as.numeric(format(Sys.Date(), "%Y")),
+                               QAQC = FALSE,
                                locType = c('VS', 'all'), panels = 1:4,
                                status = c('all', 'active', 'live', 'dead'),
                                speciesType = c('all', 'native','exotic', 'invasive'),

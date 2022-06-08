@@ -97,7 +97,8 @@
 #------------------------
 # Joins quadrat tables and filters by park, year, and plot/visit type
 #------------------------
-joinQuadSeedlings <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, panels = 1:4,
+joinQuadSeedlings <- function(park = 'all', from = 2007, to = as.numeric(format(Sys.Date(), "%Y")),
+                              QAQC = FALSE, panels = 1:4,
                               locType = c('VS', 'all'), eventType = c('complete', 'all'),
                               speciesType = c('all', 'native', 'exotic', 'invasive'),
                               canopyForm = c('all', 'canopy'),

@@ -7,7 +7,7 @@
 joinLocEvent(
   park = "all",
   from = 2007,
-  to = 2021,
+  to = as.numeric(format(Sys.Date(), "\%Y")),
   QAQC = FALSE,
   abandoned = FALSE,
   panels = 1:4,

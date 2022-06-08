@@ -107,7 +107,8 @@
 #------------------------
 # Joins tbl_Trees and tbl_Tree_Data tables and filters by park, year, and plot/visit type
 #------------------------
-joinTreeData <- function(park = 'all', from = 2007, to = 2021, QAQC = FALSE, locType = c('VS', 'all'), panels = 1:4,
+joinTreeData <- function(park = 'all', from = 2007, to = as.numeric(format(Sys.Date(), "%Y")),
+                         QAQC = FALSE, locType = c('VS', 'all'), panels = 1:4,
                          status = c('all', 'active', 'live', 'dead'), speciesType = c('all', 'native','exotic', 'invasive'),
                          canopyPosition = c("all", "canopy"), dist_m = NA, eventType = c('complete', 'all'),
                          output = 'short'){
