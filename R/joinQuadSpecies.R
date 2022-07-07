@@ -134,7 +134,7 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = as.numeric(format(Sy
   # subset with EventID from plot_events to make function faster
   plot_events <- force(joinLocEvent(park = park, from = from , to = to, QAQC = QAQC,
                                     panels = panels, locType = locType, eventType = eventType,
-                                    abandoned = FALSE, output = 'short', ...)) %>%
+                                    abandoned = FALSE, output = 'short')) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode, PlotCode, PlotID,
            EventID, SampleYear, SampleDate, cycle, IsQAQC)
 
@@ -151,13 +151,14 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = as.numeric(format(Sy
                     "C2_SQ", "C5_SQ", "C8_SQ", "CC_SQ")
 
   quadspp_evs <- filter(quadspp, EventID %in% pe_list) %>%
-    mutate(missing_cover = ifelse(rowSums(across(all_of(quad_list)), na.rm = T) == 0, TRUE, FALSE))
+    mutate(missing_cover = ifelse(rowSums(across(all_of(quad_list)), na.rm = T) == 0, TRUE, FALSE),
+           num_quads = rowSums(!is.na(.[, quad_list])))
 
   names(quadspp_evs)[names(quadspp_evs) == "ConfidenceClassCode"] <- "Confidence"
 
   quadspp_lj <- left_join(plot_events, quadspp_evs,
                           by = c("Plot_Name", "PlotID", "EventID")) %>%
-    select(Plot_Name:IsQAQC, A2_SQ:CC_SQ, SQQuadSum) %>% unique()
+    select(Plot_Name:IsQAQC, A2_SQ:CC_SQ, SQQuadSum, num_quads, missing_cover) %>% unique()
 
   # join with taxa data, so can filter for smaller dataset early
   quadspp_tax <- left_join(quadspp_evs,
@@ -187,10 +188,10 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = as.numeric(format(Sy
     rename_with(.col = contains("_txt"),
                 .fn = ~paste0("Txt_Cov_", substr(.x, 1, 2)))
 
-  quadspp_sum$num_quads <- rowSums(!is.na(quadspp_sum[, c("A2", "A5", "A8", "AA",
-                                                          "B2", "B5", "B8", "BB",
-                                                          "C2", "C5", "C8", "CC")]),
-                                   na.rm = T)
+  # quadspp_sum$num_quads <- rowSums(!is.na(quadspp_sum[, c("A2", "A5", "A8", "AA",
+  #                                                         "B2", "B5", "B8", "BB",
+  #                                                         "C2", "C5", "C8", "CC")]),
+  #                                  na.rm = T)
 
   quadspp_sum$quad_avg_cov <- rowSums(quadspp_sum[, c("Pct_Cov_A2", "Pct_Cov_A5", "Pct_Cov_A8", "Pct_Cov_AA",
                                                       "Pct_Cov_B2", "Pct_Cov_B5", "Pct_Cov_B8", "Pct_Cov_BB",
@@ -211,8 +212,8 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = as.numeric(format(Sy
     select(-all_of(quad_sq_list), -SQQuadSum)
 
   # Join the plot, visit, SQ info back after species filter
-  quadspp_comb <- left_join(quadspp_lj, quadspp_filt,
-                            by = c("Plot_Name", "PlotID", "EventID"))
+  quadspp_comb <- left_join(quadspp_lj, quadspp_filt %>% select(-num_quads, -missing_cover),
+                            by = c("Plot_Name", "PlotID", "EventID")) %>% unique()
 
   quadspp_comb2 <- left_join(quadspp_comb,
                              taxa_wide %>% select(TSN, Tree, TreeShrub, Shrub, Vine,
@@ -239,6 +240,46 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = as.numeric(format(Sy
   quadspp_comb2$Txt_Cov_C5[quadspp_comb2$C5_SQ == 'NS'] <- "Not Sampled"
   quadspp_comb2$Txt_Cov_C8[quadspp_comb2$C8_SQ == 'NS'] <- "Not Sampled"
   quadspp_comb2$Txt_Cov_CC[quadspp_comb2$CC_SQ == 'NS'] <- "Not Sampled"
+
+  # For filters that initially drop plots NAs are returned in left join, so adding 0s back in
+  quadspp_comb2$Txt_Cov_A2[quadspp_comb2$A2_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- "0%"
+  quadspp_comb2$Txt_Cov_A5[quadspp_comb2$A5_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- "0%"
+  quadspp_comb2$Txt_Cov_A8[quadspp_comb2$A8_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- "0%"
+  quadspp_comb2$Txt_Cov_AA[quadspp_comb2$AA_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- "0%"
+  quadspp_comb2$Txt_Cov_B2[quadspp_comb2$B2_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- "0%"
+  quadspp_comb2$Txt_Cov_B5[quadspp_comb2$B5_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- "0%"
+  quadspp_comb2$Txt_Cov_B8[quadspp_comb2$B8_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- "0%"
+  quadspp_comb2$Txt_Cov_BB[quadspp_comb2$BB_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- "0%"
+  quadspp_comb2$Txt_Cov_C2[quadspp_comb2$C2_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- "0%"
+  quadspp_comb2$Txt_Cov_C5[quadspp_comb2$C5_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- "0%"
+  quadspp_comb2$Txt_Cov_C8[quadspp_comb2$C8_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- "0%"
+  quadspp_comb2$Txt_Cov_CC[quadspp_comb2$CC_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- "0%"
+
+  quadspp_comb2$Pct_Cov_A2[quadspp_comb2$A2_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$Pct_Cov_A5[quadspp_comb2$A5_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$Pct_Cov_A8[quadspp_comb2$A8_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$Pct_Cov_AA[quadspp_comb2$AA_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$Pct_Cov_B2[quadspp_comb2$B2_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$Pct_Cov_B5[quadspp_comb2$B5_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$Pct_Cov_B8[quadspp_comb2$B8_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$Pct_Cov_BB[quadspp_comb2$BB_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$Pct_Cov_C2[quadspp_comb2$C2_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$Pct_Cov_C5[quadspp_comb2$C5_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$Pct_Cov_C8[quadspp_comb2$C8_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$Pct_Cov_CC[quadspp_comb2$CC_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+
+  quadspp_comb2$A2[quadspp_comb2$A2_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$A5[quadspp_comb2$A5_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$A8[quadspp_comb2$A8_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$AA[quadspp_comb2$AA_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$B2[quadspp_comb2$B2_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$B5[quadspp_comb2$B5_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$B8[quadspp_comb2$B8_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$BB[quadspp_comb2$BB_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$C2[quadspp_comb2$C2_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$C5[quadspp_comb2$C5_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$C8[quadspp_comb2$C8_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
+  quadspp_comb2$CC[quadspp_comb2$CC_SQ == 'SS' & quadspp_comb2$ScientificName == "None present"] <- 0
 
   na_cols <- c("Exotic", "InvasiveMIDN", "Tree", "TreeShrub", "Shrub", "Vine",
                "Herbaceous", "Graminoid", "FernAlly")
