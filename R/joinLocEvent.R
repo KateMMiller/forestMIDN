@@ -149,39 +149,75 @@ joinLocEvent<-function(park = "all", from = 2007, to = as.numeric(format(Sys.Dat
   plot_events7 <- plot_events6[plot_events6$SampleYear %in% c(from:to), ]
 
   # This is ugly, but too complicated to try iterating
-  cycle1 <- (2007:2010)
-  cycle2 <- (2011:2014)
-  cycle3 <- (2015:2018)
-  cycle4 <- (2019:2022)
-  coloc1 <- (2011:2014)
-  coloc2 <- (2015:2018)
-  coloc3 <- (2019:2022)
-  coloc4 <- (2023:2026)
-  ncbnc1 <- (2008:2011)
-  ncbnc2 <- (2012:2015)
-  ncbnc3 <- (2016:2019)
-  ncbnc4 <- (2020:2023)
-  ncbn <- c("GEWA", "SAHI", "THST")
-  midn <- c("APCO", "BOWA", "FRSP", "GETT", "HOFU", "PETE", "RICH", "VAFO")
+  midn1 <- c("FRSP", "PETE", "RICH")
+  m1_cycle1 <- 2007:2010
+  m1_cycle2 <- 2011:2014
+  m1_cycle3 <- 2015:2018
+  m1_cycle4 <- 2019:2022
+  m1_cycle5 <- 2023:2026
+
+  midn2 <- c("APCO", "BOWA", "GETT", "HOFU", "VAFO")
+  m2_cycle1 <- 2007:2010
+  m2_cycle2 <- 2011:2014
+  m2_cycle3 <- 2015:2018
+  m2_cycle4 <- 2019:2023
+  m2_cycle5 <- 2024:2027
+
+  ncbn <- c("GEWA", "THST")
+  ncbnc1 <- 2008:2011
+  ncbnc2 <- 2012:2015
+  ncbnc3 <- 2016:2019
+  ncbnc4 <- 2020:2023
+  ncbnc5 <- 2024:2027
+
+  coloc1 <- 2011:2014
+  coloc2 <- 2015:2018
+  coloc3 <- 2019:2022
+  coloc4 <- 2023:2026
+  coloc5 <- 2027:2030
+
+  sahi1 <- 2009
+  sahi2 <- 2013
+  sahi3 <- 2017
+  sahi4 <- 2023
+
   asisc1 <- c(2019:2024)
+  asisc2 <- c(2025:2028)
+  asisc3 <- c(2029:2032)
 
   plot_events7$cycle <- NA
   plot_events7$cycle[plot_events7$ParkUnit == "COLO" & plot_events7$SampleYear %in% coloc1] <- 1
   plot_events7$cycle[plot_events7$ParkUnit == "COLO" & plot_events7$SampleYear %in% coloc2] <- 2
   plot_events7$cycle[plot_events7$ParkUnit == "COLO" & plot_events7$SampleYear %in% coloc3] <- 3
   plot_events7$cycle[plot_events7$ParkUnit == "COLO" & plot_events7$SampleYear %in% coloc4] <- 4
+  plot_events7$cycle[plot_events7$ParkUnit == "COLO" & plot_events7$SampleYear %in% coloc5] <- 5
+
+  plot_events7$cycle[plot_events7$ParkUnit == "SAHI" & plot_events7$SampleYear %in% sahi1] <- 1
+  plot_events7$cycle[plot_events7$ParkUnit == "SAHI" & plot_events7$SampleYear %in% sahi2] <- 2
+  plot_events7$cycle[plot_events7$ParkUnit == "SAHI" & plot_events7$SampleYear %in% sahi3] <- 3
+  plot_events7$cycle[plot_events7$ParkUnit == "SAHI" & plot_events7$SampleYear %in% sahi4] <- 4
 
   plot_events7$cycle[plot_events7$ParkUnit == "ASIS" & plot_events7$SampleYear %in% asisc1] <- 1
+  plot_events7$cycle[plot_events7$ParkUnit == "ASIS" & plot_events7$SampleYear %in% asisc2] <- 2
+  plot_events7$cycle[plot_events7$ParkUnit == "ASIS" & plot_events7$SampleYear %in% asisc3] <- 3
 
   plot_events7$cycle[plot_events7$ParkUnit %in% ncbn & plot_events7$SampleYear %in% ncbnc1] <- 1
   plot_events7$cycle[plot_events7$ParkUnit %in% ncbn & plot_events7$SampleYear %in% ncbnc2] <- 2
   plot_events7$cycle[plot_events7$ParkUnit %in% ncbn & plot_events7$SampleYear %in% ncbnc3] <- 3
   plot_events7$cycle[plot_events7$ParkUnit %in% ncbn & plot_events7$SampleYear %in% ncbnc4] <- 4
+  plot_events7$cycle[plot_events7$ParkUnit %in% ncbn & plot_events7$SampleYear %in% ncbnc5] <- 5
 
-  plot_events7$cycle[plot_events7$ParkUnit %in% midn & plot_events7$SampleYear %in% cycle1] <- 1
-  plot_events7$cycle[plot_events7$ParkUnit %in% midn & plot_events7$SampleYear %in% cycle2] <- 2
-  plot_events7$cycle[plot_events7$ParkUnit %in% midn & plot_events7$SampleYear %in% cycle3] <- 3
-  plot_events7$cycle[plot_events7$ParkUnit %in% midn & plot_events7$SampleYear %in% cycle4] <- 4
+  plot_events7$cycle[plot_events7$ParkUnit %in% midn1 & plot_events7$SampleYear %in% m1_cycle1] <- 1
+  plot_events7$cycle[plot_events7$ParkUnit %in% midn1 & plot_events7$SampleYear %in% m1_cycle2] <- 2
+  plot_events7$cycle[plot_events7$ParkUnit %in% midn1 & plot_events7$SampleYear %in% m1_cycle3] <- 3
+  plot_events7$cycle[plot_events7$ParkUnit %in% midn1 & plot_events7$SampleYear %in% m1_cycle4] <- 4
+  plot_events7$cycle[plot_events7$ParkUnit %in% midn1 & plot_events7$SampleYear %in% m1_cycle5] <- 5
+
+  plot_events7$cycle[plot_events7$ParkUnit %in% midn2 & plot_events7$SampleYear %in% m2_cycle1] <- 1
+  plot_events7$cycle[plot_events7$ParkUnit %in% midn2 & plot_events7$SampleYear %in% m2_cycle2] <- 2
+  plot_events7$cycle[plot_events7$ParkUnit %in% midn2 & plot_events7$SampleYear %in% m2_cycle3] <- 3
+  plot_events7$cycle[plot_events7$ParkUnit %in% midn2 & plot_events7$SampleYear %in% m2_cycle4] <- 4
+  plot_events7$cycle[plot_events7$ParkUnit %in% midn2 & plot_events7$SampleYear %in% m2_cycle5] <- 5
 
   return(data.frame(plot_events7))
 } # end of function
