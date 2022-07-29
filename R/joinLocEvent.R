@@ -106,18 +106,24 @@ joinLocEvent<-function(park = "all", from = 2007, to = as.numeric(format(Sys.Dat
 
   # Merge COMN_Plots and COMN_Events
   plots <- plots %>% select(-ExportDate)
+
   events <- events %>% select(-ExportDate)
+
+  # Hack for practice plots that aren't in a panel. Assigns to first selected panel
+  plots$PanelCode[plots$PanelCode == "NA"] <- as.character(panels[1])
+  events$PanelCode[events$PanelCode == "NA"] <- as.character(panels[1])
+
   merge_names <- intersect(names(plots), names(events))
   # merge_names: "Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode", "PlotTypeLabel",
   # "PanelCode", "PanelLabel", "PlotCode", "IsAbandoned"
 
-  plot_events <- full_join(plots, events, by = merge_names)
+  plot_events <- full_join(plots, events, by = merge_names) %>% data.frame()
 
   if(nrow(plot_events) == 0){stop("Function returned 0 rows. Check that park and years specified contain visits.")}
 
-  plot_events$Plot_Name <- paste(plot_events$ParkUnit,
-                                 stringr::str_pad(plot_events$PlotCode, 3, side = 'left', "0"),
-                                 sep = "-")
+  # plot_events$Plot_Name <- paste(plot_events$ParkUnit,
+  #                                stringr::str_pad(plot_events$PlotCode, 3, side = 'left', "0"),
+  #                                sep = "-")
 
   # Filter output based on function arguments
   plot_events <- if(output == 'short'){
