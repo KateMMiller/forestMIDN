@@ -5,7 +5,7 @@
 #' new_env = TRUE or FALSE. You must have the latest ODBC SQL driver installed for this function to
 #' work. It can be downloaded from: https://go.microsoft.com/fwlink/?linkid=2168524
 #'
-#' @importFrom dplyr collect tbl
+#' @importFrom dplyr collect rename tbl
 #' @importFrom magrittr %>%
 #'
 #' @param instance Specify whether you are connecting to the local instance or server.
@@ -53,10 +53,13 @@ importData <- function(instance = c("local", "server"), server = "localhost", na
     stop("Package 'DBI' needed for this function to work. Please install it.", call. = FALSE)
   }
 
-  if(!requireNamespace("dplyr", quietly = TRUE)){
+  if(!requireNamespace("dbplyr", quietly = TRUE)){
     stop("Package 'dbplyr' needed for this function to work. Please install it.", call. = FALSE)
   }
 
+  if(!requireNamespace("sf", quietly = TRUE)){
+    stop("Package 'sf' needed for this function to work. Please install it.", call. = FALSE)
+  }
 
   # Set up connection
   server_con <- ifelse(instance == 'local', "localhost\\SQLEXPRESS", server)
@@ -101,7 +104,7 @@ importData <- function(instance = c("local", "server"), server = "localhost", na
   close(pb)
   DBI::dbDisconnect(con)
 
-  # Rename to all NETN at the end
+  # Rename to all MIDN at the end
   view_list <- lapply(seq_along(view_list_db), function(x){
     paste0(substr(view_list_db[[x]], 1,
                   nchar(view_list_db[[x]]) - 5),
@@ -110,13 +113,35 @@ importData <- function(instance = c("local", "server"), server = "localhost", na
 
   view_import <- setNames(view_import, view_list)
 
-  print(ifelse(new_env == TRUE, paste0("Import complete. Views are located in VIEWS_MIDN environment."),
-               paste0("Import complete. Views are located in global environment.")), quote = FALSE)
 
   if(new_env == TRUE){
     VIEWS_MIDN <<- new.env()
     list2env(view_import, envir = VIEWS_MIDN)
   } else {
     list2env(view_import, envir = .GlobalEnv)}
+
+  # Add Lat/Long to Plots_MIDN
+  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  plots <- get("Plots_MIDN", envir = env)
+
+  plotwgs1 <-
+    rbind(
+      plots %>% filter(ZoneCode == "17N") %>%
+        sf::st_as_sf(coords = c("xCoordinate", "yCoordinate"), crs = 26917) %>%
+        sf::st_transform(crs = 4326),
+      plots %>% filter(ZoneCode == "18N") %>%
+        sf::st_as_sf(coords = c("xCoordinate", "yCoordinate"), crs = 26918) %>%
+        sf::st_transform(crs = 4326)
+    )
+
+  plotwgs <- cbind(plots, sf::st_coordinates(plotwgs1)) %>%
+    rename(Lat = Y, Long = X)
+
+  if(new_env == TRUE){VIEWS_MIDN$Plots_MIDN <- plotwgs
+  } else Plots_MIDN <- plotwgs
+
+  print(ifelse(new_env == TRUE, paste0("Import complete. Views are located in VIEWS_MIDN environment."),
+               paste0("Import complete. Views are located in global environment.")), quote = FALSE)
+
 }
 
