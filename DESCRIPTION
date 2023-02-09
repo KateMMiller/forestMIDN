@@ -22,6 +22,7 @@ Suggests:
     dbplyr,
     ggrepel,
     odbc,
+    sf,
     zip
 Collate: 
     'exportCSV.R'
