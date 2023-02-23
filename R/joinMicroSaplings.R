@@ -121,7 +121,7 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = as.numeric(format(
              select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear, SampleDate,
                     IsQAQC, SQSaplingCode,
                     MicroplotCode, TSN, ScientificName, TagCode, Fork, SaplingStatusCode, DBHcm,
-                    IsDBHVerified, SaplingNote, Count),
+                    IsDBHVerified, SaplingNote),
            error = function(e){stop("MicroplotSaplings_MIDN view not found. Please import view.")})
 
   taxa_wide <- force(prepTaxa())
