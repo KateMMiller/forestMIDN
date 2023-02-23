@@ -120,7 +120,7 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = as.numeric(format(
   tryCatch(saps_vw <- get("MicroplotSaplings_MIDN", envir = env) %>%
              select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear, SampleDate, IsQAQC, SQSaplingCode,
                     MicroplotCode, TSN, ScientificName, TagCode, Fork, SaplingStatusCode, DBHcm,
-                    IsDBHVerified),
+                    IsDBHVerified, SaplingNote),
            error = function(e){stop("MicroplotSaplings_MIDN view not found. Please import view.")})
 
   taxa_wide <- force(prepTaxa())
@@ -137,7 +137,10 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = as.numeric(format(
   pe_list <- unique(plot_events$EventID)
 
   sap_evs <- filter(saps_vw, EventID %in% pe_list) %>%
-    left_join(plot_events, ., by = intersect(names(plot_events), names(.)))
+    left_join(plot_events, ., by = c("ParkUnit", "ParkSubUnit", "PlotCode",
+                                     "PlotID", "EventID",
+                                     "SampleYear", "SampleDate", "IsQAQC"),
+              multiple = 'all')
 
   sap_tax <- left_join(sap_evs,
                        taxa_wide[, c("TSN", "ScientificName", "CanopyExclusion", "Exotic",
@@ -173,20 +176,20 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = as.numeric(format(
                     "exotic" = filter(sap_can, Exotic == TRUE),
                     "invasive" = filter(sap_can, InvasiveMIDN == TRUE)) %>%
     select(Plot_Name, Network, ParkUnit, ParkSubUnit, PlotTypeCode, PanelCode,
-           PlotCode, PlotID, EventID, IsQAQC, SampleYear, SampleDate, cycle, SQSaplingCode, MicroplotCode,
+           PlotCode, PlotID, EventID, IsQAQC, SampleYear, SampleDate, cycle,
+           SQSaplingCode, MicroplotCode,
            TSN, ScientificName, CanopyExclusion, Exotic, InvasiveMIDN, TagCode, Fork,
-           SaplingStatusCode, DBHcm, IsDBHVerified, Count)
+           SaplingStatusCode, DBHcm, IsDBHVerified, SaplingNote)
 
   # join filtered data back to full plot/visit/microplot list
-  sap_comb <- left_join(sap_left, sap_nat, by = intersect(names(sap_left), names(sap_nat)))
-
+  sap_comb <- left_join(sap_left, sap_nat, by = intersect(names(sap_left), names(sap_nat)),
+                        multiple = "all")
 
   # Use SQs to fill blank ScientificNames after filtering
   sap_comb$ScientificName[is.na(sap_comb$ScientificName) &
                             (sap_comb$SQSaplingCode %in% c("SS", "NP"))] = "None present"
   sap_comb$ScientificName[is.na(sap_comb$ScientificName) &
                             (sap_comb$SQSaplingCode %in% c("ND", "NS"))] = "Not Sampled"
-  sap_comb$Count[(sap_comb$ScientificName == "None present") & is.na(sap_comb$Count)] <- 0
 
   sap_final <- sap_comb %>% arrange(Plot_Name, SampleYear, IsQAQC, MicroplotCode, ScientificName, TagCode)
   } # end of function
