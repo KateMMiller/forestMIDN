@@ -118,9 +118,10 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = as.numeric(format(
 
   # Prepare the microplot data
   tryCatch(saps_vw <- get("MicroplotSaplings_MIDN", envir = env) %>%
-             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear, SampleDate, IsQAQC, SQSaplingCode,
+             select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear, SampleDate,
+                    IsQAQC, SQSaplingCode,
                     MicroplotCode, TSN, ScientificName, TagCode, Fork, SaplingStatusCode, DBHcm,
-                    IsDBHVerified, SaplingNote),
+                    IsDBHVerified, SaplingNote, Count),
            error = function(e){stop("MicroplotSaplings_MIDN view not found. Please import view.")})
 
   taxa_wide <- force(prepTaxa())
@@ -179,7 +180,7 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = as.numeric(format(
            PlotCode, PlotID, EventID, IsQAQC, SampleYear, SampleDate, cycle,
            SQSaplingCode, MicroplotCode,
            TSN, ScientificName, CanopyExclusion, Exotic, InvasiveMIDN, TagCode, Fork,
-           SaplingStatusCode, DBHcm, IsDBHVerified, SaplingNote)
+           SaplingStatusCode, DBHcm, IsDBHVerified, SaplingNote, Count)
 
   # join filtered data back to full plot/visit/microplot list
   sap_comb <- left_join(sap_left, sap_nat, by = intersect(names(sap_left), names(sap_nat)),

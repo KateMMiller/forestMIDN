@@ -131,7 +131,8 @@ joinRegenData <- function(park = 'all', from = 2007, to = as.numeric(format(Sys.
     select(-tot_seeds, -BrowsedCount, -IsCollected, -Pct_Cov, -Txt_Cov)
 
   # Set up plots missing all seedling data and calculate number of quads sampled
-  num_samp_quads_seed <- seeds_raw %>% select(Plot_Name, SampleYear, IsQAQC, EventID, SQSeedlingCode, QuadratCode) %>%
+  num_samp_quads_seed <- seeds_raw %>% select(Plot_Name, SampleYear, IsQAQC, EventID,
+                                              SQSeedlingCode, QuadratCode) %>%
     unique() %>% mutate(samp_quad = ifelse(SQSeedlingCode %in% c("NP", "SS"), 1, 0),
                         not_samp_quad = ifelse(SQSeedlingCode == "NS", 1, 0)) %>% #View() %>%
     group_by(Plot_Name, SampleYear, IsQAQC, EventID) %>%
@@ -175,7 +176,8 @@ joinRegenData <- function(park = 'all', from = 2007, to = as.numeric(format(Sys.
   # was > Stocking_SI)
 
   # Set up plots missing all sapling data and calculate number of microplots sampled
-  num_samp_micros_sap <- saps_raw %>% select(Plot_Name, SampleYear, IsQAQC, EventID, SQSaplingCode, MicroplotCode) %>%
+  num_samp_micros_sap <- saps_raw %>% select(Plot_Name, SampleYear, IsQAQC, EventID,
+                                             SQSaplingCode, MicroplotCode) %>%
     unique() %>% mutate(samp_micro = ifelse(SQSaplingCode %in% c("NP", "SS"), 1, 0),
                         not_samp_micro = ifelse(SQSaplingCode == "NS", 1, 0)) %>% #View() %>%
     group_by(Plot_Name, SampleYear, IsQAQC, EventID) %>%
