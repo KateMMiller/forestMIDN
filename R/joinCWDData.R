@@ -4,7 +4,6 @@
 #'
 #' @importFrom dplyr arrange filter group_by mutate select summarize
 #' @importFrom magrittr %>%
-#' @importFrom stringr str_pad
 #'
 #' @description This function combines and calculates CWD volume for each plot. Must run importData() first. Function
 #' only works for complete visits.
@@ -99,12 +98,6 @@ joinCWDData <- function(park = 'all', from = 2007, to = as.numeric(format(Sys.Da
            error = function(e){stop("StandSlopes_MIDN view not found. Please import view.")}
   )
 
-  cwd$Plot_Name <- paste(cwd$ParkUnit,
-                         stringr::str_pad(cwd$PlotCode, 3, side = 'left', "0"), sep = "-")
-
-  slopes$Plot_Name <- paste(slopes$ParkUnit,
-                            stringr::str_pad(slopes$PlotCode, 3, side = 'left', "0"), sep = "-")
-
   cwd <- cwd[ , c("Plot_Name", "PlotID", "EventID", "Network", "ParkUnit", "ParkSubUnit",
                   "PlotTypeCode", "PlotCode", "IsAbandoned", "PanelCode",
                   "SampleDate","IsQAQC", "SampleYear", "SQTransectCode",
@@ -123,7 +116,7 @@ joinCWDData <- function(park = 'all', from = 2007, to = as.numeric(format(Sys.Da
 
   slopes_QAQC <- merge(slopes_QAQC1,
                        subset(slopes, slopes$IsQAQC == FALSE, select = c(-SampleDate, -IsQAQC, -EventID, -PlotID)),
-                       by = c("Plot_Name", "SampleYear"), all.x = T, all.y = F)
+                       by = c("Plot_Name", "SampleYear"), all.x = T, all.y = F) %>% unique()
 
   slopes_final <- rbind(slopes_init, slopes_QAQC)
 
