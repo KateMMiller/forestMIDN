@@ -150,7 +150,8 @@ joinVisitNotes <- function(park = 'all', from = 2007, to = as.numeric(format(Sys
 
   # only care about joining cwd records with notes to plot event columns
   cwd_pe <- right_join(plot_events %>% select(PlotID, EventID, Plot_Name, SampleYear, IsQAQC),
-                       cwd_long, by = intersect(names(plot_events), names(cwd_long)))
+                       cwd_long, by = intersect(names(plot_events), names(cwd_long)),
+                       multiple = 'all')
 
   # Soils notes
   tryCatch(soilhdr <- get("SoilHeader_MIDN", envir = env) %>%
@@ -182,6 +183,14 @@ joinVisitNotes <- function(park = 'all', from = 2007, to = as.numeric(format(Sys
                               locType = locType, eventType = eventType) %>%
     select(Plot_Name, PlotID, EventID, SampleYear, IsQAQC, Note_Type, Sample_Info, Notes)
 
+  # AddSpp notes
+  addspp_notes <- joinAdditionalSpecies(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
+                                        locType = locType, eventType = eventType) %>%
+    mutate(Sample_Info = ScientificName, Note_Type = "Additional_Species") %>%
+    select(Plot_Name, PlotID, EventID, SampleYear, IsQAQC,
+           Note_Type, Sample_Info, Notes = Note) %>%
+    filter(!is.na(Notes))
+
   # Microplot notes
   micro_notes <- joinMicroNotes(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
                                 locType = locType, eventType = eventType)
@@ -194,14 +203,15 @@ joinVisitNotes <- function(park = 'all', from = 2007, to = as.numeric(format(Sys
 
   # Combine all notes into 1 data.frame
   notes_comb <- rbind(plot_evs_long, stand_data, dist_data, cwd_pe, soilhdr2, soilsamp2,
-                      quad_notes, micro_notes, tree_notes)
+                      quad_notes, addspp_notes, micro_notes, tree_notes)
 
   notes_filt <- if(noteType == 'all'){notes_comb
   } else if(noteType == 'visit'){notes_comb %>% filter(!(Note_Type %in% c("Plot_Notes", "Directions")))}
 
   notes_final <- inner_join(plot_events %>% select(Plot_Name, PlotID, EventID, Network, ParkUnit, ParkSubUnit,
                                                    SampleYear, SampleDate, IsQAQC, cycle),
-                            notes_filt, by = c("Plot_Name", "PlotID", "EventID", "SampleYear", "IsQAQC")) %>%
+                            notes_filt, multiple = 'all',
+                            by = c("Plot_Name", "PlotID", "EventID", "SampleYear", "IsQAQC")) %>%
     arrange(Plot_Name, SampleYear, IsQAQC, Note_Type, Sample_Info)
 
   notes_final$SampleDate <- as.Date(notes_final$SampleDate)
