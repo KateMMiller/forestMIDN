@@ -13,6 +13,7 @@ Imports:
     ggplot2,
     magrittr,
     purrr,
+    sf,
     stringr,
     tidyr,
     tidyselect
@@ -22,7 +23,6 @@ Suggests:
     dbplyr,
     ggrepel,
     odbc,
-    sf,
     zip
 Collate: 
     'exportCSV.R'
