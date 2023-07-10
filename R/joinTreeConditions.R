@@ -171,6 +171,9 @@ joinTreeConditions <- function(park = 'all', from = 2007, to = as.numeric(format
   # Combine tree condition and vine data
   tree_comb <- left_join(trcond_evs2, vine_wide, by = intersect(names(trcond_evs2), names(vine_wide)))
   if(!"VIN_B" %in% names(tree_comb)){tree_comb$VIN_B <- NA_real_}
+  if(!"VIN_C" %in% names(tree_comb)){tree_comb$VIN_C <- 0} # If VIN_C isn't in trcond_evs2, it hasn't
+  # been recorded for trees with the specified arguments. Vines in crown have always been in the protocol,
+  # so 0 is better than NA for VIN_C.
 
   tree_comb$VIN_C <- ifelse(tree_comb$VINE == 0, 0, tree_comb$VIN_C)
   tree_comb$VIN_B <- case_when(tree_comb$VINE == 0 & tree_comb$SampleYear >= 2019 ~ 0,

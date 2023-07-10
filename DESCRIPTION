@@ -1,7 +1,7 @@
 Package: forestMIDN
 Type: Package
 Title: Package for importing, joining and querying MIDN forest database tables
-Version: 1.01
+Version: 1.02
 Author: Kate Miller
 Maintainer: Kate Miller <kathryn_miller@nps.gov>
 Description: This package contains functions that import database views from the MIDN forest backend and or exported CSVs from the backend and provides functions to query and summarize MIDN forest data.
