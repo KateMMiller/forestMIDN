@@ -109,7 +109,7 @@ joinTreeFoliageCond <- function(park = 'all', from = 2007, to = as.numeric(forma
 
   # Prepare the foliage data
   tryCatch(foliage_vw <- get("TreesFoliageCond_MIDN", envir = env) %>%
-                         select(Plot_Name, PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode,
+                         select(Plot_Name, PlotID, EventID, ParkUnit, PlotCode,
                                 SampleYear, IsQAQC, TagCode, TreeStatusCode,
                                 FoliageConditionCode, PercentLeavesCode, PercentLeavesLabel,
                                 PercentLeafAreaCode, PercentLeafAreaLabel),
