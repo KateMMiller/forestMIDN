@@ -178,9 +178,9 @@ joinLocEvent<-function(park = "all", from = 2007, to = as.numeric(format(Sys.Dat
 
   coloc1 <- 2011:2014
   coloc2 <- 2015:2018
-  coloc3 <- 2019:2022
-  coloc4 <- 2023:2026
-  coloc5 <- 2027:2030
+  coloc3 <- 2019:2023
+  coloc4 <- 2024:2027
+  coloc5 <- 2028:2031
 
   sahi1 <- 2009
   sahi2 <- 2013
