@@ -156,9 +156,9 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = as.numeric(format(Sy
 
   names(quadspp_evs)[names(quadspp_evs) == "ConfidenceClassCode"] <- "Confidence"
 
-  quadspp_lj <- left_join(plot_events, quadspp_evs,
+  quadspp_lj <- left_join(plot_events, quadspp_evs |> select(-missing_cover),
                           by = c("Plot_Name", "PlotID", "EventID")) %>%
-    select(Plot_Name:IsQAQC, A2_SQ:CC_SQ, SQQuadSum, num_quads, missing_cover) %>% unique()
+    select(Plot_Name:IsQAQC, A2_SQ:CC_SQ, SQQuadSum, num_quads) %>% unique()
 
   # join with taxa data, so can filter for smaller dataset early
   quadspp_tax <- left_join(quadspp_evs,
@@ -290,9 +290,13 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = as.numeric(format(Sy
 
   quadspp_comb3 <- quadspp_comb2 %>% rename_with(~cov_rename("SQ", .), all_of(quad_sq_list))
 
+  # Add missing_cover back in
+  quadspp_comb3b <- left_join(quadspp_comb3, quadspp_evs |> select(Plot_Name, EventID, ScientificName, missing_cover),
+                              by = c("Plot_Name", "EventID", "ScientificName"))
+
   quadspp_comb4 <- if(returnNoCover == FALSE){
-    filter(quadspp_comb3, missing_cover == FALSE)
-  } else {quadspp_comb3}
+    filter(quadspp_comb3b, missing_cover == FALSE)
+  } else {quadspp_comb3b}
 
   # select columns based on specified valueType
   req_cols <- c("Plot_Name", "Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode",
