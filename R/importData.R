@@ -124,20 +124,29 @@ importData <- function(instance = c("local", "server"), server = "localhost", na
   env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
   plots <- get("Plots_MIDN", envir = env)
 
-  plotwgs1 <-
-    rbind(
-      plots %>% filter(ZoneCode == "17N") %>%
-        sf::st_as_sf(coords = c("xCoordinate", "yCoordinate"), crs = 26917) %>%
-        sf::st_transform(crs = 4326),
-      plots %>% filter(ZoneCode == "18N") %>%
-        sf::st_as_sf(coords = c("xCoordinate", "yCoordinate"), crs = 26918) %>%
-        sf::st_transform(crs = 4326)
-    )
+  plots_sf18 <- plots |> filter(ZoneCode == "18N") |>
+    select(Plot_Name, xCoordinate, yCoordinate) |>
+    sf::st_as_sf(coords = c("xCoordinate", "yCoordinate"), crs = 26918) |>
+    sf::st_transform(crs = 4326)
 
-  plotwgs <- cbind(plots, sf::st_coordinates(plotwgs1)) %>%
-    rename(Lat = Y, Long = X)
+  plots_sf17 <- plots |> filter(ZoneCode == "17N") |>
+    select(Plot_Name, xCoordinate, yCoordinate) |>
+    sf::st_as_sf(coords = c("xCoordinate", "yCoordinate"), crs = 26917) |>
+    sf::st_transform(crs = 4326)
 
-  if(new_env == TRUE){VIEWS_MIDN$Plots_MIDN <- plotwgs
+  plots_18 <- data.frame(Plot_Name = plots_sf18$Plot_Name,
+                         Long = sf::st_coordinates(plots_sf18)[,1],
+                         Lat = sf::st_coordinates(plots_sf18)[,2])
+
+  plots_17 <- data.frame(Plot_Name = plots_sf17$Plot_Name,
+                         Long = sf::st_coordinates(plots_sf17)[,1],
+                         Lat = sf::st_coordinates(plots_sf17)[,2])
+
+  plots_wgs1 <- rbind(plots_18, plots_17)
+
+  plot_wgs <- left_join(plots, plots_wgs1, by = "Plot_Name")
+
+  if(new_env == TRUE){VIEWS_MIDN$Plots_MIDN <- plot_wgs
   } else Plots_MIDN <- plotwgs
 
   print(ifelse(new_env == TRUE, paste0("Import complete. Views are located in VIEWS_MIDN environment."),
