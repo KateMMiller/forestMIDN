@@ -155,31 +155,32 @@ joinMicroShrubData <- function(park = 'all', from = 2007, to = as.numeric(format
     mutate(ScientificName = ifelse(is.na(SQShrubCode) & is.na(ScientificName),
                                    "None present", ScientificName)) # for the records added by left_join
 
-  shrub_mic1 <- shrub_full %>% mutate(ScientificName = ifelse(SQShrubCode == "NP" & is.na(ScientificName),
-                                                              "None present", ScientificName),
-                                      Pct_Cov1 = case_when(CoverClassCode == "1" ~ 0.1,
-                                                           CoverClassCode == "2" ~ 3,
-                                                           CoverClassCode == "3" ~ 7.5,
-                                                           CoverClassCode == "4" ~ 17.5,
-                                                           CoverClassCode == "5" ~ 37.5,
-                                                           CoverClassCode == "6" ~ 62.5,
-                                                           CoverClassCode == "7" ~ 85,
-                                                           CoverClassCode == "8" ~ 97.5,
-                                                           CoverClassCode == "PM" ~ NA_real_,
-                                                           TRUE ~ 0),
-                                      Pct_Cov = case_when(SampleYear < 2009 ~ NA_real_,
-                                                          SampleYear >= 2009 & SQShrubCode %in% c("NS", "ND", "PM") ~ NA_real_,
-                                                          SampleYear >= 2009 & ScientificName == "None present" ~ 0,
-                                                          TRUE ~ Pct_Cov1),
-                                      Txt_Cov = case_when(SampleYear < 2009 ~ paste("Not Collected"),
-                                                          between(SampleYear, 2009, 2010) & SQShrubCode == "NP" ~ "0%",
-                                                          between(SampleYear, 2009, 2010) & SQShrubCode %in% c("NS", "ND") ~ "Not Sampled",
-                                                          between(SampleYear, 2009, 2010) & SQShrubCode == "PM" ~ "Not Collected",
-                                                          between(SampleYear, 2009, 2010) & CoverClassCode == "PM" ~ "Not Collected",
-                                                          SampleYear >= 2011 & SQShrubCode == "NP" ~ "0%",
-                                                          SampleYear >= 2011 & SQShrubCode %in% c("ND", "PM") ~ "Permanently Missing",
-                                                          TRUE ~ paste(CoverClassLabel))) %>%
-                                     select(-Pct_Cov1)
+  shrub_mic1 <- shrub_full %>% mutate(
+    ScientificName = ifelse(SQShrubCode == "NP" & is.na(ScientificName),
+                             "None present", ScientificName),
+    Pct_Cov1 = case_when(CoverClassCode == "1" ~ 0.1,
+                         CoverClassCode == "2" ~ 3,
+                         CoverClassCode == "3" ~ 7.5,
+                         CoverClassCode == "4" ~ 17.5,
+                         CoverClassCode == "5" ~ 37.5,
+                         CoverClassCode == "6" ~ 62.5,
+                         CoverClassCode == "7" ~ 85,
+                         CoverClassCode == "8" ~ 97.5,
+                         CoverClassCode == "PM" ~ NA_real_,
+                         TRUE ~ 0),
+    Pct_Cov = case_when(SampleYear < 2009 ~ NA_real_,
+                        SampleYear >= 2009 & SQShrubCode %in% c("NS", "ND", "PM") ~ NA_real_,
+                        SampleYear >= 2009 & ScientificName == "None present" ~ 0,
+                        TRUE ~ Pct_Cov1),
+    Txt_Cov = case_when(SampleYear < 2009 ~ paste("Not Collected"),
+                        between(SampleYear, 2009, 2010) & SQShrubCode == "NP" ~ "0%",
+                        between(SampleYear, 2009, 2010) & SQShrubCode %in% c("NS", "ND") ~ "Not Sampled",
+                        between(SampleYear, 2009, 2010) & SQShrubCode == "PM" ~ "Not Collected",
+                        between(SampleYear, 2009, 2010) & CoverClassCode == "PM" ~ "Not Collected",
+                        SampleYear >= 2011 & SQShrubCode == "NP" ~ "0%",
+                        SampleYear >= 2011 & SQShrubCode %in% c("ND", "PM") ~ "Permanently Missing",
+                        TRUE ~ paste(CoverClassLabel))) %>%
+  select(-Pct_Cov1)
 
   shrub_mic1$Txt_Cov <- ifelse(shrub_mic1$Txt_Cov == "-<1%", "<1%", shrub_mic1$Txt_Cov)
 
@@ -198,6 +199,19 @@ joinMicroShrubData <- function(park = 'all', from = 2007, to = as.numeric(format
     group_by(PlotID, EventID) %>% summarize(num_micros = n(), .groups = 'drop')
 
   shrub_comb1 <- left_join(shrub_wide, shrub_pres, by = intersect(names(shrub_wide), names(shrub_pres)))
+
+  # Add microplot columns if missing from the data (ie none of a speciestype were found)
+  pct_names <- c("Pct_Cov_UR", "Pct_Cov_UL","Pct_Cov_B")
+  txt_names <- c("Txt_Cov_UR", "Txt_Cov_UL", "Txt_Cov_B")
+  miss_pnames <- setdiff(pct_names, names(shrub_comb1))
+  miss_tnames <- setdiff(txt_names, names(shrub_comb1))
+
+  shrub_comb1[miss_pnames] <- 0
+  shrub_comb1[miss_tnames] <- "0%"
+
+  if("Pct_Cov_NA" %in% names(shrub_comb1)){
+    shrub_comb1 <- shrub_comb1[, -which(names(shrub_comb1) %in% c("Pct_Cov_NA", "Txt_Cov_NA"))]
+  }
 
   shrub_comb2 <- shrub_comb1 %>% left_join(., micro_samp, by = intersect(names(.), names(micro_samp)))
 
