@@ -128,10 +128,10 @@ joinLocEvent<-function(park = "all", from = 2007, to = as.numeric(format(Sys.Dat
   # Filter output based on function arguments
   plot_events <- if(output == 'short'){
     plot_events[, c("Plot_Name", "Network", "ParkUnit", "ParkSubUnit", "PlotTypeCode", "PanelCode", "PlotCode",
-                    "IsAbandoned", "PlotID", "PlotLegacyID", "xCoordinate", "yCoordinate", "ZoneCode",
+                    "IsAbandoned", "PlotID", "xCoordinate", "yCoordinate", "ZoneCode",
                     "PhysiographyCode", "PhysiographyLabel", "PhysiographySummary", "Aspect",
                     "Orientation", "GRTS", "IsOrientationChanged", "IsStuntedWoodland",
-                    "EventID", "EventLegacyID", "SampleDate", "IsQAQC", "SampleYear",
+                    "EventID", "SampleDate", "IsQAQC", "SampleYear",
                     "PlotNotes", "Directions", "EventNotes", "StandNotes")]} else {plot_events}
 
 
