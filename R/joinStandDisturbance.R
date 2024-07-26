@@ -92,7 +92,7 @@ joinStandDisturbance<- function(park = 'all', QAQC = FALSE, locType = c('VS', 'a
 
   # import the Stand Data views
   tryCatch(sdist <- get("StandDisturbances_MIDN", envir = env) %>%
-             select(Plot_Name, PlotID, EventID, DisturbanceCode, DisturbanceLabel,
+             select(Plot_Name, PlotID, EventID, DisturbanceCode,
                     DisturbanceSummary, ThresholdCode, ThresholdLabel, DisturbanceCoverClassCode,
                     DisturbanceCoverClassLabel, DisturbanceNote),
            error = function(e){stop("StandDisturbances_MIDN view not found. Please import view.")}
@@ -107,8 +107,7 @@ joinStandDisturbance<- function(park = 'all', QAQC = FALSE, locType = c('VS', 'a
 
   sdist_evs <- left_join(plot_events, sdist, by = intersect(names(plot_events), names(sdist)))
   sdist_evs$DisturbanceCode[is.na(sdist_evs$DisturbanceCode)] <- 0
-  sdist_evs$DisturbanceLabel[is.na(sdist_evs$DisturbanceLabel)] <- "None present"
-  sdist_evs$DisturbanceSummary[is.na(sdist_evs$DisturbanceSummary)] <- "None present"
+    sdist_evs$DisturbanceSummary[is.na(sdist_evs$DisturbanceSummary)] <- "None present"
 
   sdist_final <- sdist_evs %>% arrange(Plot_Name, SampleYear, IsQAQC)
   return(data.frame(sdist_final))
