@@ -325,12 +325,12 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = as.numeric(format(Sy
 
   quadspp_final <- switch(valueType,
                           "midpoint" = quadspp_comb4[, c(req_cols, pct_cols, plant_cols,
-                                                         sum_cols, taxa_cols, "QuadSppNote")],
+                                                         sum_cols, taxa_cols, "QuadSppNote", "IsCollected")],
                           "classes" = quadspp_comb4[, c(req_cols, txt_cols, plant_cols,
-                                                        sum_cols, taxa_cols, "QuadSppNote")],
+                                                        sum_cols, taxa_cols, "QuadSppNote", "IsCollected")],
                           "all" = quadspp_comb4[, c(req_cols, sq_cols, pct_cols, txt_cols,
-                                                    plant_cols, sum_cols, taxa_cols, "QuadSppNote")],
-                          "averages" = quadspp_comb4[, c(req_cols, sum_cols, plant_cols, taxa_cols)])
+                                                    plant_cols, sum_cols, taxa_cols, "QuadSppNote", "IsCollected")],
+                          "averages" = quadspp_comb4[, c(req_cols, sum_cols, plant_cols, taxa_cols, "IsCollected")])
 
   return(data.frame(quadspp_final))
 } # end of function
