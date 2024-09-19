@@ -52,7 +52,8 @@ importCSV<- function(path = NA, new_env = TRUE, zip_name = NA){
   # Make sure all the views are in the path or zip file. If anything is mission, function stops.
   files <-
     if(!is.na(zip_name)){
-      zfiles <- unzip(paste0(path, zip_name), list = TRUE)$Name
+      zfiles1 <- unzip(paste0(path, zip_name), list = TRUE)$Name
+      zfiles <- zfiles1[grepl(".csv$", zfiles1)]
       files <- substr(zfiles, 1, nchar(zfiles) - 4)
     } else if(is.na(zip_name)) {
       files <- substr(list.files(path), 1, nchar(list.files(path)) - 4)}
@@ -73,7 +74,8 @@ importCSV<- function(path = NA, new_env = TRUE, zip_name = NA){
 
   view_import <-
     if(!is.na(zip_name)){
-      views <- unzip(paste0(path, zip_name), junkpaths = TRUE, exdir = tempdir())
+      views1 <- unzip(paste0(path, zip_name), junkpaths = TRUE, exdir = tempdir())
+      views <- views1[grepl(".csv$", views1)]
       lapply(seq_along(view_list), function(x){
         setTxtProgressBar(pb,x)
         read.csv(views[x])})
