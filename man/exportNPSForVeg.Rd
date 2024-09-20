@@ -24,6 +24,7 @@ NPSForVeg flatfiles
 This function exports MIDN forest data that are formatted to match flat
 files that can be imported into the NPSForVeg R package. Abandoned plots, QAQC visits,
 partial visits (e.g., COLO-380-2018), and non-VS plots are not included in the export.
+Note the every year after 2024, the cycles code will need to be updated.
 }
 \examples{
 \dontrun{

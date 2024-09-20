@@ -2,7 +2,7 @@
 #' @include joinAdditionalSpecies.R
 #' @include joinCWDData.R
 #' @include joinMicroSaplings.R
-#' @include joinQuadratSeedlings.R
+#' @include joinQuadSeedlings.R
 #' @include joinMicroShrubData.R
 #' @include joinQuadSpecies.R
 #' @include joinTreeData.R
@@ -17,6 +17,7 @@
 #' @description This function exports MIDN forest data that are formatted to match flat
 #' files that can be imported into the NPSForVeg R package. Abandoned plots, QAQC visits,
 #' partial visits (e.g., COLO-380-2018), and non-VS plots are not included in the export.
+#' Note the every year after 2024, the cycles code will need to be updated.
 #'
 #' @param keep Logical. If TRUE (default), assigns NPSForVeg objects to global environment.
 #' If FALSE, does not return output, which is useful when export = T.
@@ -217,7 +218,73 @@ exportNPSForVeg <- function(export = T, path = NA, zip = F, keep = T){
   x <- x + 1
   setTxtProgressBar(pb, x)
   #---- Cycles ----
-  # REMOVED CYCLES FROM NETN/MIDN NPSForVeg package, will hard code in NPSForVeg package
+  # Cycles by park grouping
+  # FRSP, PETE, RICH
+  MIDN1 <- data.frame(
+    Cycle = c(1, 2, 3, 4, 5),
+    Name = c("Cycle 1", "Cycle 2", "Cycle 3", "Cycle 4", "Latest Data"),
+    YearStart = c(2007, 2011, 2015, 2019, 2021),
+    YearEnd = c(2010, 2014, 2018, 2022, 2024),
+    PanelStart = c(1, 1, 1, 1, 4)
+  )
+
+  # APCO, BOWA, HOFU, GETT, VAFO
+  MIDN2 <- data.frame(
+    Cycle = c(1, 2, 3, 4, 5),
+    Name = c("Cycle 1", "Cycle 2", "Cycle 3", "Cycle 4", "Latest Data"),
+    YearStart = c(2007, 2011, 2015, 2019, 2022),
+    YearEnd = c(2010, 2014, 2018, 2023, 2024),
+    PanelStart = c(1, 1, 1, 1, 2)
+  )
+
+  # GEWA, THST
+  NCBN <- data.frame(
+    Cycle = c(1, 2, 3, 4, 5),
+    Name = c("Cycle 1", "Cycle 2", "Cycle 3", "Cycle 4", "Latest Data"),
+    YearStart = c(2008, 2012, 2016, 2022, 2022),
+    YearEnd = c(2011, 2015, 2019, 2024, 2024),
+    PanelStart = c(1, 1, 1, 1, 1)
+  )
+
+  COLO <- data.frame(
+    Cycle = c(1, 2, 3, 4),
+    Name = c("Cycle 1", "Cycle 2", "Cycle 3", "Latest Data"),
+    YearStart = c(2011, 2015, 2019, 2022),
+    YearEnd = c(2014, 2018, 2023, 2024),
+    PanelStart = c(1, 1, 1, 2)
+  )
+
+  SAHI <- data.frame(
+    Cycle = c(1, 2, 3, 4, 5),
+    Name = c("Cycle 1", "Cycle 2", "Cycle 3", "Cycle 4", "Latest Data"),
+    YearStart = c(2009, 2013, 2017, 2023, 2023),
+    YearEnd = c(2009, 2013, 2017, 2023, 2023),
+    PanelStart = c(1, 1, 1, 1, 1)
+  )
+
+  ASIS <- data.frame(
+    Cycle = c(1, 2),
+    Name = c("Cycle 1", "Latest Data"),
+    YearStart = c(2019, 2019),
+    YearEnd = c(2024, 2024),
+    PanelStart = c(1, 1)
+  )
+
+  cycles <- rbind(
+    data.frame(Unit_Code = rep("APCO", 5), MIDN2),
+    data.frame(Unit_Code = rep("ASIS", 2), ASIS),
+    data.frame(Unit_Code = rep("BOWA", 5), MIDN2),
+    data.frame(Unit_Code = rep("COLO", 4), COLO),
+    data.frame(Unit_Code = rep("FRSP", 5), MIDN1),
+    data.frame(Unit_Code = rep("GETT", 5), MIDN2),
+    data.frame(Unit_Code = rep("GEWA", 5), NCBN),
+    data.frame(Unit_Code = rep("HOFU", 5), MIDN2),
+    data.frame(Unit_Code = rep("PETE", 5), MIDN1),
+    data.frame(Unit_Code = rep("RICH", 5), MIDN1),
+    data.frame(Unit_Code = rep("SAHI", 5), SAHI),
+    data.frame(Unit_Code = rep("THST", 5), NCBN),
+    data.frame(Unit_Code = rep("VAFO", 5), MIDN2)
+  )
 
   #---- CommonNames ----
   plants1 <- prepTaxa() |>
@@ -288,7 +355,7 @@ exportNPSForVeg <- function(export = T, path = NA, zip = F, keep = T){
       Habit = "Tree",
       Browsed = NA_character_,
       Browsable = NA_character_,
-      Date = format(SampleDate, "%Y%m%d"),
+      Date = format(as.Date(SampleDate, "%Y-%m-%d"), "%Y%m%d"),
       Tag = TagCode,
       TaxonCode = NA,
       Microplot_Number = ifelse(MicroplotCode == "UR", 45, ifelse(MicroplotCode == "B", 180, 315))) |>
@@ -313,7 +380,7 @@ exportNPSForVeg <- function(export = T, path = NA, zip = F, keep = T){
   #---- Seedlings ----
   seeds1 <- joinQuadSeedlings() |>
     filter(!ScientificName %in% c("None present", "Not Sampled")) |>  #NPSForVeg doesn't take 0s
-    mutate(Date = format(SampleDate, "%Y%m%d"),
+    mutate(Date = format(as.Date(SampleDate, "%Y-%m-%d"), "%Y%m%d"),
            Quadrat_Number = QuadratCode) |>
     pivot_longer(cols = c(Seedlings_15_30cm, Seedlings_30_100cm, Seedlings_100_150cm, Seedlings_Above_150cm),
                  names_to = "Class", values_to = "Count") |>
@@ -339,7 +406,7 @@ exportNPSForVeg <- function(export = T, path = NA, zip = F, keep = T){
   setTxtProgressBar(pb, x)
   #---- Herbs ----
   herbs1 <- joinQuadSpecies() |>
-    mutate(Date = format(SampleDate, "%Y%m%d"))
+    mutate(Date = format(as.Date(SampleDate, "%Y-%m-%d"), "%Y%m%d"))
 
   herbs2 <- left_join(herbs1, plots |> select(Plot_Name, Unit_Group), by = "Plot_Name") |>
     select(Plot_Name, Unit_Code = ParkUnit, Unit_Group, Subunit_Code = ParkSubUnit,
@@ -360,7 +427,7 @@ exportNPSForVeg <- function(export = T, path = NA, zip = F, keep = T){
   setTxtProgressBar(pb, x)
   #---- Vines ----
   vines1 <- joinTreeVineSpecies() |>
-    mutate(Date = format(SampleDate, "%Y%m%d"))
+    mutate(Date = format(as.Date(SampleDate, "%Y-%m-%d"), "%Y%m%d"))
   vines1$Condition <- NA_character_
   vines1$Condition[vines1$VinePositionCode == "C"] <- "Vines in the crown"
   vines1$Condition[vines1$VinePositionCode == "B"] <- "Vines on the bole"
@@ -384,7 +451,7 @@ exportNPSForVeg <- function(export = T, path = NA, zip = F, keep = T){
   cwd1 <- joinCWDData()
 
   cwd <- left_join(cwd1, plots |> select(Plot_Name, Unit_Group, Subunit_Code, Panel), by = "Plot_Name") |>
-    mutate(Date = format(SampleDate, "%Y%m%d")) |>
+    mutate(Date = format(as.Date(SampleDate, "%Y-%m-%d"), "%Y%m%d")) |>
     select(Plot_Name, Unit_Code = ParkUnit, Unit_Group, Subunit_Code, Cycle = cycle,
            Panel, Frame = ParkUnit, Sample_Year = SampleYear, Date, TSN, Latin_Name = ScientificName,
            CWD_Vol, DecayClass = DecayClassCode)
@@ -392,8 +459,8 @@ exportNPSForVeg <- function(export = T, path = NA, zip = F, keep = T){
   setTxtProgressBar(pb, x)
 
   #---- Export Process -----
-  csv_list <- list(plots, events, meta, plants, trees, saplings, seeds, vines, herbs, cwd)
-  csv_names <- c("Plots", "Events", "MetaData", "CommonNames",
+  csv_list <- list(plots, events, meta, cycles, plants, trees, saplings, seeds, vines, herbs, cwd)
+  csv_names <- c("Plots", "Events", "MetaData", "Cycles", "CommonNames",
                  "Trees", "Saplings", "Seedlings", "Vines", "Herbs", "CWD")
   csv_list <- setNames(csv_list, csv_names)
 
