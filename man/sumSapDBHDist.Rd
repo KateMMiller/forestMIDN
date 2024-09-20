@@ -2,7 +2,7 @@
 % Please edit documentation in R/sumSapDBHDist.R
 \name{sumSapDBHDist}
 \alias{sumSapDBHDist}
-\title{sumSapDBHDist: calculates DBH distribution of saplings}
+\title{sumSapDBHDist: sapling DBH distribution}
 \usage{
 sumSapDBHDist(
   park = "all",
@@ -84,7 +84,8 @@ associated with that event. This feature is currently hard-coded in the function
 returns a dataframe with one row for each plot and either density, BA or both in 1cm size classes.
 }
 \description{
-This function calculates DBH distribution of live saplings by 1cm size classes. Must run importData first.
+This function calculates DBH distribution of live saplings by 1cm size classes.
+Must run importData first.
 }
 \examples{
 \dontrun{
