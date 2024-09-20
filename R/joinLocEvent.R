@@ -148,7 +148,7 @@ joinLocEvent<-function(park = "all", from = 2007, to = as.numeric(format(Sys.Dat
   } else {plot_events3}
 
   plot_events5 <- if(eventType == "complete"){
-    filter(plot_events4, !(Plot_Name == 'COLO-380' & SampleDate == '2018-08-15'))
+    filter(plot_events4, !(Plot_Name == 'COLO-380' & SampleDate %in% c('2018-08-15', '2023-08-07')))
   } else {plot_events4}
 
   plot_events6 <- plot_events5[plot_events5$PanelCode %in% c(panels), ]

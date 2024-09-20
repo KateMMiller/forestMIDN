@@ -1,13 +1,13 @@
 #' @include joinMicroSaplings.R
 #' @include joinLocEvent.R
-#' @title sumSapDBHDist: calculates DBH distribution of saplings
-#'
+#' @title sumSapDBHDist: sapling DBH distribution
 #'
 #' @importFrom dplyr arrange between case_when filter group_by mutate select summarize
 #' @importFrom magrittr %>%
 #' @importFrom stringr str_sub
 #'
-#' @description This function calculates DBH distribution of live saplings by 1cm size classes. Must run importData first.
+#' @description This function calculates DBH distribution of live saplings by 1cm size classes.
+#' Must run importData first.
 #'
 #' @param park Combine data from all parks or one or more parks at a time. Valid inputs:
 #' \describe{
