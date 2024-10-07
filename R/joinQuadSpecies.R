@@ -116,10 +116,10 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = as.numeric(format(Sy
 
 
   options(scipen = 100)
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # Prepare the quadrat data
-  tryCatch(quadspp <- get("QuadSpecies_MIDN", envir = env) %>%
+  tryCatch(quadspp <- get("QuadSpecies_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, SQQuadSum,
                     A2_SQ, A5_SQ, A8_SQ, AA_SQ, B2_SQ, B5_SQ, B8_SQ, BB_SQ,
                     C2_SQ, C5_SQ, C8_SQ, CC_SQ, TSN, ScientificName,
@@ -127,7 +127,7 @@ joinQuadSpecies <- function(park = 'all', from = 2007, to = as.numeric(format(Sy
                     A2_txt, A5_txt, A8_txt, AA_txt, B2_txt, B5_txt, B8_txt, BB_txt,
                     C2_txt, C5_txt, C8_txt, CC_txt,
                     ConfidenceClassCode, IsCollected, QuadSppNote),
-           error = function(e){stop("QuadSpecies_MIDN view not found. Please import view.")})
+           error = function(e){stop("QuadSpecies_MIDN_NCBN view not found. Please import view.")})
 
   taxa_wide <- force(prepTaxa())
 
