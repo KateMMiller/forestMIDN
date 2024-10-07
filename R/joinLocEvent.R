@@ -93,15 +93,15 @@ joinLocEvent<-function(park = "all", from = 2007, to = as.numeric(format(Sys.Dat
   stopifnot(panels %in% c(1, 2, 3, 4))
   output <- match.arg(output, c("short", "verbose"))
 
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # Check if the views exist and stop if they don't
-  tryCatch(plots <- get("Plots_MIDN", envir = env),
-           error = function(e){stop("Plots_MIDN view not found. Please import views.")}
+  tryCatch(plots <- get("Plots_MIDN_NCBN", envir = env),
+           error = function(e){stop("Plots_MIDN_NCBN view not found. Please import views.")}
   )
 
-  tryCatch(events <- get("Events_MIDN", envir = env),
-           error = function(e){stop("Events_MIDN view not found. Please import views.")}
+  tryCatch(events <- get("Events_MIDN_NCBN", envir = env),
+           error = function(e){stop("Events_MIDN_NCBN view not found. Please import views.")}
   )
 
   # Merge COMN_Plots and COMN_Events

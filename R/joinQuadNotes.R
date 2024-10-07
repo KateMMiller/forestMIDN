@@ -85,23 +85,23 @@ joinQuadNotes <- function(park = 'all', from = 2007, to = as.numeric(format(Sys.
   eventType <- match.arg(eventType)
 
   options(scipen = 100)
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # Prepare quad datasets
-  tryCatch(quadspp <- get("QuadSpecies_MIDN", envir = env) %>%
+  tryCatch(quadspp <- get("QuadSpecies_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, ScientificName, QuadSppNote, IsCollected),
-           error = function(e){stop("QuadSpecies_MIDN view not found. Please import view.")})
+           error = function(e){stop("QuadSpecies_MIDN_NCBN view not found. Please import view.")})
 
-  tryCatch(quadseed <- get("QuadSeedlings_MIDN", envir = env) %>%
+  tryCatch(quadseed <- get("QuadSeedlings_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, QuadratCode, ScientificName, IsCollected,
                     SeedlingCoverNote),
-           error = function(e){stop("QuadSeedlings_MIDN view not found. Please import view.")})
+           error = function(e){stop("QuadSeedlings_MIDN_NCBN view not found. Please import view.")})
 
-  tryCatch(quadnotes <- get("QuadNotes_MIDN", envir = env) %>%
+  tryCatch(quadnotes <- get("QuadNotes_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, SQQuadCharCode, SQQuadCharNotes,
                     SQQuadSppNotes, SQSeedlingNotes, QuadratCode) %>%
              unique(),
-           error = function(e){stop("QuadNotes_MIDN view not found. Please import view.")})
+           error = function(e){stop("QuadNotes_MIDN_NCBN view not found. Please import view.")})
 
   # subset with EventID from plot_events to make function faster
   plot_events <- force(joinLocEvent(park = park, from = from , to = to, QAQC = QAQC,

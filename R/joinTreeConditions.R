@@ -113,20 +113,20 @@ joinTreeConditions <- function(park = 'all', from = 2007, to = as.numeric(format
   canopyPosition <- match.arg(canopyPosition)
   status <- match.arg(status)
 
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # Prepare the condition data
-  tryCatch(trcond_vw <- get("TreesConditions_MIDN", envir = env) %>%
+  tryCatch(trcond_vw <- get("TreesConditions_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, TagCode, TSN, ScientificName,
                     TreeStatusCode, BBDCode, HWACode, H:VINE), # whether condition is for Live/Dead/Both
 
-           error = function(e){stop("TreesConditions_MIDN view not found. Please import view.")})
+           error = function(e){stop("TreesConditions_MIDN_NCBN view not found. Please import view.")})
 
   # Prepare vine data. Don't care about species, just presence of vines
-  tryCatch(vine_vw <- get("TreesVine_MIDN", envir = env) %>%
+  tryCatch(vine_vw <- get("TreesVine_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, TagCode, VinePositionCode),
 
-           error = function(e){stop("TreesVine_MIDN view not found. Please import view.")})
+           error = function(e){stop("TreesVine_MIDN_NCBN view not found. Please import view.")})
 
   # subset with EventID from tree_events to make tree data as small as possible to speed up function
   tree_events <- force(joinTreeData(park = park, from = from , to = to, QAQC = QAQC,

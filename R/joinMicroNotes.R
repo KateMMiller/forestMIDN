@@ -76,15 +76,15 @@ joinMicroNotes <- function(park = 'all', from = 2007, to = as.numeric(format(Sys
 
   options(scipen = 100)
 
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
-  tryCatch(saps_vw <- get("MicroplotSaplings_MIDN", envir = env) %>%
+  tryCatch(saps_vw <- get("MicroplotSaplings_MIDN_NCBN", envir = env) %>%
              select(PlotID, EventID, MicroplotCode, TagCode, SQSaplingNotes, SaplingNote),
-           error = function(e){stop("MicroplotSaplings_MIDN view not found. Please import view.")})
+           error = function(e){stop("MicroplotSaplings_MIDN_NCBN view not found. Please import view.")})
 
-  tryCatch(shrubs_vw <- get("MicroplotShrubs_MIDN", envir = env) %>%
+  tryCatch(shrubs_vw <- get("MicroplotShrubs_MIDN_NCBN", envir = env) %>%
              select(PlotID, EventID, MicroplotCode, SQShrubNotes, ShrubNote),
-           error = function(e){stop("MicroplotShrubs_MIDN view not found. Please import view.")})
+           error = function(e){stop("MicroplotShrubs_MIDN_NCBN view not found. Please import view.")})
 
   plot_events <- joinLocEvent(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
                               locType = locType, eventType = eventType, output = 'verbose') %>%

@@ -95,7 +95,7 @@ joinVisitNotes <- function(park = 'all', from = 2007, to = as.numeric(format(Sys
   noteType <- match.arg(noteType)
 
   options(scipen = 100)
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # Plot and visit notes
   plot_events <- joinLocEvent(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
@@ -134,10 +134,10 @@ joinVisitNotes <- function(park = 'all', from = 2007, to = as.numeric(format(Sys
                       Notes = DisturbanceNote) %>% select(-DisturbanceNote, -DisturbanceSummary)
 
   # CWD notes
-  tryCatch(cwd <- get("CWD_MIDN", envir = env) %>%
+  tryCatch(cwd <- get("CWD_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, SampleYear, IsQAQC, TransectCode, SQTransectNotes, CWDNote) %>%
              filter(!(is.na(SQTransectNotes) & is.na(CWDNote))),
-           error = function(e){stop("CWD_MIDN view not found. Please import view.")}
+           error = function(e){stop("CWD_MIDN_NCBN view not found. Please import view.")}
   )
 
   cwd_long <- cwd %>% rename(CWD_Note = CWDNote) %>%
@@ -154,10 +154,10 @@ joinVisitNotes <- function(park = 'all', from = 2007, to = as.numeric(format(Sys
                        multiple = 'all')
 
   # Soils notes
-  tryCatch(soilhdr <- get("SoilHeader_MIDN", envir = env) %>%
+  tryCatch(soilhdr <- get("SoilHeader_MIDN_NCBN", envir = env) %>%
              select(PlotID, EventID, SampleYear, IsQAQC, SoilEventNote) %>%
              filter(!is.na(SoilEventNote)),
-           error = function(e){stop("SoilHeader_MIDN view not found. Please import view.")}
+           error = function(e){stop("SoilHeader_MIDN_NCBN view not found. Please import view.")}
   )
 
   soilhdr2 <- soilhdr %>% mutate(Note_Type = "Soil_Event",
@@ -166,10 +166,10 @@ joinVisitNotes <- function(park = 'all', from = 2007, to = as.numeric(format(Sys
     right_join(plot_events %>% select(PlotID, EventID, Plot_Name, SampleYear, IsQAQC),
                ., by = intersect(names(plot_events), names(.)))
 
-  tryCatch(soilsamp <- get("SoilSample_MIDN", envir = env) %>%
+  tryCatch(soilsamp <- get("SoilSample_MIDN_NCBN", envir = env) %>%
              select(PlotID, EventID, SampleYear, IsQAQC, SampleSequenceCode, Note) %>%
              filter(!is.na(Note)) %>% unique(),
-           error = function(e){stop("SoilSample_MIDN view not found. Please import view.")}
+           error = function(e){stop("SoilSample_MIDN_NCBN view not found. Please import view.")}
   )
 
   soilsamp2 <- soilsamp %>% mutate(Note_Type = "Soil_Sample",

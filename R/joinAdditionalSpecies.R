@@ -96,14 +96,14 @@ joinAdditionalSpecies <- function(park = 'all', from = 2007, to = as.numeric(for
   speciesType <- match.arg(speciesType)
 
   options(scipen = 100)
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # Prepare the quadrat data
-  tryCatch(addspp_vw <- get("AdditionalSpecies_MIDN", envir = env) %>%
+  tryCatch(addspp_vw <- get("AdditionalSpecies_MIDN_NCBN", envir = env) %>%
              select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear, IsQAQC,
                     SQAddSppCode, SQAddSppNotes, TSN, ScientificName, ConfidenceClassCode,
                     IsCollected, Note),
-           error = function(e){stop("AdditionalSpecies_MIDN view not found. Please import view.")})
+           error = function(e){stop("AdditionalSpecies_MIDN_NCBN view not found. Please import view.")})
 
   taxa_wide <- force(prepTaxa())
 

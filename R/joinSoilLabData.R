@@ -84,18 +84,18 @@ joinSoilLabData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALSE, 
   locType <- match.arg(locType)
   layer <- match.arg(layer)
 
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # Prepare the soil data
-  tryCatch(soilhd_vw <- get("SoilHeader_MIDN", envir = env) %>%
+  tryCatch(soilhd_vw <- get("SoilHeader_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode,
                     SampleYear, SampleDate, IsQAQC, SampleTypeCode, PositionCode, HorizonCode,
                     SoilEventNote, IsArchived) %>%
              filter(SampleYear > 2006
              ),
-           error = function(e){stop("SoilHeader_MIDN view not found. Please import view.")})
+           error = function(e){stop("SoilHeader_MIDN_NCBN view not found. Please import view.")})
 
-  tryCatch(soillab_vw <- get("SoilLab_MIDN", envir = env) %>%
+  tryCatch(soillab_vw <- get("SoilLab_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear,
                     SampleDate, IsQAQC, LabLayer, LabDateSoilCollected, UMOSample:ECEC, LabNotes,
                     EventID, PlotID) %>%
@@ -103,15 +103,15 @@ joinSoilLabData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALSE, 
              filter(LabLayer %in% c("10 cm", "10cm - NonVS", "A", "A - NonVS", "O", "O/A")) %>%
              filter(SampleYear > 2006
              ),
-           error = function(e){stop("SoilLab_MIDN view not found. Please import view.")})
+           error = function(e){stop("SoilLab_MIDN_NCBN view not found. Please import view.")})
 
-  tryCatch(soilsamp_vw <- get("SoilSample_MIDN", envir = env) %>%
+  tryCatch(soilsamp_vw <- get("SoilSample_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear,
                     SampleDate, IsQAQC, SQSoilCode, SampleSequenceCode, SoilLayerLabel,
                     Depth_cm, Note) %>%
              filter(SampleYear > 2006
              ),
-           error = function(e){stop("SoilSample_MIDN view not found. Please import view.")})
+           error = function(e){stop("SoilSample_MIDN_NCBN view not found. Please import view.")})
 
 
   # Prepare to pivot the soilsamp_vw layers wide (clean up after next migration)

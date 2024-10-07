@@ -78,24 +78,24 @@ joinSoilSampleData <- function(park = 'all', from = 2010, to = 2013, QAQC = FALS
   stopifnot(panels %in% c(1, 2, 3, 4))
   locType <- match.arg(locType)
 
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # Prepare the soil data
-  tryCatch(soilhd_vw <- get("SoilHeader_MIDN", envir = env) %>%
+  tryCatch(soilhd_vw <- get("SoilHeader_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear,
                     SampleDate, IsQAQC, SampleTypeCode, PositionCode, HorizonCode,
                     SoilEventNote, IsArchived) %>%
              filter(SampleYear > 2006
              ),
-           error = function(e){stop("SoilHeader_MIDN view not found. Please import view.")})
+           error = function(e){stop("SoilHeader_MIDN_NCBN view not found. Please import view.")})
 
-  tryCatch(soilsamp_vw <- get("SoilSample_MIDN", envir = env) %>%
+  tryCatch(soilsamp_vw <- get("SoilSample_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear,
                     SampleDate, IsQAQC, SQSoilCode, SampleSequenceCode, SoilLayerLabel,
                     Depth_cm, Note) %>%
              filter(SampleYear > 2006 & !is.na(SoilLayerLabel)
              ),
-           error = function(e){stop("SoilSample_MIDN view not found. Please import view.")})
+           error = function(e){stop("SoilSample_MIDN_NCBN view not found. Please import view.")})
 
   # Pull in the soil lab data with QCed horizons
   # From is 2010, so doesn't fail if no lab data exist for a given year

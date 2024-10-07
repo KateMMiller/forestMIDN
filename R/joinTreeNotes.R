@@ -75,12 +75,12 @@ joinTreeNotes <- function(park = 'all', from = 2007, to = as.numeric(format(Sys.
   eventType <- match.arg(eventType)
 
   options(scipen = 100)
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
-  tryCatch(tree_vw <- get("TreesByEvent_MIDN", envir = env) %>%
+  tryCatch(tree_vw <- get("TreesByEvent_MIDN_NCBN", envir = env) %>%
              select(PlotID, EventID, TagCode, TreeEventNote) %>%
              filter(!is.na(TreeEventNote)),
-           error = function(e){stop("TreesByEvent_MIDN view not found. Please import view.")}
+           error = function(e){stop("TreesByEvent_MIDN_NCBN view not found. Please import view.")}
   )
 
   plot_events <- joinLocEvent(park = park, from = from, to = to, QAQC = QAQC, panels = panels,

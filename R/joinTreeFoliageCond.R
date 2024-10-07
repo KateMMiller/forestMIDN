@@ -105,15 +105,15 @@ joinTreeFoliageCond <- function(park = 'all', from = 2007, to = as.numeric(forma
   canopyPosition <- match.arg(canopyPosition)
   valueType <- match.arg(valueType)
 
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # Prepare the foliage data
-  tryCatch(foliage_vw <- get("TreesFoliageCond_MIDN", envir = env) %>%
+  tryCatch(foliage_vw <- get("TreesFoliageCond_MIDN_NCBN", envir = env) %>%
                          select(Plot_Name, PlotID, EventID, ParkUnit, PlotCode,
                                 SampleYear, IsQAQC, TagCode, TreeStatusCode,
                                 FoliageConditionCode, PercentLeavesCode, PercentLeavesLabel,
                                 PercentLeafAreaCode, PercentLeafAreaLabel),
-           error = function(e){stop("TreeFoliageCond_MIDN view not found. Please import view.")})
+           error = function(e){stop("TreeFoliageCond_MIDN_NCBN view not found. Please import view.")})
 
   # subset with EventID from tree_events to make tree data as small as possible to speed up function
   tree_events <- force(joinTreeData(park = park, from = from , to = to, QAQC = QAQC,

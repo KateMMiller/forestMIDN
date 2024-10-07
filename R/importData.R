@@ -1,7 +1,7 @@
 #' @title importData: Import views directly from MIDN forest database
 #'
 #' @description This function imports all views in the ANALYSIS schema of the MIDN_Forest backend. Each view
-#' is added to a VIEWS_MIDN environment in your workspace, or to your global environment based on whether
+#' is added to a VIEWS_MIDN_NCBN environment in your workspace, or to your global environment based on whether
 #' new_env = TRUE or FALSE. You must have the latest ODBC SQL driver installed for this function to
 #' work. It can be downloaded from: https://go.microsoft.com/fwlink/?linkid=2168524
 #'
@@ -18,13 +18,13 @@
 #' address to connect to the main database. If connecting to the local instance, leave blank.
 #'
 #' @param new_env Logical. Specifies which environment to store views in. If \code{TRUE}(Default), stores
-#' views in VIEWS_MIDN environment. If \code{FALSE}, stores views in global environment
+#' views in VIEWS_MIDN_NCBN environment. If \code{FALSE}, stores views in global environment
 #'
 #' @param name Character. Specifies the name of the database. Default is "MIDN_Forest"
 #'
 #' @examples
 #' \dontrun{
-#' # Import using default settings of local instance, server = 'localhost' and add VIEWS_MIDN environment
+#' # Import using default settings of local instance, server = 'localhost' and add VIEWS_MIDN_NCBN environment
 #' importData()
 #'
 #' # Import using computer name (# should be real numbers)
@@ -108,21 +108,21 @@ importData <- function(instance = c("local", "server"), server = "localhost", na
   view_list <- lapply(seq_along(view_list_db), function(x){
     paste0(substr(view_list_db[[x]], 1,
                   nchar(view_list_db[[x]]) - 5),
-           "_MIDN")
+           "_MIDN_NCBN")
   })
 
   view_import <- setNames(view_import, view_list)
 
 
   if(new_env == TRUE){
-    VIEWS_MIDN <<- new.env()
-    list2env(view_import, envir = VIEWS_MIDN)
+    VIEWS_MIDN_NCBN <<- new.env()
+    list2env(view_import, envir = VIEWS_MIDN_NCBN)
   } else {
     list2env(view_import, envir = .GlobalEnv)}
 
-  # Add Lat/Long to Plots_MIDN
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
-  plots <- get("Plots_MIDN", envir = env)
+  # Add Lat/Long to Plots_MIDN_NCBN
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
+  plots <- get("Plots_MIDN_NCBN", envir = env)
 
   plots_sf18 <- plots |> filter(ZoneCode == "18N") |>
     select(Plot_Name, xCoordinate, yCoordinate) |>
@@ -146,10 +146,10 @@ importData <- function(instance = c("local", "server"), server = "localhost", na
 
   plot_wgs <- left_join(plots, plots_wgs1, by = "Plot_Name")
 
-  if(new_env == TRUE){VIEWS_MIDN$Plots_MIDN <- plot_wgs
-  } else Plots_MIDN <- plotwgs
+  if(new_env == TRUE){VIEWS_MIDN_NCBN$Plots_MIDN_NCBN <- plot_wgs
+  } else Plots_MIDN_NCBN <- plotwgs
 
-  print(ifelse(new_env == TRUE, paste0("Import complete. Views are located in VIEWS_MIDN environment."),
+  print(ifelse(new_env == TRUE, paste0("Import complete. Views are located in VIEWS_MIDN_NCBN environment."),
                paste0("Import complete. Views are located in global environment.")), quote = FALSE)
 
 }

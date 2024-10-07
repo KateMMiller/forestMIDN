@@ -115,13 +115,13 @@ joinMicroShrubData <- function(park = 'all', from = 2007, to = as.numeric(format
 
   options(scipen = 100) # for TSNs
 
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # Prepare the shrub data
-  tryCatch(shrubs <- get("MicroplotShrubs_MIDN", envir = env) %>%
+  tryCatch(shrubs <- get("MicroplotShrubs_MIDN_NCBN", envir = env) %>%
              select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear, IsQAQC, SQShrubCode,
                     MicroplotCode, TSN, ScientificName, CoverClassCode, CoverClassLabel),
-           error = function(e){stop("MicroplotShrubs_MIDN view not found. Please import view.")})
+           error = function(e){stop("MicroplotShrubs_MIDN_NCBN view not found. Please import view.")})
 
   taxa_wide <- force(prepTaxa())
 

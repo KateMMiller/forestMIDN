@@ -1,13 +1,13 @@
 #' @title importCSV: Import MIDN forest data that are formatted as .csv files.
 #'
 #' @description This function imports all views in the ANALYSIS schema of the MIDN_Forest backend that have been
-#' previously exported as .csvs or a zip file using the exportCSV() function. Each view is added to a VIEWS_MIDN
+#' previously exported as .csvs or a zip file using the exportCSV() function. Each view is added to a VIEWS_MIDN_NCBN
 #' environment in your workspace, or to your global environment based on whether new_env = TRUE or FALSE.
 #'
 #' @param path Quoted path of folder containing tables.
 #'
 #' @param new_env Logical. Specifies which environment to store views in. If \code{TRUE}(Default), stores
-#' views in VIEWS_MIDN environment. If \code{FALSE}, stores views in global environment
+#' views in VIEWS_MIDN_NCBN environment. If \code{FALSE}, stores views in global environment
 #'
 #' @param zip_name Quoted string ending in .zip. If specified, function looks for the specified file name and
 #' imports .csvs from the zip file. If not specified, function looks for and imports individual csvs. Note that
@@ -20,7 +20,7 @@
 #' # Import individual csvs into global environment
 #' importCSV(path = "C:/Forest_Health/exports/MIDN", new_env = FALSE)
 #'
-#' # Import zipped csvs into VIEWS_MIDN environment
+#' # Import zipped csvs into VIEWS_MIDN_NCBN environment
 #' path <- "C:/Forest_Health/exports/MIDN"
 #' importCSV(path = path, zip_name = "MIDN_Forest_20210409.zip")
 #' }
@@ -37,13 +37,13 @@ importCSV<- function(path = NA, new_env = TRUE, zip_name = NA){
 
   options(scipen = 100) # For TSNs
 
-  view_list <- c("AdditionalSpecies_MIDN", "CWD_MIDN", "EventObservers_MIDN", "Events_MIDN",
-                 "MicroplotSaplings_MIDN", "MicroplotShrubs_MIDN", "Plots_MIDN",
-                 "QuadCharacter_MIDN", "QuadNotes_MIDN", "QuadSeedlings_MIDN", "QuadSpecies_MIDN",
-                 "SoilHeader_MIDN", "SoilLab_MIDN", "SoilSample_MIDN", "StandDisturbances_MIDN",
-                 "StandForestFloor_MIDN", "StandInfoPhotos_MIDN", "StandPlantCoverStrata_MIDN",
-                 "StandSlopes_MIDN", "StandTreeHeights_MIDN", "Taxa_MIDN", "TreesByEvent_MIDN",
-                 "TreesConditions_MIDN", "TreesFoliageCond_MIDN", "TreesVine_MIDN")
+  view_list <- c("AdditionalSpecies_MIDN_NCBN", "CWD_MIDN_NCBN", "EventObservers_MIDN_NCBN", "Events_MIDN_NCBN",
+                 "MicroplotSaplings_MIDN_NCBN", "MicroplotShrubs_MIDN_NCBN", "Plots_MIDN_NCBN",
+                 "QuadCharacter_MIDN_NCBN", "QuadNotes_MIDN_NCBN", "QuadSeedlings_MIDN_NCBN", "QuadSpecies_MIDN_NCBN",
+                 "SoilHeader_MIDN_NCBN", "SoilLab_MIDN_NCBN", "SoilSample_MIDN_NCBN", "StandDisturbances_MIDN_NCBN",
+                 "StandForestFloor_MIDN_NCBN", "StandInfoPhotos_MIDN_NCBN", "StandPlantCoverStrata_MIDN_NCBN",
+                 "StandSlopes_MIDN_NCBN", "StandTreeHeights_MIDN_NCBN", "Taxa_MIDN_NCBN", "TreesByEvent_MIDN_NCBN",
+                 "TreesConditions_MIDN_NCBN", "TreesFoliageCond_MIDN_NCBN", "TreesVine_MIDN_NCBN")
 
   # Make sure zip file exists and all the views are included
   if(!is.na(zip_name)){
@@ -88,14 +88,14 @@ importCSV<- function(path = NA, new_env = TRUE, zip_name = NA){
   view_import <- setNames(view_import, files)
 
   if(new_env == TRUE){
-    VIEWS_MIDN <<- new.env()
-    list2env(view_import, envir = VIEWS_MIDN)
+    VIEWS_MIDN_NCBN <<- new.env()
+    list2env(view_import, envir = VIEWS_MIDN_NCBN)
   } else {
     list2env(view_import, envir = .GlobalEnv)}
 
   close(pb)
 
-  print(ifelse(new_env == TRUE, paste0("Import complete. Views are located in VIEWS_MIDN environment."),
+  print(ifelse(new_env == TRUE, paste0("Import complete. Views are located in VIEWS_MIDN_NCBN environment."),
                paste0("Import complete. Views are located in global environment.")), quote = FALSE)
 
 }

@@ -118,15 +118,15 @@ joinQuadSeedlings <- function(park = 'all', from = 2007, to = as.numeric(format(
   canopyForm <- match.arg(canopyForm)
 
   options(scipen = 100)
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # Prepare the quadrat data
-  tryCatch(seeds_vw <- get("QuadSeedlings_MIDN", envir = env) %>%
+  tryCatch(seeds_vw <- get("QuadSeedlings_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, SQSeedlingCode, SQSeedlingNotes, QuadratCode,
                     TSN, ScientificName, Seedlings_15_30cm, Seedlings_30_100cm,
                     Seedlings_100_150cm, Seedlings_Above_150cm, CoverClassCode,
                     CoverClassLabel, BrowsedCount, IsCollected, SeedlingCoverNote),
-           error = function(e){stop("QuadSeedlings_MIDN view not found. Please import view.")})
+           error = function(e){stop("QuadSeedlings_MIDN_NCBN view not found. Please import view.")})
 
   taxa_wide <- force(prepTaxa())
 

@@ -58,9 +58,9 @@ exportNPSForVeg <- function(export = T, path = NA, zip = F, keep = T){
     stop("Package 'zip' needed to export to zip file. Please install it.", call. = FALSE)
   }
 
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
-  tryCatch(test <- get("Events_MIDN", envir = env),
+  tryCatch(test <- get("Events_MIDN_NCBN", envir = env),
            error = function(e){stop("MIDN Forest Views not found. Please import views first.")})
 
   # Error handling for path
@@ -132,14 +132,14 @@ exportNPSForVeg <- function(export = T, path = NA, zip = F, keep = T){
            SampleYear, IsQAQC)
 
   # Need cover codes instead of text/midpoints
-  stand_und <- VIEWS_MIDN$StandPlantCoverStrata_MIDN |>
+  stand_und <- VIEWS_MIDN_NCBN$StandPlantCoverStrata_MIDN_NCBN |>
     mutate(Strata1 = gsub("-understory", "", StrataLabel),
            Strata = gsub("Ground", "Low", Strata1)) |>
     select(Plot_Name, SampleYear, IsQAQC, Strata, CoverClassCode) |>
     pivot_wider(names_from = "Strata", values_from = "CoverClassCode",
                 names_prefix = "Groundstory_Cover_Class_") |> unique()
 
-  stand_ff <- VIEWS_MIDN$StandForestFloor_MIDN |>
+  stand_ff <- VIEWS_MIDN_NCBN$StandForestFloor_MIDN_NCBN |>
     mutate(label = gsub(" ", "_", ForestFloorLabel)) |>
     select(Plot_Name, SampleYear, IsQAQC, label, CoverClassCode) |>
     pivot_wider(names_from = label, values_from = CoverClassCode) |>
@@ -148,7 +148,7 @@ exportNPSForVeg <- function(export = T, path = NA, zip = F, keep = T){
            Forest_Floor_Rock_Cover_Class_ID = Rock,
            Forest_Floor_Trampled_Cover_Class_ID = Trampled) |> unique()
 
-  stand_dbi <- VIEWS_MIDN$StandInfoPhotos_MIDN |>
+  stand_dbi <- VIEWS_MIDN_NCBN$StandInfoPhotos_MIDN_NCBN |>
     select(Plot_Name, SampleYear, IsQAQC, Deer_Browse_Line_ID = DeerBrowseCode)
 
   ev_comb1 <- left_join(events1, numquads, by = c("Plot_Name", "SampleYear", "IsQAQC"))
@@ -297,7 +297,7 @@ exportNPSForVeg <- function(export = T, path = NA, zip = F, keep = T){
            Vine, Exotic, Graminoid, Fern_Ally = FernAlly) |>
     arrange(Latin_Name)
 
-  plants_code <- VIEWS_MIDN$Taxa_MIDN |> select(TSN, TaxonCode)
+  plants_code <- VIEWS_MIDN_NCBN$Taxa_MIDN_NCBN |> select(TSN, TaxonCode)
   plants <- left_join(plants1, plants_code, by = "TSN")
   x <- x + 1
   setTxtProgressBar(pb, x)
@@ -497,7 +497,7 @@ exportNPSForVeg <- function(export = T, path = NA, zip = F, keep = T){
 
       file_list <- list.files(tmp)
 
-      zip::zipr(zipfile = paste0(pathn, "NPSForVeg_MIDN_", format(Sys.Date(), "%Y%m%d"), ".zip"),
+      zip::zipr(zipfile = paste0(pathn, "NPSForVeg_MIDN_NCBN_", format(Sys.Date(), "%Y%m%d"), ".zip"),
                 root = tmp,
                 files = file_list)
     }
