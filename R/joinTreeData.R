@@ -130,23 +130,23 @@ joinTreeData <- function(park = 'all', from = 2007, to = as.numeric(format(Sys.D
   speciesType <- match.arg(speciesType)
 
 
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # Prepare the tree data
-  tryCatch(tree_vw <- get("TreesByEvent_MIDN", envir = env) %>%
+  tryCatch(tree_vw <- get("TreesByEvent_MIDN_NCBN", envir = env) %>%
                       select(Plot_Name, PlotID, EventID, TagCode, TaxonID, TSN,
                              ScientificName, Fork, Azimuth, Distance, DBHcm, IsDBHVerified,
                              IsDBHUnusual, TreeStatusCode, CrownClassCode, CrownClassLabel,
                              DecayClassCode, HWACode, BBDCode, TreeEventNote),
 
-           error = function(e){stop("TreesByEvent_MIDN view not found. Please import view.")}
+           error = function(e){stop("TreesByEvent_MIDN_NCBN view not found. Please import view.")}
   )
 
-  tryCatch(foliage_vw <- get("TreesFoliageCond_MIDN", envir = env) %>%
+  tryCatch(foliage_vw <- get("TreesFoliageCond_MIDN_NCBN", envir = env) %>%
                          select(Plot_Name, PlotID, EventID, TagCode, TotalFoliageConditionCode,
                                 TotalFoliageConditionLabel) %>%
                          unique(),
-           error = function(e){stop("TreeFoliageCond_MIDN view not found. Please import view.")})
+           error = function(e){stop("TreeFoliageCond_MIDN_NCBN view not found. Please import view.")})
 
   taxa_wide <- prepTaxa()
 
