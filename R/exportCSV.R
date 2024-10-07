@@ -100,7 +100,7 @@ exportCSV<- function(path = NA, zip = FALSE){
 
     file_list <- list.files(tmp)
 
-    zip::zipr(zipfile = paste0(pathn, "MIDN_Forest_", format(Sys.Date(), "%Y%m%d"), ".zip"),
+    zip::zipr(zipfile = paste0(pathn, "MIDN_NCBN_Forest_", format(Sys.Date(), "%Y%m%d"), ".zip"),
               root = tmp,
               files = file_list)
     # csvs will be deleted as soon as R session is closed b/c tempfile
