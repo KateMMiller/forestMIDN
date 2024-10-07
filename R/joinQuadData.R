@@ -92,22 +92,22 @@ joinQuadData <- function(park = 'all', from = 2007, to = as.numeric(format(Sys.D
   valueType <- match.arg(valueType)
 
 
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # Prepare the quad data
-  tryCatch(quadchar <- get("QuadCharacter_MIDN", envir = env) %>%
+  tryCatch(quadchar <- get("QuadCharacter_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, CharacterSortOrder, CharacterCode, CharacterLabel,
              A2_SQ, A5_SQ, A8_SQ, AA_SQ, B2_SQ, B5_SQ, B8_SQ, BB_SQ, C2_SQ, C5_SQ, C8_SQ, CC_SQ,
              A2, A5, A8, AA, B2, B5, B8, BB, C2, C5, C8, CC,
              A2_txt, A5_txt, A8_txt, AA_txt, B2_txt, B5_txt, B8_txt, BB_txt, C2_txt, C5_txt,
              C8_txt, CC_txt),
-           error = function(e){stop("QuadCharacter_MIDN view not found. Please import view.")}
+           error = function(e){stop("QuadCharacter_MIDN_NCBN view not found. Please import view.")}
   )
 
   # Need to pull in IsTrampled
-  tryCatch(quadnotes <- get("QuadNotes_MIDN", envir = env) %>%
+  tryCatch(quadnotes <- get("QuadNotes_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, QuadratCode, IsTrampled),
-           error = function(e){stop("QuadNotes_MIDN view not found. Please import view.")}
+           error = function(e){stop("QuadNotes_MIDN_NCBN view not found. Please import view.")}
   )
 
   # subset with EventID from plot_events to make function faster
