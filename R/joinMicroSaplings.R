@@ -114,15 +114,15 @@ joinMicroSaplings <- function(park = 'all', from = 2007, to = as.numeric(format(
   status <- match.arg(status)
 
   options(scipen = 100)
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # Prepare the microplot data
-  tryCatch(saps_vw <- get("MicroplotSaplings_MIDN", envir = env) %>%
+  tryCatch(saps_vw <- get("MicroplotSaplings_MIDN_NCBN", envir = env) %>%
              select(PlotID, EventID, ParkUnit, ParkSubUnit, PlotCode, SampleYear, SampleDate,
                     IsQAQC, SQSaplingCode,
                     MicroplotCode, TSN, ScientificName, TagCode, Fork, SaplingStatusCode, DBHcm,
                     IsDBHVerified, SaplingNote),
-           error = function(e){stop("MicroplotSaplings_MIDN view not found. Please import view.")})
+           error = function(e){stop("MicroplotSaplings_MIDN_NCBN view not found. Please import view.")})
 
   taxa_wide <- force(prepTaxa())
 
