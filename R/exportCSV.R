@@ -40,16 +40,16 @@ exportCSV<- function(path = NA, zip = FALSE){
   options(scipen = 100) # For TSNs
 
   # Make sure all the views are loaded. If anything is missing, function stops.
-  view_list <- c("AdditionalSpecies_MIDN", "CWD_MIDN", "EventObservers_MIDN", "Events_MIDN",
-                 "MicroplotSaplings_MIDN", "MicroplotShrubs_MIDN", "Plots_MIDN",
-                 "QuadCharacter_MIDN", "QuadNotes_MIDN", "QuadSeedlings_MIDN", "QuadSpecies_MIDN",
-                 "SoilHeader_MIDN", "SoilLab_MIDN", "SoilSample_MIDN", "StandDisturbances_MIDN",
-                 "StandForestFloor_MIDN", "StandInfoPhotos_MIDN", "StandPlantCoverStrata_MIDN",
-                 "StandSlopes_MIDN", "StandTreeHeights_MIDN", "Taxa_MIDN", "TreesByEvent_MIDN",
-                 "TreesConditions_MIDN", "TreesFoliageCond_MIDN", "TreesVine_MIDN")
+  view_list <- c("AdditionalSpecies_MIDN_NCBN", "CWD_MIDN_NCBN", "EventObservers_MIDN_NCBN", "Events_MIDN_NCBN",
+                 "MicroplotSaplings_MIDN_NCBN", "MicroplotShrubs_MIDN_NCBN", "Plots_MIDN_NCBN",
+                 "QuadCharacter_MIDN_NCBN", "QuadNotes_MIDN_NCBN", "QuadSeedlings_MIDN_NCBN", "QuadSpecies_MIDN_NCBN",
+                 "SoilHeader_MIDN_NCBN", "SoilLab_MIDN_NCBN", "SoilSample_MIDN_NCBN", "StandDisturbances_MIDN_NCBN",
+                 "StandForestFloor_MIDN_NCBN", "StandInfoPhotos_MIDN_NCBN", "StandPlantCoverStrata_MIDN_NCBN",
+                 "StandSlopes_MIDN_NCBN", "StandTreeHeights_MIDN_NCBN", "Taxa_MIDN_NCBN", "TreesByEvent_MIDN_NCBN",
+                 "TreesConditions_MIDN_NCBN", "TreesFoliageCond_MIDN_NCBN", "TreesVine_MIDN_NCBN")
 
 
-  files <- if(exists("VIEWS_MIDN")){ls(envir = VIEWS_MIDN)} else {ls()}
+  files <- if(exists("VIEWS_MIDN_NCBN")){ls(envir = VIEWS_MIDN_NCBN)} else {ls()}
 
   missing <- setdiff(view_list, files)
 
@@ -76,7 +76,7 @@ exportCSV<- function(path = NA, zip = FALSE){
   pb <- txtProgressBar(min = 0, max = length(view_list), style = 3)
 
   # Set up envir qualifier
-  if(exists("VIEWS_MIDN")){env = VIEWS_MIDN} else {env = .GlobalEnv}
+  if(exists("VIEWS_MIDN_NCBN")){env = VIEWS_MIDN_NCBN} else {env = .GlobalEnv}
 
   # Export files
   if(zip == FALSE){
