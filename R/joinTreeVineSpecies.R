@@ -99,20 +99,20 @@ joinTreeVineSpecies <- function(park = 'all', from = 2007, to = as.numeric(forma
   speciesType <- match.arg(speciesType)
   canopyPosition <- match.arg(canopyPosition)
 
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # Prepare the vine data
-  tryCatch(vine_vw <- get("TreesVine_MIDN", envir = env) %>%
+  tryCatch(vine_vw <- get("TreesVine_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, TagCode,
                     TreeTSN, TreeScientificName, TSN,
                     ScientificName, VinePositionCode) %>%
              unique(),
 
-           error = function(e){stop("TreesVine_MIDN view not found. Please import view.")})
+           error = function(e){stop("TreesVine_MIDN_NCBN view not found. Please import view.")})
 
-  # tryCatch(taxa <- subset(get("Taxa_MIDN", envir = env),
+  # tryCatch(taxa <- subset(get("Taxa_MIDN_NCBN", envir = env),
   #                         select = c(TaxonID, TSN, ScientificName, IsExotic)),
-  #          error = function(e){stop("Taxa_MIDN view not found. Please import view.")})
+  #          error = function(e){stop("Taxa_MIDN_NCBN view not found. Please import view.")})
 
   taxa <- prepTaxa() %>% select(TaxonID, TSN, ScientificName, Exotic, InvasiveMIDN)
 
