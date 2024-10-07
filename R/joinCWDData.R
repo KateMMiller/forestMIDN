@@ -87,15 +87,15 @@ joinCWDData <- function(park = 'all', from = 2007, to = as.numeric(format(Sys.Da
   stopifnot(panels %in% c(1, 2, 3, 4))
   output <- match.arg(output, c("short", "verbose"))
 
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # Prepare the CWD data
-  tryCatch(cwd <- get("CWD_MIDN", envir = env),
-           error = function(e){stop("CWD_MIDN view not found. Please import view.")}
+  tryCatch(cwd <- get("CWD_MIDN_NCBN", envir = env),
+           error = function(e){stop("CWD_MIDN_NCBN view not found. Please import view.")}
   )
 
-  tryCatch(slopes <- get("StandSlopes_MIDN", envir = env),
-           error = function(e){stop("StandSlopes_MIDN view not found. Please import view.")}
+  tryCatch(slopes <- get("StandSlopes_MIDN_NCBN", envir = env),
+           error = function(e){stop("StandSlopes_MIDN_NCBN view not found. Please import view.")}
   )
 
   cwd <- cwd[ , c("Plot_Name", "PlotID", "EventID", "Network", "ParkUnit", "ParkSubUnit",
