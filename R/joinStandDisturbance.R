@@ -88,14 +88,14 @@ joinStandDisturbance<- function(park = 'all', QAQC = FALSE, locType = c('VS', 'a
   stopifnot(panels %in% c(1, 2, 3, 4))
   output <- match.arg(output, c("short", "verbose"))
 
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # import the Stand Data views
-  tryCatch(sdist <- get("StandDisturbances_MIDN", envir = env) %>%
+  tryCatch(sdist <- get("StandDisturbances_MIDN_NCBN", envir = env) %>%
              select(Plot_Name, PlotID, EventID, DisturbanceCode,
                     DisturbanceSummary, ThresholdCode, ThresholdLabel, DisturbanceCoverClassCode,
                     DisturbanceCoverClassLabel, DisturbanceNote),
-           error = function(e){stop("StandDisturbances_MIDN view not found. Please import view.")}
+           error = function(e){stop("StandDisturbances_MIDN_NCBN view not found. Please import view.")}
   )
 
   plot_events <- joinLocEvent(park = park, from = from, to = to, QAQC = QAQC, panels = panels,
