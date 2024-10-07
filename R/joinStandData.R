@@ -89,36 +89,36 @@ joinStandData <- function(park = 'all', QAQC = FALSE, locType = c('VS', 'all'), 
   stopifnot(panels %in% c(1, 2, 3, 4))
   output <- match.arg(output, c("short", "verbose"))
 
-  env <- if(exists("VIEWS_MIDN")){VIEWS_MIDN} else {.GlobalEnv}
+  env <- if(exists("VIEWS_MIDN_NCBN")){VIEWS_MIDN_NCBN} else {.GlobalEnv}
 
   # import the Stand Data views
-  tryCatch(standinfo <- subset(get("StandInfoPhotos_MIDN", envir = env),
+  tryCatch(standinfo <- subset(get("StandInfoPhotos_MIDN_NCBN", envir = env),
                                select = c(Plot_Name, PlotID, EventID, CrownClosureCode,
                                           CrownClosureLabel, StandStructureCode, StandStructureLabel,
                                           DeerBrowseCode, WaterPlotCode, WaterPlotLabel, MicrotopographyCode,
                                           WeatherLabel, PhotoNotes, StandNotes)),
-           error = function(e){stop("StandInfoPhotos_MIDN view not found. Please import view.")}
+           error = function(e){stop("StandInfoPhotos_MIDN_NCBN view not found. Please import view.")}
   )
 
-  tryCatch(pstrata <- subset(get("StandPlantCoverStrata_MIDN", envir = env),
+  tryCatch(pstrata <- subset(get("StandPlantCoverStrata_MIDN_NCBN", envir = env),
                              select = c(Plot_Name, PlotID, EventID, StrataCode, CoverClassLabel)),
-           error = function(e){stop("StandPlantCoverStrata_MIDN view not found. Please import view.")}
+           error = function(e){stop("StandPlantCoverStrata_MIDN_NCBN view not found. Please import view.")}
   )
 
-  tryCatch(ffloor <- subset(get("StandForestFloor_MIDN", envir = env),
+  tryCatch(ffloor <- subset(get("StandForestFloor_MIDN_NCBN", envir = env),
                             select = c(Plot_Name, PlotID, EventID, ForestFloorCode, CoverClassLabel)),
-           error = function(e){stop("StandForestFloor_MIDN view not found. Please import view.")}
+           error = function(e){stop("StandForestFloor_MIDN_NCBN view not found. Please import view.")}
   )
 
-  tryCatch(treeht <- subset(get("StandTreeHeights_MIDN", envir = env),
+  tryCatch(treeht <- subset(get("StandTreeHeights_MIDN_NCBN", envir = env),
                             select = c(Plot_Name, PlotID, EventID, CrownClassCode, CrownClassLabel,
                                        TagCode, Height)),
-           error = function(e){stop("StandTreeHeights_MIDN view not found. Please import view.")}
+           error = function(e){stop("StandTreeHeights_MIDN_NCBN view not found. Please import view.")}
   )
 
-  tryCatch(slopes <- subset(get("StandSlopes_MIDN", envir = env),
+  tryCatch(slopes <- subset(get("StandSlopes_MIDN_NCBN", envir = env),
                             select = c(Plot_Name, PlotID, EventID, IsQAQC, SampleYear, PlotSlope)),
-           error = function(e){stop("StandSlopes_MIDN view not found. Please import view.")}
+           error = function(e){stop("StandSlopes_MIDN_NCBN view not found. Please import view.")}
   )
 
   # standinfo comes in as 1 row per visit, so don't need to reshape, but need to fix cover midpoints and rename
