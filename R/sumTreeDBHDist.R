@@ -5,7 +5,6 @@
 #'
 #' @importFrom dplyr all_of between case_when filter group_by mutate select summarize
 #' @importFrom magrittr %>%
-#' @importFrom stringr str_sub
 #'
 #' @description This function calculates DBH distribution by 10cm size classes. Must run importData first.
 #'
@@ -170,16 +169,19 @@ sumTreeDBHDist <- function(park = 'all', from = 2007, to = as.numeric(format(Sys
                              pivot_wider(names_from = size_class,
                                          values_from = dens,
                                          values_fill = 0,
-                                         names_glue = "dens_{str_sub(size_class, 2)}"),
+                                         names_glue = "dens_{substr(size_class, 2,
+                                                                   nchar(as.character(size_class)))}"),
                            'BA' = tree_dist %>% select(-dens) %>%
                              pivot_wider(names_from = size_class,
                                          values_from = BA,
                                          values_fill = 0,
-                                         names_glue = "BA_{str_sub(size_class, 2)}"),
+                                         names_glue = "BA_{substr(size_class, 2,
+                                                                   nchar(as.character(size_class)))}"),
                            'both' = tree_dist %>% pivot_wider(names_from = size_class,
                                                               values_from = c(dens, BA),
                                                               values_fill = 0,
-                                                              names_glue = "{.value}_{str_sub(size_class, 2)}")
+                                                              names_glue = "{.value}_{substr(size_class, 2,
+                                                                   nchar(as.character(size_class)))}")
   )
 
   # next few lines find if a size class is missing, and adds it later

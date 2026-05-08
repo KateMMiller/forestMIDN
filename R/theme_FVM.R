@@ -9,27 +9,34 @@
 #'
 #' @examples
 #' \dontrun{
+#' library(forestMIDN)
 #' importData()
-#'  size_dist <- ggplot(mean_dens, aes(x = size_class, y = stems_ha_mean))+
-#'      geom_bar(stat = 'identity', fill = 'CadetBlue', position = position_dodge())+
-#'      geom_errorbar(aes(ymin=stems_ha_mean-stems_ha_se, ymax=stems_ha_mean+stems_ha_se, x=size_class),
-#'                    color='DimGrey', width=0.2,position=position_dodge(0.9))+
-#'      facet_wrap(vars(cycle_fac), ncol=3, labeller=as_labeller(cycle_names))+
-#'      labs(x='Regeneration Size Distribution', y='stems/ha')+
-#'      scale_x_discrete(labels=c('15-30cm', '30-100cm', '100-150cm', '>150cm','1-10cm DBH'))+
-#'      theme_FVM()
-#'      }
 #'
+#' library(ggplot2)
+#'
+#'  dbh_dist <- sumTreeDBHDist(park = "GETT", status = "live", from = 2022, to = 2025) |>
+#'    tidyr::pivot_longer(cols = starts_with("dens"), names_to = "size_class", values_to = "density") |>
+#'    arrange(Plot_Name, SampleYear, size_class)
+#'
+#'  ggplot(dbh_dist, aes(x = size_class, y = density)) +
+#'         geom_bar(stat = 'identity', fill = 'dimgrey', position = position_dodge()) +
+#'         labs(x='Live tree DBH size classes (cm)', y='stems/ha') +
+#'         scale_x_discrete(labels=c('10 - 19.9', '20 - 29.9', '30 - 39.9', '40 - 49.9','50 - 59.9',
+#'                                   '60 - 69.9', '70 - 79.9', '80 - 89.9', '90 - 99.9', '100+')) +
+#'         theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
+#'         theme_FHM()
+#'
+#'}
 #' @export
 
 
 theme_FVM <- function(){theme(panel.grid.major = element_blank(),
                               panel.grid.minor = element_blank(),
-                              panel.background = element_rect(color = '#696969', fill = 'white', size = 0.4),
+                              panel.background = element_rect(color = '#696969', fill = 'white', linewidth = 0.4),
                               plot.background = element_blank(),
-                              strip.background = element_rect(color = '#696969', fill = 'grey90', size = 0.4),
+                              strip.background = element_rect(color = '#696969', fill = 'grey90', linewidth = 0.4),
                               legend.key = element_blank(),
-                              axis.line.x = element_line(color = "#696969", size = 0.4),
-                              axis.line.y = element_line(color = "#696969", size = 0.4),
-                              axis.ticks = element_line(color = "#696969", size = 0.4)
+                              axis.line.x = element_line(color = "#696969", linewidth = 0.4),
+                              axis.line.y = element_line(color = "#696969", linewidth = 0.4),
+                              axis.ticks = element_line(color = "#696969", linewidth = 0.4)
 )}
