@@ -1,4 +1,5 @@
 # forestMIDN
+<h3>This repo has been moved to <a href="https://github.com/DOI-NPS/forestMIDN">https://github.com/DOI-NPS/forestMIDN</a> and is no longer being developed at this location.</h3>
 
 <h3>Package for importing, joining and querying MIDN/NCBN forest data</h3>
 
